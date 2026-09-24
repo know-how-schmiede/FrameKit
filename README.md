@@ -8,7 +8,7 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Das Projekt befindet sich in der Planungsphase. Dieses Repository enthält derzeit den Projektplan und die ersten Branding-Grafiken. Die folgenden Funktionen beschreiben den geplanten Umfang; ein installierbares Add-in liegt noch nicht vor.
+Eine erste Integrationsdemo (**0.1.0**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen. Zum Laden und Testen siehe [Demo-Anleitung](docu/demo_installation.md). Die Prüfung im laufenden Fusion steht noch aus. Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
 ## Geplanter Funktionsumfang
 
@@ -59,6 +59,8 @@ Spätere Erweiterungen umfassen unter anderem weitere Rahmenformen, individuelle
 
 ## Dokumentation
 
+- [Änderungshistorie](docu/timeline.md) – bisherige Änderungen und aktueller Prüfstand.
+- [Demo installieren und testen](docu/demo_installation.md) – Dialog, Icons, Versionierung und Fusion-Prüfschritte.
 - [Projektplan](docu/projektplan_FrameKit.md) – vollständige Anforderungen, Konstruktionsregeln, Umsetzungsschritte und Abnahmekriterien.
 - [Branding und Grafikressourcen](images/README.md) – Informationen zu Logo, GitHub-Banner und Fusion-Befehlssymbolen (Englisch).
 - [English README](README.en.md) – englische Projektübersicht.

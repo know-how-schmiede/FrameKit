@@ -8,7 +8,7 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The project is in the planning phase. This repository currently contains the project plan and initial branding graphics. The features below describe the planned scope; an installable add-in is not yet available.
+A first integration demo (**0.1.0**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles. See the [demo installation and test guide](docu/demo_installation.md) (German). Verification inside Fusion is still pending. The features below describe the planned full scope.
 
 ## Planned features
 
@@ -59,6 +59,8 @@ Future extensions include additional frame shapes, custom crossmember positions,
 
 ## Documentation
 
+- [Change history](docu/timeline.md) (German) – implemented changes and current verification status.
+- [Demo installation and testing](docu/demo_installation.md) (German) – dialog, icons, versioning, and Fusion integration checks.
 - [Project plan](docu/projektplan_FrameKit.md) (German) – full requirements, design rules, implementation steps, and acceptance criteria.
 - [Branding and graphic assets](images/README.md) – details about the logo, GitHub banner, and Fusion command icons.
 - [German README](README.md) – German project overview.

@@ -1,158 +1,166 @@
+﻿"""FrameKit integration demo: one native Fusion command with three tabs."""
+import html
+from pathlib import Path
 import adsk.core
-import os
+import adsk.fusion
+from ... import config, demo, settings
+from ...geometry import create_frame
+from ...version import __version__
 from ...lib import fusionAddInUtils as futil
-from ... import config
-app = adsk.core.Application.get()
-ui = app.userInterface
 
-
-# TODO *** Specify the command identity information. ***
-CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_cmdDialog'
-CMD_NAME = 'Command Dialog Sample'
-CMD_Description = 'A Fusion Add-in Command with a dialog'
-
-# Specify that the command will be promoted to the panel.
-IS_PROMOTED = True
-
-# TODO *** Define the location where the command button will be created. ***
-# This is done by specifying the workspace, the tab, and the panel, and the 
-# command it will be inserted beside. Not providing the command to position it
-# will insert it at the end.
+CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_CreateFrame'
 WORKSPACE_ID = 'FusionSolidEnvironment'
-PANEL_ID = 'SolidScriptsAddinsPanel'
-COMMAND_BESIDE_ID = 'ScriptsManagerCommand'
-
-# Resource location for command icons, here we assume a sub folder in this directory named "resources".
-ICON_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'resources', '')
-
-# Local list of event handlers used to maintain a reference so
-# they are not released and garbage collected.
-local_handlers = []
+PANEL_ID = 'SolidCreatePanel'
+RESOURCES = Path(__file__).resolve().parents[2] / 'resources'
+_handlers = []
+_dialog_handlers = []
 
 
-# Executed when add-in is run.
 def start():
-    # Create a command Definition.
-    cmd_def = ui.commandDefinitions.addButtonDefinition(CMD_ID, CMD_NAME, CMD_Description, ICON_FOLDER)
-
-    # Define an event handler for the command created event. It will be called when the button is clicked.
-    futil.add_handler(cmd_def.commandCreated, command_created)
-
-    # ******** Add a button into the UI so the user can run the command. ********
-    # Get the target workspace the button will be created in.
+    ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
+    panel = workspace.toolbarPanels.itemById(PANEL_ID) if workspace else None
+    if panel is None:
+        raise RuntimeError('Fusion-Bereich Volumenkörper / Erstellen nicht gefunden.')
+    stop()
+    definition = ui.commandDefinitions.addButtonDefinition(
+        CMD_ID, f'FrameKit {__version__}', 'Ein einfaches Demo-Gestell erstellen.',
+        str(RESOURCES / 'CreateFrame'))
+    futil.add_handler(definition.commandCreated, command_created, local_handlers=_handlers)
+    control = panel.controls.addCommand(definition)
+    control.isPromotedByDefault = True
+    control.isPromoted = True
 
-    # Get the panel the button will be created in.
-    panel = workspace.toolbarPanels.itemById(PANEL_ID)
 
-    # Create the button command control in the UI after the specified existing command.
-    control = panel.controls.addCommand(cmd_def, COMMAND_BESIDE_ID, False)
-
-    # Specify if the command is promoted to the main toolbar. 
-    control.isPromoted = IS_PROMOTED
-
-
-# Executed when add-in is stopped.
 def stop():
-    # Get the various UI elements for this command
+    ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
-    panel = workspace.toolbarPanels.itemById(PANEL_ID)
-    command_control = panel.controls.itemById(CMD_ID)
-    command_definition = ui.commandDefinitions.itemById(CMD_ID)
-
-    # Delete the button command control
-    if command_control:
-        command_control.deleteMe()
-
-    # Delete the command definition
-    if command_definition:
-        command_definition.deleteMe()
+    panel = workspace.toolbarPanels.itemById(PANEL_ID) if workspace else None
+    control = panel.controls.itemById(CMD_ID) if panel else None
+    if control:
+        control.deleteMe()
+    definition = ui.commandDefinitions.itemById(CMD_ID)
+    if definition:
+        definition.deleteMe()
+    _handlers.clear()
+    _dialog_handlers.clear()
 
 
-# Function that is called when a user clicks the corresponding button in the UI.
-# This defines the contents of the command dialog and connects to the command related events.
-def command_created(args: adsk.core.CommandCreatedEventArgs):
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Command Created Event')
+def command_created(args):
+    app = adsk.core.Application.get()
+    command = args.command
+    command.setDialogInitialSize(580, 800)
+    command.okButtonText = 'Ausführen'
+    inputs = command.commandInputs
+    values, warning = settings.load()
+    frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
+    frame_inputs = frame.children
+    frame_inputs.addTextBoxCommandInput('intro', '',
+        '<b>FrameKit Demo</b><br>Einfaches Gestell aus massiven Rechteckprofilen. '
+        'Keine Nutgeometrie, Verbinder oder Tragfähigkeitsberechnung.', 3, True)
+    fields = {}
+    for key, label in (('length', 'Länge'), ('width', 'Breite'),
+                       ('height', 'Höhe'), ('profile', 'Profilbreite')):
+        fields[key] = frame_inputs.addValueInput(key, label, 'mm',
+            adsk.core.ValueInput.createByString(f'{values[key]} mm'))
+    bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
+    create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
+    error = frame_inputs.addTextBoxCommandInput('validation', '', '', 2, True)
 
-    # https://help.autodesk.com/view/fusion360/ENU/?contextId=CommandInputs
-    inputs = args.command.commandInputs
+    manage = inputs.addTabCommandInput('settings_tab', 'Einstellungen verwalten',
+                                       str(RESOURCES / 'ProfileLibrary')).children
+    manage.addTextBoxCommandInput('settings_help', '',
+        'Die Werte aus „Frame erstellen“ können als persönliche Standardwerte gespeichert werden. '
+        'Zum reinen Speichern „Demo-Gestell erstellen“ abwählen. '
+        'Erst „Ausführen“ speichert; „Abbrechen“ verwirft die Änderungen.', 4, True)
+    persist = manage.addBoolValueInput('save_defaults', 'Als Standardwerte speichern', True, '', False)
+    reset = manage.addBoolValueInput('reset_defaults', 'Werkseinstellungen laden', False, '', False)
+    manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
+    manage.addTextBoxCommandInput('settings_status', '', html.escape(warning), 2, True)
 
-    # TODO Define the dialog for your command by adding different inputs to the command.
+    info = inputs.addTabCommandInput('info_tab', 'info').children
+    def info_text(identifier, text, rows):
+        control = info.addTextBoxCommandInput(identifier, '', text, rows, True)
+        control.isFullWidth = True
+        return control
 
-    # Create a simple text box input.
-    inputs.addTextBoxCommandInput('text_box', 'Some Text', 'Enter some text.', 1, False)
+    info_text('about_title', f'FrameKit {__version__}', 1)
+    logo = info.addImageCommandInput('about_logo', '', str(RESOURCES / 'FrameKit-Logo-240.png'))
+    logo.isFullWidth = True
+    info_text('about_description',
+        'FrameKit von Know-How-Schmiede erstellt Gestelle in Autodesk Fusion.<br>'
+        'Diese Integrationsdemo erzeugt einfache Rahmen aus Rechteckprofilen.', 3)
+    info_text('about_homepage',
+        'Tutorials zu Fusion und weitere Plugins für Fusion finden Sie auf der '
+        f'<a href="{config.HOMEPAGE_URL}">Homepage der Know-How-Schmiede</a>.<br>', 3)
+    info_text('about_source',
+        f'Der Quellcode kann im <a href="{config.PROJECT_URL}">GitHub-Repository</a> '
+        'eingesehen werden.<br>', 2)
+    info_text('about_releases',
+        f'Updates finden Sie unter <a href="{config.PROJECT_URL}/releases">'
+        'Releases im GitHub-Repository</a>.<br>', 2)
+    info_text('about_issues',
+        f'Fehler gefunden? Bitte unter <a href="{config.PROJECT_URL}/issues">'
+        'Issues im Repository</a> melden – mit Add-in-Version und Schritten zum Nachstellen.<br>', 3)
+    info_text('about_youtube',
+        'Gefällt Ihnen das Plugin? Dann lassen Sie gerne ein kostenloses YouTube-Abo bei '
+        f'<a href="{config.YOUTUBE_URL}">@knowhowschmiede</a> da.<br>', 3)
+    info_text('about_credits', f'{html.escape(config.AUTHOR)} · MIT-Lizenz', 1)
 
-    # Create a value input field and set the default using 1 unit of the default length unit.
-    defaultLengthUnits = app.activeProduct.unitsManager.defaultLengthUnits
-    default_value = adsk.core.ValueInput.createByString('1')
-    inputs.addValueInput('value_input', 'Some Value', defaultLengthUnits, default_value)
+    handlers = []
+    _dialog_handlers.append(handlers)
 
-    # TODO Connect to the events that are needed by this command.
-    futil.add_handler(args.command.execute, command_execute, local_handlers=local_handlers)
-    futil.add_handler(args.command.inputChanged, command_input_changed, local_handlers=local_handlers)
-    futil.add_handler(args.command.executePreview, command_preview, local_handlers=local_handlers)
-    futil.add_handler(args.command.validateInputs, command_validate_input, local_handlers=local_handlers)
-    futil.add_handler(args.command.destroy, command_destroy, local_handlers=local_handlers)
+    def read_values():
+        if any(not field.isValidExpression for field in fields.values()):
+            raise ValueError('Bitte gültige Längen eingeben.')
+        result = {key: field.value * 10 for key, field in fields.items()}
+        result['bottom'] = bottom.value
+        demo.validate(result)
+        return result
 
+    def validation_message():
+        try:
+            read_values()
+            if create.value and not adsk.fusion.Design.cast(app.activeProduct):
+                return 'Zum Erstellen bitte ein Fusion-Konstruktionsdokument öffnen.'
+            return ''
+        except ValueError as exc:
+            return str(exc)
 
-# This event handler is called when the user clicks the OK button in the command dialog or 
-# is immediately called after the created event not command inputs were created for the dialog.
-def command_execute(args: adsk.core.CommandEventArgs):
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Command Execute Event')
+    def validate(event):
+        message = validation_message()
+        error.text = message
+        event.areInputsValid = not bool(message)
 
-    # TODO ******************************** Your code here ********************************
+    def changed(event):
+        if event.input.id == reset.id and reset.value:
+            for key, field in fields.items():
+                field.expression = f'{demo.DEFAULTS[key]} mm'
+            bottom.value = demo.DEFAULTS['bottom']
+            reset.value = False
+        error.text = validation_message()
 
-    # Get a reference to your command's inputs.
-    inputs = args.command.commandInputs
-    text_box: adsk.core.TextBoxCommandInput = inputs.itemById('text_box')
-    value_input: adsk.core.ValueCommandInput = inputs.itemById('value_input')
+    def execute(event):
+        try:
+            current = read_values()
+            if create.value:
+                design = adsk.fusion.Design.cast(app.activeProduct)
+                if not design:
+                    raise ValueError('Bitte ein Fusion-Konstruktionsdokument öffnen.')
+                create_frame(design, current)
+            if persist.value:
+                settings.save(current)
+        except Exception as exc:
+            event.executeFailed = True
+            event.executeFailedMessage = f'FrameKit: {exc}'
+            futil.handle_error('FrameKit ausführen')
 
-    # Do something interesting
-    text = text_box.text
-    expression = value_input.expression
-    msg = f'Your text: {text}<br>Your value: {expression}'
-    ui.messageBox(msg)
+    def destroy(event):
+        if handlers in _dialog_handlers:
+            _dialog_handlers.remove(handlers)
+        handlers.clear()
 
-
-# This event handler is called when the command needs to compute a new preview in the graphics window.
-def command_preview(args: adsk.core.CommandEventArgs):
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Command Preview Event')
-    inputs = args.command.commandInputs
-
-
-# This event handler is called when the user changes anything in the command dialog
-# allowing you to modify values of other inputs based on that change.
-def command_input_changed(args: adsk.core.InputChangedEventArgs):
-    changed_input = args.input
-    inputs = args.inputs
-
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Input Changed Event fired from a change to {changed_input.id}')
-
-
-# This event handler is called when the user interacts with any of the inputs in the dialog
-# which allows you to verify that all of the inputs are valid and enables the OK button.
-def command_validate_input(args: adsk.core.ValidateInputsEventArgs):
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Validate Input Event')
-
-    inputs = args.inputs
-    
-    # Verify the validity of the input values. This controls if the OK button is enabled or not.
-    valueInput = inputs.itemById('value_input')
-    if valueInput.value >= 0:
-        args.areInputsValid = True
-    else:
-        args.areInputsValid = False
-        
-
-# This event handler is called when the command terminates.
-def command_destroy(args: adsk.core.CommandEventArgs):
-    # General logging for debug.
-    futil.log(f'{CMD_NAME} Command Destroy Event')
-
-    global local_handlers
-    local_handlers = []
+    for event, callback in ((command.execute, execute), (command.inputChanged, changed),
+                            (command.validateInputs, validate), (command.destroy, destroy)):
+        futil.add_handler(event, callback, local_handlers=handlers)
+    error.text = validation_message()

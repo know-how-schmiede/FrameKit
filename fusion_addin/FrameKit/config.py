@@ -15,7 +15,11 @@ DEBUG = True
 # that need a unique name. It's also recommended to use a company name as 
 # part of the ID to better ensure the ID is unique.
 ADDIN_NAME = os.path.basename(os.path.dirname(__file__))
-COMPANY_NAME = 'ACME'
+COMPANY_NAME = 'KnowHowSchmiede'
+PROJECT_URL = 'https://github.com/know-how-schmiede/FrameKit'
+HOMEPAGE_URL = 'https://www.know-how-schmiede.de/'
+YOUTUBE_URL = 'https://www.youtube.com/@knowhowschmiede'
+AUTHOR = 'Rene Triebenstein'
 
 # Palettes
 sample_palette_id = f'{COMPANY_NAME}_{ADDIN_NAME}_palette_id'

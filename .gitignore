@@ -203,6 +203,12 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Fusion runtime sources, not build artifacts.
+!fusion_addin/FrameKit/FrameKit.manifest
+!fusion_addin/FrameKit/lib/
+!fusion_addin/FrameKit/lib/**/
+!fusion_addin/FrameKit/lib/**/*.py
+
 # Ruff stuff:
 .ruff_cache/
 

@@ -9,7 +9,7 @@ def run(context):
         commands.start()
 
     except:
-        futil.handle_error('run')
+        futil.handle_error('FrameKit starten', show_message_box=True)
 
 
 def stop(context):
