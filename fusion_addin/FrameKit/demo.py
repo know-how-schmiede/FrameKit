@@ -28,16 +28,13 @@ def shelf_heights(values):
     requested = values.get('shelf_heights', [])
     if not isinstance(requested, list) or len(requested) != count:
         raise ValueError('Für jeden Zwischenboden ist eine Höhe oder ein leerer Wert erforderlich.')
-    if count == 0:
-        return []
     p = values['profile']
     thickness = values.get('shelf_thickness', 18.0)
     if (isinstance(thickness, bool) or not isinstance(thickness, (int, float))
-            or not math.isfinite(thickness) or not 1 <= thickness <= p):
-        raise ValueError('Plattenstärke muss zwischen 1 mm und der Profilbreite liegen.')
-    # Plates are inset, flush with the top of their perimeter support frames.
-    lower = p if values['bottom'] else 0
-    upper = values['height'] - p
+            or not math.isfinite(thickness) or not 1 <= thickness <= 10000):
+        raise ValueError('Plattenstärke muss zwischen 1 und 10000 mm liegen.')
+    depth = p + thickness
+    lower = depth if values['bottom'] else 0
     anchors = [(-1, lower)]
     for index, height in enumerate(requested):
         if height is None:
@@ -46,40 +43,58 @@ def shelf_heights(values):
                 or not math.isfinite(height)):
             raise ValueError(f'Boden {index + 1}: ungültige Höhe.')
         anchors.append((index, height))
-    # Virtual final shelf: its underside is the underside of the upper frame.
-    anchors.append((count, upper + p))
+    # Top plate ends at the specified overall height, including its thickness.
+    anchors.append((count, values['height']))
     result = [None] * count
     for (left_index, left_top), (right_index, right_top) in zip(anchors, anchors[1:]):
         steps = right_index - left_index
-        gap = (right_top - left_top - steps * p) / steps
+        gap = (right_top - left_top - steps * depth) / steps
         if gap < -1e-7:
             raise ValueError('Zwischenböden überlappen oder liegen außerhalb des Gestells. '
                              'Höhen von unten nach oben angeben oder Anzahl reduzieren.')
         for index in range(left_index + 1, min(right_index + 1, count)):
-            result[index] = left_top + (index - left_index) * (p + gap)
+            result[index] = left_top + (index - left_index) * (depth + gap)
     return result
 
 
 def members(values):
-    """Return (name, origin, box dimensions) for non-overlapping members."""
+    """Return rectangular profile members; notched panels are separate."""
     validate(values)
     length, width, height, p = (values[k] for k in ('length', 'width', 'height', 'profile'))
     result = []
     for x, side in ((0, 'links'), (length - p, 'rechts')):
         for y, depth in ((0, 'vorne'), (width - p, 'hinten')):
             result.append((f'Pfosten {depth} {side}', (x, y, 0), (p, p, height)))
-    levels = [('oben', height - p)]
+    thickness = values.get('shelf_thickness', 18.0)
+    levels = [('oben', height - thickness - p)]
     if values['bottom']:
         levels.append(('unten', 0))
     heights = shelf_heights(values)
-    levels.extend((f'Boden {index:02d}', top - p) for index, top in enumerate(heights, 1))
+    levels.extend((f'Boden {index:02d}', top - thickness - p) for index, top in enumerate(heights, 1))
     for level, z in levels:
         for y, side in ((0, 'vorne'), (width - p, 'hinten')):
             result.append((f'Rahmen {level} {side}', (p, y, z), (length - 2*p, p, p)))
         for x, side in ((0, 'links'), (length - p, 'rechts')):
             result.append((f'Rahmen {level} {side}', (x, p, z), (p, width - 2*p, p)))
-    for index, top in enumerate(heights, 1):
-        thickness = values.get('shelf_thickness', 18.0)
-        result.append((f'Boden {index:02d} Platte', (p, p, top - thickness),
-                       (length - 2*p, width - 2*p, thickness)))
     return result
+
+
+def panel_outline(length, width, notch):
+    """Counterclockwise perimeter with four square post cutouts, in mm."""
+    return [(notch, 0), (length-notch, 0), (length-notch, notch),
+            (length, notch), (length, width-notch), (length-notch, width-notch),
+            (length-notch, width), (notch, width), (notch, width-notch),
+            (0, width-notch), (0, notch), (notch, notch)]
+
+
+def panels(values):
+    """Return (name, origin, bounding size) for a notched panel on every frame."""
+    validate(values)
+    thickness = values.get('shelf_thickness', 18.0)
+    levels = [('oben', values['height'])]
+    if values['bottom']:
+        levels.append(('unten', values['profile'] + thickness))
+    levels.extend((f'Boden {index:02d}', top)
+                  for index, top in enumerate(shelf_heights(values), 1))
+    return [(f'{name} Platte', (0, 0, top-thickness),
+             (values['length'], values['width'], thickness)) for name, top in levels]

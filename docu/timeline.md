@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 25.09.2026 – 0.1.3
+
+**Git-Zusammenfassung:** `feat: Aufliegende Bodenplatten mit Eckausklinkungen (0.1.3)`
+
+- Auf jedem Rahmen eine aufliegende Platte ergänzt, auch oben und auf dem optionalen unteren Rahmen.
+- Vier Eckausklinkungen für die Pfosten modelliert; Plattenstärke bei Höhen und automatischer Verteilung berücksichtigt.
+- Gesamthöhe einschließlich oberer Platte beibehalten; Version auf **0.1.3** erhöht.
+
+**Prüfstand:** 13 lokale Tests und Syntaxprüfung erfolgreich; Geometrie noch in Fusion zu prüfen.
+
+**Details:** [Bodenplatten und Zwischenböden](demo_installation.md#zwischenböden)
+
 ## 24.09.2026 – 0.1.2
 
 **Git-Zusammenfassung:** `feat: Zwischenböden mit optionalen Höhen ergänzen (0.1.2)`

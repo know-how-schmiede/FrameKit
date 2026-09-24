@@ -64,16 +64,18 @@ def command_created(args):
         fields[key] = frame_inputs.addValueInput(key, label, 'mm',
             adsk.core.ValueInput.createByString(f'{values[key]} mm'))
     bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
-    shelves = frame_inputs.addGroupCommandInput('shelves', 'Zwischenböden')
+    shelves = frame_inputs.addGroupCommandInput('shelves', 'Bodenplatten und Zwischenböden')
     shelves.isExpanded = True
     shelf_inputs = shelves.children
     count = shelf_inputs.addIntegerSpinnerCommandInput(
-        'shelf_count', 'Anzahl', 0, demo.MAX_SHELVES, 1, values['shelf_count'])
+        'shelf_count', 'Anzahl Zwischenböden', 0, demo.MAX_SHELVES, 1, values['shelf_count'])
     thickness = shelf_inputs.addValueInput('shelf_thickness', 'Plattenstärke', 'mm',
         adsk.core.ValueInput.createByString(f'{values["shelf_thickness"]} mm'))
     shelf_inputs.addTextBoxCommandInput('shelf_help', '',
         'Höhe = Oberkante Boden ab Unterseite Gestell. Von unten nach oben angeben. '
-        'Leer = automatisch gleichmäßige freie Abstände. Eingaben in mm, z. B. 250 oder 25 cm.', 3, True)
+        'Leer = automatisch gleichmäßige freie Abstände. Eingaben in mm, z. B. 250 oder 25 cm. '
+        'Auf jedem Rahmen liegt eine Platte mit Aussparungen für die Pfosten. '
+        'Gesamthöhe inklusive oberer Platte.', 5, True)
     height_fields = []
     for index in range(demo.MAX_SHELVES):
         saved = values['shelf_heights'][index] if index < count.value else None
@@ -81,7 +83,6 @@ def command_created(args):
             f'Boden {index + 1:02d} Höhe', '' if saved is None else f'{saved:g} mm')
         field.isVisible = index < count.value
         height_fields.append(field)
-    thickness.isVisible = count.value > 0
     resolved = shelf_inputs.addTextBoxCommandInput('shelf_resolved', '', '', 3, True)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
     error = frame_inputs.addTextBoxCommandInput('validation', '', '', 2, True)
@@ -135,10 +136,9 @@ def command_created(args):
         result = {key: field.value * 10 for key, field in fields.items()}
         result['bottom'] = bottom.value
         result['shelf_count'] = count.value
-        if count.value and not thickness.isValidExpression:
+        if not thickness.isValidExpression:
             raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
-        result['shelf_thickness'] = thickness.value if thickness.isValidExpression else 1.8
-        result['shelf_thickness'] *= 10
+        result['shelf_thickness'] = thickness.value * 10
         result['shelf_heights'] = []
         units = app.activeProduct.unitsManager if app.activeProduct else None
         for index, field in enumerate(height_fields[:count.value]):
@@ -182,7 +182,6 @@ def command_created(args):
             reset.value = False
         for index, field in enumerate(height_fields):
             field.isVisible = index < count.value
-        thickness.isVisible = count.value > 0
         error.text = validation_message()
 
     def execute(event):

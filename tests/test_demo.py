@@ -59,19 +59,20 @@ class DemoTests(unittest.TestCase):
         for bottom in (False, True):
             values = dict(demo.DEFAULTS, bottom=bottom, shelf_count=3, shelf_heights=[None]*3)
             heights = demo.shelf_heights(values)
-            lower = values['profile'] if bottom else 0
+            depth = values['profile'] + values['shelf_thickness']
+            lower = depth if bottom else 0
             gaps = []
             for top in heights:
-                gaps.append(top - values['profile'] - lower)
+                gaps.append(top - depth - lower)
                 lower = top
-            gaps.append(values['height'] - values['profile'] - lower)
+            gaps.append(values['height'] - depth - lower)
             for gap in gaps:
                 self.assertGreater(gap, 0)
                 self.assertAlmostEqual(gap, gaps[0])
 
     def test_custom_and_partially_automatic_heights(self):
         values = dict(demo.DEFAULTS, shelf_count=3, shelf_heights=[None, 400, None])
-        self.assertEqual(demo.shelf_heights(values), [220, 400, 575])
+        self.assertEqual(demo.shelf_heights(values), [229, 400, 575])
         values['shelf_heights'] = [200, 400, 600]
         self.assertEqual(demo.shelf_heights(values), [200, 400, 600])
 
@@ -79,11 +80,21 @@ class DemoTests(unittest.TestCase):
         for bottom in (False, True):
             values = dict(demo.DEFAULTS, bottom=bottom, shelf_count=2, shelf_heights=[None, None])
             parts = demo.members(values)
-            self.assertEqual(len(parts), (12 if bottom else 8) + 10)
-            plates = [part for part in parts if part[0].endswith('Platte')]
-            for plate, height in zip(plates, demo.shelf_heights(values)):
+            self.assertEqual(len(parts), (12 if bottom else 8) + 8)
+            plates = demo.panels(values)
+            self.assertEqual(len(plates), 4 if bottom else 3)
+            for plate, height in zip([part for part in plates if part[0].startswith('Boden')],
+                                     demo.shelf_heights(values)):
                 self.assertAlmostEqual(plate[1][2] + plate[2][2], height)
                 self.assertEqual(plate[2][2], 18)
+            # Decompose the notched footprint into three disjoint rectangles.
+            p = values['profile']
+            for name, origin, size in plates:
+                length, width, thickness = size
+                z = origin[2]
+                parts.extend([(name + ' Mitte', (p, 0, z), (length-2*p, width, thickness)),
+                              (name + ' links', (0, p, z), (p, width-2*p, thickness)),
+                              (name + ' rechts', (length-p, p, z), (p, width-2*p, thickness))])
             for first, second in itertools.combinations(parts, 2):
                 overlap = all(min(first[1][a] + first[2][a], second[1][a] + second[2][a])
                               - max(first[1][a], second[1][a]) > 1e-7 for a in range(3))
@@ -98,10 +109,45 @@ class DemoTests(unittest.TestCase):
         cases += [dict(shelf_count=2, shelf_heights=heights) for heights in
                   ([400, 300], [300, 300], [300, 320])]
         cases += [dict(shelf_count=1, shelf_heights=[300], shelf_thickness=t)
-                  for t in (0, 41, float('nan'), '18', True)]
+                  for t in (0, 10001, float('nan'), '18', True)]
         for case in cases:
             with self.subTest(case=case), self.assertRaises(ValueError):
                 demo.members(dict(demo.DEFAULTS, **case))
+
+    def test_notched_outline_area_and_corners(self):
+        length, width, p = 800, 500, 40
+        outline = demo.panel_outline(length, width, p)
+        edges = list(zip(outline, outline[1:] + outline[:1]))
+        area = sum(a[0]*b[1] - b[0]*a[1] for a, b in edges) / 2
+        self.assertEqual(area, length*width - 4*p*p)
+        self.assertEqual(len(set(outline)), 12)
+        for a, b in edges:
+            self.assertTrue((a[0] == b[0]) != (a[1] == b[1]))
+        for x, y in outline:
+            self.assertTrue(0 <= x <= length and 0 <= y <= width)
+            self.assertFalse((x < p or x > length-p) and (y < p or y > width-p))
+
+    def test_panel_on_each_frame_and_overall_height(self):
+        for bottom in (False, True):
+            for count in (0, 1, 3):
+                values = dict(demo.DEFAULTS, bottom=bottom, shelf_count=count,
+                              shelf_heights=[None]*count)
+                parts = demo.members(values)
+                plates = demo.panels(values)
+                self.assertEqual(len(plates), 1 + int(bottom) + count)
+                for name, origin, size in plates:
+                    level = name.removesuffix(' Platte')
+                    supports = [part for part in parts if part[0].startswith(f'Rahmen {level} ')]
+                    self.assertEqual(len(supports), 4)
+                    for _, support_origin, support_size in supports:
+                        self.assertAlmostEqual(support_origin[2] + support_size[2], origin[2])
+                    self.assertEqual(size[:2], (values['length'], values['width']))
+                self.assertEqual(max(part[1][2] + part[2][2] for part in plates), values['height'])
+
+    def test_thickness_checked_without_intermediate_shelves(self):
+        for thickness in (0, -1, 400, float('nan'), '18', True):
+            with self.subTest(thickness=thickness), self.assertRaises(ValueError):
+                demo.members(dict(demo.DEFAULTS, shelf_thickness=thickness))
 
     def test_settings_migrate_and_preserve_shelf_inputs(self):
         with tempfile.TemporaryDirectory() as folder:
