@@ -1,7 +1,9 @@
 """Fusion-independent demo layout; dimensions in millimeters."""
 import math
 
-DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True)
+MAX_SHELVES = 20
+DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True,
+                shelf_count=0, shelf_heights=[], shelf_thickness=18.0)
 
 
 def validate(values):
@@ -15,6 +17,47 @@ def validate(values):
         raise ValueError('Unterer Rahmen muss ein Wahrheitswert sein.')
     if min(values['length'], values['width'], values['height']) <= 2 * values['profile']:
         raise ValueError('Länge, Breite und Höhe müssen größer als zwei Profilbreiten sein.')
+    shelf_heights(values)
+
+
+def shelf_heights(values):
+    """Resolve optional shelf tops with equal clear gaps between fixed anchors."""
+    count = values.get('shelf_count', 0)
+    if isinstance(count, bool) or not isinstance(count, int) or not 0 <= count <= MAX_SHELVES:
+        raise ValueError(f'Anzahl der Zwischenböden muss zwischen 0 und {MAX_SHELVES} liegen.')
+    requested = values.get('shelf_heights', [])
+    if not isinstance(requested, list) or len(requested) != count:
+        raise ValueError('Für jeden Zwischenboden ist eine Höhe oder ein leerer Wert erforderlich.')
+    if count == 0:
+        return []
+    p = values['profile']
+    thickness = values.get('shelf_thickness', 18.0)
+    if (isinstance(thickness, bool) or not isinstance(thickness, (int, float))
+            or not math.isfinite(thickness) or not 1 <= thickness <= p):
+        raise ValueError('Plattenstärke muss zwischen 1 mm und der Profilbreite liegen.')
+    # Plates are inset, flush with the top of their perimeter support frames.
+    lower = p if values['bottom'] else 0
+    upper = values['height'] - p
+    anchors = [(-1, lower)]
+    for index, height in enumerate(requested):
+        if height is None:
+            continue
+        if (isinstance(height, bool) or not isinstance(height, (int, float))
+                or not math.isfinite(height)):
+            raise ValueError(f'Boden {index + 1}: ungültige Höhe.')
+        anchors.append((index, height))
+    # Virtual final shelf: its underside is the underside of the upper frame.
+    anchors.append((count, upper + p))
+    result = [None] * count
+    for (left_index, left_top), (right_index, right_top) in zip(anchors, anchors[1:]):
+        steps = right_index - left_index
+        gap = (right_top - left_top - steps * p) / steps
+        if gap < -1e-7:
+            raise ValueError('Zwischenböden überlappen oder liegen außerhalb des Gestells. '
+                             'Höhen von unten nach oben angeben oder Anzahl reduzieren.')
+        for index in range(left_index + 1, min(right_index + 1, count)):
+            result[index] = left_top + (index - left_index) * (p + gap)
+    return result
 
 
 def members(values):
@@ -28,9 +71,15 @@ def members(values):
     levels = [('oben', height - p)]
     if values['bottom']:
         levels.append(('unten', 0))
+    heights = shelf_heights(values)
+    levels.extend((f'Boden {index:02d}', top - p) for index, top in enumerate(heights, 1))
     for level, z in levels:
         for y, side in ((0, 'vorne'), (width - p, 'hinten')):
             result.append((f'Rahmen {level} {side}', (p, y, z), (length - 2*p, p, p)))
         for x, side in ((0, 'links'), (length - p, 'rechts')):
             result.append((f'Rahmen {level} {side}', (x, p, z), (p, width - 2*p, p)))
+    for index, top in enumerate(heights, 1):
+        thickness = values.get('shelf_thickness', 18.0)
+        result.append((f'Boden {index:02d} Platte', (p, p, top - thickness),
+                       (length - 2*p, width - 2*p, thickness)))
     return result

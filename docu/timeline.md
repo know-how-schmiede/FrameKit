@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 24.09.2026 – 0.1.2
+
+**Git-Zusammenfassung:** `feat: Zwischenböden mit optionalen Höhen ergänzen (0.1.2)`
+
+- Anzahl der Zwischenböden, optionale Einzelhöhen und Plattenstärke im Dialog ergänzt.
+- Leere Höhen mit gleichen freien Abständen verteilt; Böden mit Tragrahmen erzeugt und Überschneidungen geprüft.
+- Einstellungen um Böden erweitert; vorhandene Einstellungsdateien bleiben lesbar. Version auf **0.1.2** erhöht.
+
+**Prüfstand:** Zehn lokale Tests und Syntaxprüfung erfolgreich; neue Dialogfelder und Böden noch in Fusion zu prüfen.
+
+**Details:** [Demo und Installation](demo_installation.md#zwischenböden)
+
 ## 24.09.2026 – 0.1.1
 
 **Git-Zusammenfassung:** `fix: Nach Gestellerstellung auf alles zoomen (0.1.1)`

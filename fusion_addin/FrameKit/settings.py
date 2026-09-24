@@ -21,7 +21,11 @@ def load(path=None):
         data = json.loads(path.read_text(encoding='utf-8'))
         if data['schema'] != 1:
             raise ValueError('Unbekannte Einstellungsversion.')
-        values = {key: data['defaults'][key] for key in DEFAULTS}
+        stored = data['defaults']
+        values = {key: stored[key] for key in ('length', 'width', 'height', 'profile', 'bottom')}
+        # Settings from 0.1.0/0.1.1 have no shelf fields.
+        for key in ('shelf_count', 'shelf_heights', 'shelf_thickness'):
+            values[key] = stored.get(key, DEFAULTS[key])
         validate(values)
         return values, ''
     except FileNotFoundError:

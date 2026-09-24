@@ -1,6 +1,6 @@
-# FrameKit 0.1.1 – Integrationsdemo
+# FrameKit 0.1.2 – Integrationsdemo
 
-Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus massiven Rechteckprofilen. Jedes der acht beziehungsweise zwölf Profile ist eine eigene Komponente. Nutquerschnitte, Vorschau, Zubehör, Projektbearbeitung und CSV-Export sind noch nicht implementiert.
+Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus massiven Rechteckprofilen. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Nutquerschnitte, Vorschau, Zubehör, Projektbearbeitung und CSV-Export sind noch nicht implementiert.
 
 ## In Fusion laden
 
@@ -24,6 +24,8 @@ Die Einstellungen liegen unter Windows in `%APPDATA%/FrameKit/settings.json`, au
 
 ## Icons und Version
 
+Aktueller Stand: **0.1.2**.
+
 Die vorhandenen `CreateFrame`- und `ProfileLibrary`-SVGs werden im Add-in mitgeliefert: `16x16.svg` für kleine Bedienelemente, `32x32.svg` für große sowie jeweils `-dark_blue`-Varianten. Die Vektorgrafiken skalieren auch bei hoher Bildschirmauflösung. Das Add-in-Symbol verwendet ebenfalls das FrameKit-Rahmensymbol.
 
 Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung erhöht. Maßgeblich ist [`version.py`](../fusion_addin/FrameKit/version.py); bei Änderungen muss das Feld `version` in `FrameKit.manifest` denselben Wert erhalten. Ein automatisierter Test prüft die Übereinstimmung.
@@ -34,13 +36,30 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Dialog: alle drei Reiter öffnen, Texte und Links prüfen.
 - Standardgestell erzeugen: **800 × 500 × 750 mm**, Profil **40 mm**, zwölf Komponenten unter einer FrameKit-Demo-Baugruppe. Ohne unteren Rahmen acht Komponenten.
 - Automatischer Zoom: vorher weit hineinzoomen und ein Gestell erstellen; anschließend müssen alle sichtbaren Modellobjekte in die Ansicht passen.
+- Zwei Zwischenböden mit leeren Höhen: gleichmäßige freie Abstände und zehn zusätzliche Komponenten prüfen; Plattenoberkanten müssen den im Dialog angezeigten Höhen entsprechen.
+- Drei Böden mit den Höhen leer / 400 mm / leer: bei Standardmaßen Oberkanten 220, 400 und 575 mm prüfen.
+- Ungültige Bodenhöhen, vertauschte Reihenfolge und überlappende Ebenen müssen Ausführen sperren. Anzahl reduzieren und erneut erhöhen; nur sichtbare Höhenfelder dürfen berücksichtigt werden.
+- Bodenanzahl, leere und feste Höhen sowie Plattenstärke speichern und erneut laden; bestehende Einstellungen aus 0.1.0/0.1.1 müssen ohne Böden weiter funktionieren.
 - Negative oder zu kleine Maße eingeben: Ausführen muss gesperrt sein. Länge, Breite und Höhe müssen jeweils größer als zwei Profilbreiten sein.
 - Abbrechen: keine neue Geometrie und keine gespeicherten Änderungen.
 - Standardwerte speichern, Dialog erneut öffnen und Werte prüfen; Werkseinstellungen laden und speichern.
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. Diese prüfen Berechnung, Einstellungsdateien und Versionsabgleich außerhalb von Fusion. Sie ersetzen keinen Integrationstest im laufenden Fusion. Die bisherige Demo wurde vom Benutzer als passend bestätigt. Der automatische Zoom aus Version 0.1.1 ist noch in Fusion zu prüfen.
+Lokale Tests: `python -m unittest discover -s tests -v`. Zehn Tests prüfen Berechnung, Bodenverteilung, Überlappungen, Einstellungsdateien einschließlich Migration und Versionsabgleich außerhalb von Fusion. Sie ersetzen keinen Integrationstest im laufenden Fusion. Die ursprüngliche Demo wurde vom Benutzer als passend bestätigt. Automatischer Zoom und die neuen Zwischenbodenfunktionen sind noch in Fusion zu prüfen.
+
+## Zwischenböden
+
+Unter **Frame erstellen → Zwischenböden** lässt sich die Anzahl von 0 bis 20 einstellen. Für jeden Boden erscheint ein optionales Höhenfeld. Höhen beziehen sich auf die **Oberkante der Platte**, gemessen von der Unterseite des Gestells; die Nummerierung erfolgt von unten nach oben. Zahlen ohne Einheit werden als Millimeter interpretiert; Angaben wie `25 cm` sind ebenfalls möglich.
+
+- **Alle Höhen leer:** Die Böden werden mit gleichen freien Abständen zwischen der Oberseite des unteren Rahmens und der Unterseite des oberen Rahmens verteilt. Ohne unteren Rahmen beginnt der freie Bereich bei 0 mm.
+- **Höhen vorgegeben:** Diese Werte werden übernommen. Leere Felder zwischen festgelegten Höhen werden innerhalb des verbleibenden Bereichs gleichmäßig verteilt. Der Dialog zeigt die berechneten Oberkanten an.
+- **Konstruktion:** Jeder Boden erhält einen umlaufenden Tragrahmen aus dem gewählten quadratischen Profil und eine eingelegte Platte innerhalb der lichten Rahmenöffnung. Platte und Rahmen schließen oben bündig ab. Die Plattenstärke ist gemeinsam einstellbar, standardmäßig 18 mm, und muss zwischen 1 mm und der Profilbreite liegen. Befestigungsteile werden in der Demo nicht modelliert.
+- **Prüfung:** Überlappende, absteigende oder außerhalb des Gestells liegende Ebenen verhindern die Erstellung. Auch automatisch verteilte Böden müssen einschließlich ihrer Rahmen in den verfügbaren Raum passen.
+
+Beispiel bei Standardmaßen (Höhe 750 mm, Profil 40 mm, unterer Rahmen): Zwei automatische Böden liegen bei ungefähr **276,7 mm** und **513,3 mm**. Mit drei Böden und einer festen mittleren Höhe von **400 mm** ergeben sich **220 / 400 / 575 mm**.
+
+Gespeichert werden die vorgegebenen Höhen einschließlich leerer Werte. Automatische Höhen werden bei geänderten Gestellmaßen neu berechnet. Alte Einstellungsdateien werden mit null Zwischenböden ergänzt. Werkseinstellungen setzen die Anzahl auf null zurück.
 
 API-Grundlagen: [Autodesk: UI-Anpassung und Icon-Ressourcen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/UserInterface_UM.htm), [Dialogreiter](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/CommandInputs_addTabCommandInput.htm).
 

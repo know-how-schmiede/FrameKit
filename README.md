@@ -8,7 +8,7 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.1.1**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit anschließendem „Zoom auf alles“. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.1.2**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
 ## Geplanter Funktionsumfang
 

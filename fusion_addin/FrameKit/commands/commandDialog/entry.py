@@ -64,6 +64,25 @@ def command_created(args):
         fields[key] = frame_inputs.addValueInput(key, label, 'mm',
             adsk.core.ValueInput.createByString(f'{values[key]} mm'))
     bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
+    shelves = frame_inputs.addGroupCommandInput('shelves', 'Zwischenböden')
+    shelves.isExpanded = True
+    shelf_inputs = shelves.children
+    count = shelf_inputs.addIntegerSpinnerCommandInput(
+        'shelf_count', 'Anzahl', 0, demo.MAX_SHELVES, 1, values['shelf_count'])
+    thickness = shelf_inputs.addValueInput('shelf_thickness', 'Plattenstärke', 'mm',
+        adsk.core.ValueInput.createByString(f'{values["shelf_thickness"]} mm'))
+    shelf_inputs.addTextBoxCommandInput('shelf_help', '',
+        'Höhe = Oberkante Boden ab Unterseite Gestell. Von unten nach oben angeben. '
+        'Leer = automatisch gleichmäßige freie Abstände. Eingaben in mm, z. B. 250 oder 25 cm.', 3, True)
+    height_fields = []
+    for index in range(demo.MAX_SHELVES):
+        saved = values['shelf_heights'][index] if index < count.value else None
+        field = shelf_inputs.addStringValueInput(f'shelf_height_{index}',
+            f'Boden {index + 1:02d} Höhe', '' if saved is None else f'{saved:g} mm')
+        field.isVisible = index < count.value
+        height_fields.append(field)
+    thickness.isVisible = count.value > 0
+    resolved = shelf_inputs.addTextBoxCommandInput('shelf_resolved', '', '', 3, True)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
     error = frame_inputs.addTextBoxCommandInput('validation', '', '', 2, True)
 
@@ -115,16 +134,35 @@ def command_created(args):
             raise ValueError('Bitte gültige Längen eingeben.')
         result = {key: field.value * 10 for key, field in fields.items()}
         result['bottom'] = bottom.value
+        result['shelf_count'] = count.value
+        if count.value and not thickness.isValidExpression:
+            raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
+        result['shelf_thickness'] = thickness.value if thickness.isValidExpression else 1.8
+        result['shelf_thickness'] *= 10
+        result['shelf_heights'] = []
+        units = app.activeProduct.unitsManager if app.activeProduct else None
+        for index, field in enumerate(height_fields[:count.value]):
+            expression = field.value.strip()
+            if not expression:
+                result['shelf_heights'].append(None)
+            elif units and units.isValidExpression(expression, 'mm'):
+                result['shelf_heights'].append(units.evaluateExpression(expression, 'mm') * 10)
+            else:
+                raise ValueError(f'Boden {index + 1}: gültige Höhe eingeben oder Feld leer lassen.')
         demo.validate(result)
         return result
 
     def validation_message():
         try:
-            read_values()
+            current = read_values()
+            heights = demo.shelf_heights(current)
+            resolved.text = ('Oberkanten: ' + '; '.join(
+                f'{index:02d}: {height:.1f} mm' for index, height in enumerate(heights, 1))) if heights else ''
             if create.value and not adsk.fusion.Design.cast(app.activeProduct):
                 return 'Zum Erstellen bitte ein Fusion-Konstruktionsdokument öffnen.'
             return ''
         except ValueError as exc:
+            resolved.text = ''
             return str(exc)
 
     def validate(event):
@@ -137,7 +175,14 @@ def command_created(args):
             for key, field in fields.items():
                 field.expression = f'{demo.DEFAULTS[key]} mm'
             bottom.value = demo.DEFAULTS['bottom']
+            count.value = demo.DEFAULTS['shelf_count']
+            thickness.expression = f'{demo.DEFAULTS["shelf_thickness"]} mm'
+            for field in height_fields:
+                field.value = ''
             reset.value = False
+        for index, field in enumerate(height_fields):
+            field.isVisible = index < count.value
+        thickness.isVisible = count.value > 0
         error.text = validation_message()
 
     def execute(event):
