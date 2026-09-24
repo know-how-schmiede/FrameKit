@@ -1,6 +1,6 @@
-# Bauteildaten und Baugruppenstruktur – 0.1.5
+# Bauteildaten und Baugruppenstruktur – ab 0.1.5
 
-Dieser Schritt setzt **S01** aus dem [Ablaufplan](ablaufplan.md) um. Vorschau, echte Nutprofile und Bearbeitung vorhandener Gestelle folgen in den dort vorgesehenen Versionen.
+Dieses Dokument beschreibt **S01** aus dem [Ablaufplan](ablaufplan.md). Seit S02 / 0.2.0 verwenden auch [Vorschau und Layout](vorschau_layout.md) diese Bauteildaten. Echte Nutprofile und Bearbeitung vorhandener Gestelle folgen in den dort vorgesehenen Versionen.
 
 ## Berechnung und Geometrie
 
@@ -40,7 +40,7 @@ Die Hauptbaugruppe heißt beispielsweise `FrameKit 0.1.5 | a1b2c3d4`. Darunter l
 - `90 | Füße und Rollen`, sofern ausgewählt
 - `91 | Verbindungen`, vorerst leer und als reserviert gekennzeichnet
 
-Eine Layout-Unterbaugruppe wird erst mit S02 eingeführt. Die leere Verbindungsgruppe enthält keine erfundenen Montage- oder Stücklistendaten.
+Seit S02 / 0.2.0 kommt `00 | Layout` mit einer fixierten, standardmäßig ausgeblendeten Mittellinienskizze hinzu; siehe [Vorschau und Layout](vorschau_layout.md). Die leere Verbindungsgruppe enthält keine erfundenen Montage- oder Stücklistendaten.
 
 Bauteilnamen enthalten ID, Funktion und passende Abmessungen. Profile zeigen zusätzlich die Profilbezeichnung und Zuschnittlänge. Die native Fusion-Bauteilnummer enthält die lokale ID, die Beschreibung die Bauteilfunktion.
 
@@ -50,7 +50,7 @@ Die Hauptbaugruppe speichert `modelData` einschließlich ID-Zuordnung und Profil
 
 ## Fusion-Zeitleiste
 
-In parametrischen Dokumenten erhält jedes Bauteil eine benannte Gruppe mit seinen aufeinanderfolgenden Schritten: Komponentenerstellung, Querschnittsskizze und Extrusion. Die Erstellung der Haupt- und Unterbaugruppen erhält eine separate Strukturgruppe. Gruppennamen enthalten die kurze Gestellkennung, damit mehrere Gestelle zugeordnet werden können.
+In parametrischen Dokumenten erhält jedes Bauteil eine benannte Gruppe mit seinen aufeinanderfolgenden Schritten: Komponentenerstellung, Querschnittsskizze und Extrusion. Die Erstellung der Haupt- und Unterbaugruppen erhält eine separate Strukturgruppe, seit 0.2.0 einschließlich Layoutskizze unter „Struktur und Layout“. Gruppennamen enthalten die kurze Gestellkennung, damit mehrere Gestelle zugeordnet werden können.
 
 Die Gruppen überlappen sich nicht und werden nicht verschachtelt. Sie werden nach der Geometrieerstellung von hinten nach vorne angelegt und anschließend eingeklappt. Vor der Erstellung wird die Zeitleiste ans Ende gesetzt. Bei einem Fehler werden bereits erstellte eigene Gruppen und die neue Baugruppe bereinigt; der Befehl meldet die Ausführung als fehlgeschlagen.
 

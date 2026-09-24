@@ -66,7 +66,7 @@ class ModelTests(unittest.TestCase):
         values = dict(demo.DEFAULTS, shelf_count=2, shelf_heights=[None, None], accessory=accessories.PRESETS[0])
         data = model.build_model(values)
         ids = {group['id'] for group in data['groups']}
-        self.assertEqual(ids, {'posts', 'top', 'bottom', 'shelf:01', 'shelf:02', 'accessories', 'connections'})
+        self.assertEqual(ids, {'layout', 'posts', 'top', 'bottom', 'shelf:01', 'shelf:02', 'accessories', 'connections'})
         self.assertEqual(len(data['parts']), 28)
         for part in data['parts']:
             self.assertIn(part['group_id'], ids)

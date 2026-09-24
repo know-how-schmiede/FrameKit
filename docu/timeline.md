@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 25.09.2026 – 0.2.0
+
+**Git-Zusammenfassung:** `feat: Mittellinien-Vorschau und fixierte Layoutskizze (0.2.0)`
+
+- Aktualisierte 3D-Vorschau mit optionalen Bodenflächen und Zubehörumrissen ergänzt.
+- Verdeckte, fixierte Layoutskizze aus denselben Bauteildaten gespeichert; Orientierung im Dialog erklärt.
+- Temporäre Grafik bei Abbruch, Änderungen und Fehlern bereinigt; Version und Dokumentation aktualisiert.
+
+**Prüfstand:** 40 lokale Tests und Syntaxprüfung erfolgreich; Prüfung im laufenden Fusion steht aus.
+
+**Details:** [Vorschau und Layout](vorschau_layout.md)
+
 ## 25.09.2026 – 0.1.5
 
 **Git-Zusammenfassung:** `feat: Gemeinsame Bauteildaten und strukturierte Baugruppen (0.1.5)`

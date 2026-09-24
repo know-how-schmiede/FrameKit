@@ -5,6 +5,8 @@ import adsk.core
 import adsk.fusion
 from ... import accessories, config, demo, settings
 from ...geometry import create_frame
+from ...model import build_model
+from ...preview import Preview
 from ...version import __version__
 from ...lib import fusionAddInUtils as futil
 
@@ -14,6 +16,7 @@ PANEL_ID = 'SolidCreatePanel'
 RESOURCES = Path(__file__).resolve().parents[2] / 'resources'
 _handlers = []
 _dialog_handlers = []
+_previews = []
 
 
 def start():
@@ -33,6 +36,9 @@ def start():
 
 
 def stop():
+    for preview in list(_previews):
+        preview.clear()
+    _previews.clear()
     ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
     panel = workspace.toolbarPanels.itemById(PANEL_ID) if workspace else None
@@ -92,6 +98,18 @@ def command_created(args):
         height_fields.append(field)
     resolved = shelf_inputs.addTextBoxCommandInput('shelf_resolved', '', '', 3, True)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
+    preview_inputs = frame_inputs.addGroupCommandInput('preview_options', 'Vorschau').children
+    show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
+    show_panels = preview_inputs.addBoolValueInput('preview_panels', 'Bodenflächen anzeigen', True, '', True)
+    show_accessories = preview_inputs.addBoolValueInput('preview_accessories', 'Zubehörumrisse anzeigen', True, '', True)
+    show_panels.isEnabled = show_accessories.isEnabled = False
+    preview_inputs.addTextBoxCommandInput('preview_help', '',
+        'Blau: Profilmittellinien bis zur Schnittfläche. Orange: Zubehörplatzhalter.<br>'
+        'X: links → rechts, Y: vorne → hinten, Z: nach oben. Ursprung: vorne links '
+        'am Rahmen auf Höhe der Aufstandsfläche.<br>'
+        'Die fixierte Layoutskizze wird beim Erstellen gespeichert und ausgeblendet. '
+        'Maßgeblich bleiben die Dialogwerte.', 5, True)
+    preview_status = preview_inputs.addTextBoxCommandInput('preview_status', '', '', 2, True)
     error = frame_inputs.addTextBoxCommandInput('validation', '', '', 2, True)
 
     manage = inputs.addTabCommandInput('settings_tab', 'Einstellungen verwalten',
@@ -182,6 +200,15 @@ def command_created(args):
 
     handlers = []
     _dialog_handlers.append(handlers)
+    preview = Preview()
+    _previews.append(preview)
+    calculated_model = None
+
+    def current_model(current):
+        nonlocal calculated_model
+        if calculated_model is None or calculated_model['configuration'] != current:
+            calculated_model = build_model(current, calculated_model)
+        return calculated_model
 
     def read_values():
         if any(not field.isValidExpression for field in fields.values()):
@@ -223,6 +250,8 @@ def command_created(args):
     def validate(event):
         message = validation_message()
         error.text = message
+        if message:
+            preview.clear()
         event.areInputsValid = not bool(message)
 
     updating = False
@@ -243,6 +272,8 @@ def command_created(args):
         nonlocal updating, library
         if updating:
             return
+        preview.clear()
+        preview_status.text = ''
         if event.input.id in (save_entry.id, delete_entry.id) and event.input.value:
             updating = True
             try:
@@ -282,15 +313,37 @@ def command_created(args):
         for index, field in enumerate(height_fields):
             field.isVisible = index < count.value
         error.text = validation_message()
+        show_preview.isEnabled = create.value
+        show_panels.isEnabled = show_accessories.isEnabled = create.value and show_preview.value
+
+    def execute_preview(event):
+        # Graphics are not a completed command result: OK must always run execute.
+        event.isValidResult = False
+        try:
+            preview.clear()
+            if not create.value or not show_preview.value:
+                return
+            current = read_values()
+            design = adsk.fusion.Design.cast(app.activeProduct)
+            if not design:
+                return
+            preview.show(design, current_model(current), show_panels.value, show_accessories.value)
+            preview_status.text = ''
+            app.activeViewport.refresh()
+        except Exception as exc:
+            preview.clear()
+            preview_status.text = f'Vorschau nicht verfügbar: {exc}'
+            futil.handle_error('FrameKit-Vorschau', show_message_box=False)
 
     def execute(event):
         try:
+            preview.clear()
             current = read_values()
             if create.value:
                 design = adsk.fusion.Design.cast(app.activeProduct)
                 if not design:
                     raise ValueError('Bitte ein Fusion-Konstruktionsdokument öffnen.')
-                create_frame(design, current)
+                create_frame(design, current, current_model(current))
                 app.activeViewport.fit()
             if persist.value:
                 settings.save(current)
@@ -300,11 +353,15 @@ def command_created(args):
             futil.handle_error('FrameKit ausführen')
 
     def destroy(event):
+        preview.clear()
+        if preview in _previews:
+            _previews.remove(preview)
         if handlers in _dialog_handlers:
             _dialog_handlers.remove(handlers)
         handlers.clear()
 
-    for event, callback in ((command.execute, execute), (command.inputChanged, changed),
+    for event, callback in ((command.execute, execute), (command.executePreview, execute_preview),
+                            (command.inputChanged, changed),
                             (command.validateInputs, validate), (command.destroy, destroy)):
         futil.add_handler(event, callback, local_handlers=handlers)
     error.text = validation_message()

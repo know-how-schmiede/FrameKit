@@ -42,7 +42,8 @@ def build_model(values, previous=None):
     base = base_height(values)
     profile = dict(id=f'demo:square:{p:g}x{p:g}', name=f'{p:g}x{p:g} Demo-Vollprofil',
                    width_mm=p, height_mm=p, material=None, is_demo=True)
-    groups = [dict(id='posts', name='01 | Pfosten'), dict(id='top', name='02 | Rahmen oben')]
+    groups = [dict(id='layout', name='00 | Layout'), dict(id='posts', name='01 | Pfosten'),
+              dict(id='top', name='02 | Rahmen oben')]
     levels = [('top', 'oben', height)]
     if values['bottom']:
         groups.append(dict(id='bottom', name='03 | Rahmen unten'))

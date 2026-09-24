@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.1.5**
+Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.2.0**
 
-**Status: S01 / 0.1.5 ist implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S01 / 0.1.5 und S02 / 0.2.0 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -34,7 +34,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | Schritt | Zielversion | Zusammengehöriger Funktionsumfang | Voraussetzung | Status |
 | --- | --- | --- | --- | --- |
 | S01 | 0.1.5 | Bauteildaten, stabile IDs und strukturierte Baugruppe | 0.1.4 | Implementiert |
-| S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | Geplant |
+| S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | Implementiert |
 | S03 | 0.2.1 | Querträger je Ebene | S01, S02 | Geplant |
 | S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | Geplant |
 | S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Geplant |
@@ -59,6 +59,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Mehrere Gestelle im selben Dokument bleiben getrennt; Eigenschaften und Geometrie stimmen überein. Die bisherige Demo-Geometrie bleibt maßhaltig.
 
 ### S02 · 0.2.0 – Vorschau und Layout
+
+**Ergebnis:** [Vorschau und Layout](vorschau_layout.md). 40 lokale Tests einschließlich Grafik- und Dialogereignissen erfolgreich; Fusion-Abnahme offen.
 
 - „Vorschau anzeigen“ mit räumlichen Profilmittellinien ergänzen. Endpunkte entsprechen den tatsächlichen Schnittflächen; vorne/hinten/links/rechts eindeutig festlegen.
 - **Optionen:** Bodenflächen und Zubehörumrisse in der Vorschau ein-/ausblenden.

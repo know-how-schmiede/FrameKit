@@ -69,8 +69,32 @@ def _create_part(parent, part, frame_id):
     return occurrence, extrusion
 
 
-def create_frame(design, values):
-    model = build_model(values)
+def _create_layout(component, model):
+    sketch = component.sketches.add(component.xYConstructionPlane)
+    sketch.name = 'FrameKit | Profilmittellinien (fixiert)'
+    sketch.isComputeDeferred = True
+    try:
+        for part in model['parts']:
+            if part['centerline_mm'] is None:
+                continue
+            points = [adsk.core.Point3D.create(*(value / 10 for value in point))
+                      for point in part['centerline_mm']]
+            line = sketch.sketchCurves.sketchLines.addByTwoPoints(*points)
+            line.isConstruction = True
+            line.isFixed = True
+            _set_attributes(line, {'partId': part['id'], 'partUid': part['uid']})
+    finally:
+        sketch.isComputeDeferred = False
+    sketch.isVisible = False
+    _set_attributes(sketch, {'assemblyId': model['assembly_id'], 'generated': 'true',
+                            'inputSource': 'configuration', 'units': 'mm'})
+    return sketch
+
+
+def create_frame(design, values, calculated_model=None):
+    model = calculated_model if calculated_model is not None else build_model(values)
+    if model['configuration'] != values:
+        raise ValueError('Vorschau und Eingaben stimmen nicht überein.')
     frame_id = model['assembly_id']
     prefix = f'FrameKit {frame_id[:8]}'
     parametric = design.designType == adsk.fusion.DesignTypes.ParametricDesignType
@@ -90,8 +114,9 @@ def create_frame(design, values):
                 'reserved': 'true' if group.get('reserved') else 'false'})
             containers[group['id']] = component
         ranges = []
+        layout = _create_layout(containers['layout'], model)
         if parametric:
-            ranges.append((assembly.timelineObject, last_container.timelineObject, f'{prefix} | Struktur'))
+            ranges.append((assembly.timelineObject, layout.timelineObject, f'{prefix} | Struktur und Layout'))
         # Each part's creation, sketch and extrusion remain sequential and independent.
         for part in model['parts']:
             occurrence, extrusion = _create_part(containers[part['group_id']], part, frame_id)

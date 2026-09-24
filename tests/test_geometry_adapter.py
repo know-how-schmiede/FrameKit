@@ -7,7 +7,7 @@ from types import ModuleType, SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
 
-from fusion_addin.FrameKit import accessories, demo
+from fusion_addin.FrameKit import accessories, demo, model
 
 
 class Matrix:
@@ -44,12 +44,16 @@ class Component:
         return occurrence
 
     def add_sketch(self, plane):
-        sketch = NS(points=[], circle=None, timelineObject=self.design.tick(),
+        sketch = NS(points=[], lines=[], attributes=Attributes(), circle=None, timelineObject=self.design.tick(),
                     profiles=NS(count=1, item=lambda index: object()))
 
         def line(start, end):
+            if self.design.fail_line:
+                raise RuntimeError('Simulated layout failure')
             sketch.points.extend((start, end))
-            return NS(startSketchPoint=start, endSketchPoint=end)
+            result = NS(startSketchPoint=start, endSketchPoint=end, attributes=Attributes())
+            sketch.lines.append(result)
+            return result
 
         def circle(center, radius):
             sketch.circle = (center, radius)
@@ -73,6 +77,7 @@ class Design:
         self.designType = 1 if parametric else 0
         self.events, self.groups, self.calls = [], [], []
         self.fail_extrude = False
+        self.fail_line = False
         self.fail_group_at = None
         self.timeline = NS(moveToEnd=lambda: None, timelineGroups=NS(add=self.add_group))
         self.rootComponent = Component(self)
@@ -144,16 +149,45 @@ class GeometryAdapterTests(unittest.TestCase):
         self.assertTrue(foreign.isValid)
 
     def test_failure_cleans_own_assembly_and_groups(self):
-        for failure in ('extrusion', 'group'):
+        for failure in ('layout', 'extrusion', 'group'):
             with self.subTest(failure=failure):
                 design = Design()
                 foreign = design.rootComponent.add_component(Matrix())
                 design.fail_extrude = failure == 'extrusion'
+                design.fail_line = failure == 'layout'
                 design.fail_group_at = 3 if failure == 'group' else None
                 with self.assertRaises(RuntimeError):
                     self.adapter.create_frame(design, demo.DEFAULTS)
                 self.assertEqual(design.rootComponent.children, [foreign])
                 self.assertEqual(design.groups, [])
+
+    def test_layout_is_fixed_hidden_and_matches_preview_model_in_both_modes(self):
+        values = dict(demo.DEFAULTS, shelf_count=2, shelf_heights=[300, None], accessory=accessories.PRESETS[0])
+        calculated = model.build_model(values)
+        for parametric in (True, False):
+            with self.subTest(parametric=parametric):
+                design = Design(parametric)
+                assembly = self.adapter.create_frame(design, values, calculated)
+                saved = json.loads(assembly.component.attributes['FrameKit', 'modelData'])
+                self.assertEqual(saved, calculated)
+                layout = next(child.component for child in assembly.component.children
+                              if child.component.attributes['FrameKit', 'groupId'] == 'layout')
+                sketch, = layout.sketch_list
+                self.assertFalse(sketch.isVisible)
+                self.assertFalse(sketch.isComputeDeferred)
+                profiles = [part for part in saved['parts'] if part['kind'] == 'profile']
+                self.assertEqual(len(sketch.lines), len(profiles))
+                for line, part in zip(sketch.lines, profiles):
+                    self.assertTrue(line.isFixed and line.isConstruction)
+                    self.assertEqual(line.attributes['FrameKit', 'partUid'], part['uid'])
+                    self.assertEqual([line.startSketchPoint, line.endSketchPoint],
+                                     [tuple(v/10 for v in p) for p in part['centerline_mm']])
+
+    def test_stale_preview_cannot_create_geometry(self):
+        design = Design()
+        with self.assertRaises(ValueError):
+            self.adapter.create_frame(design, dict(demo.DEFAULTS, length=900), model.build_model(demo.DEFAULTS))
+        self.assertEqual(design.rootComponent.children, [])
 
     def test_direct_mode_does_not_change_design_type(self):
         design = Design(parametric=False)

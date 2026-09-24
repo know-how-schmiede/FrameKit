@@ -8,7 +8,9 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.1.5**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine aufliegende Platte mit Eckausklinkungen. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.2.0**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine aufliegende Platte mit Eckausklinkungen. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+
+Neu in **0.2.0**: zuschaltbare Mittellinien-Vorschau mit optionalen Bodenflächen und Zubehörumrissen. Beim Erstellen wird eine fixierte, standardmäßig ausgeblendete Layoutskizze gespeichert. Details und Fusion-Prüfschritte: [Vorschau und Layout](docu/vorschau_layout.md).
 
 ## Screenshots
 
@@ -93,6 +95,7 @@ Spätere Erweiterungen umfassen unter anderem weitere Rahmenformen, individuelle
 ## Dokumentation
 
 - [Ablaufplan und Versionen](docu/ablaufplan.md) – bearbeitbarer Plan und Status der Umsetzung.
+- [Vorschau und Layout](docu/vorschau_layout.md) – Anzeigeoptionen, Orientierung und fixierte Layoutskizze ab 0.2.0.
 - [Bauteildaten und Baugruppenstruktur](docu/bauteildaten.md) – stabile IDs, Eigenschaften und Fusion-Zeitleiste ab 0.1.5.
 - [Änderungshistorie](docu/timeline.md) – bisherige Änderungen und aktueller Prüfstand.
 - [Demo installieren und testen](docu/demo_installation.md) – Dialog, Icons, Versionierung und Fusion-Prüfschritte.
