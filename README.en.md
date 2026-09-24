@@ -8,7 +8,40 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.1.4**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a top-mounted panel with corner cutouts for the posts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.1.5**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a top-mounted panel with corner cutouts for the posts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+
+## Screenshots
+
+### Version 0.1.5
+
+All images below belong to the **0.1.5** screenshot set. The dialogs show different input states and do not necessarily match the pictured frame. Screenshots from other versions are kept in separate sets; see the [screenshot filing guide](images/screenshots/README.md).
+
+<!-- Screenshot set 0.1.5: Use only images from images/screenshots/0.1.5/. Group newer versions separately. -->
+
+**Frame and interface:** An example with top-mounted panels, corner cutouts, and cylindrical foot/caster placeholders alongside the creation dialog.
+
+![FrameKit 0.1.5 – Frame with shelf panels and creation dialog](images/screenshots/0.1.5/FrameKit_015_FrameErstellen.png)
+
+<details>
+<summary>More views from version 0.1.5: dialog, settings, assembly structure, and info</summary>
+
+**Create frame:** Configure dimensions, profile size, accessories, and shelves. Leaving a height blank displays the automatically calculated shelf height.
+
+![FrameKit 0.1.5 – Frame creation dialog](images/screenshots/0.1.5/FrameKit_015_FrameErstellenDialog.png)
+
+**Manage settings:** Save personal defaults and create or delete custom foot/caster placeholders with a name, type, height, and diameter.
+
+![FrameKit 0.1.5 – Settings and placeholder library](images/screenshots/0.1.5/FrameKit_015_Einstellungen.png)
+
+**Assembly structure:** The Fusion browser separates posts, frames, shelf levels, and accessories. The connections group is reserved for future development.
+
+![FrameKit 0.1.5 – Organized assembly in the Fusion browser](images/screenshots/0.1.5/FrameKit_015_BrowserStruktur.png)
+
+**Info:** Version, FrameKit logo, and links to the website, source code, releases, and support.
+
+![FrameKit 0.1.5 – Info tab with project links](images/screenshots/0.1.5/FrameKit_015_Info.png)
+
+</details>
 
 ## Planned features
 
@@ -59,6 +92,8 @@ Future extensions include additional frame shapes, custom crossmember positions,
 
 ## Documentation
 
+- [Implementation roadmap and versions](docu/ablaufplan.md) (German) – editable plan and implementation status.
+- [Part data and assembly structure](docu/bauteildaten.md) (German) – stable IDs, properties, and the Fusion timeline from 0.1.5 onward.
 - [Change history](docu/timeline.md) (German) – implemented changes and current verification status.
 - [Demo installation and testing](docu/demo_installation.md) (German) – dialog, icons, versioning, and Fusion integration checks.
 - [Project plan](docu/projektplan_FrameKit.md) (German) – full requirements, design rules, implementation steps, and acceptance criteria.

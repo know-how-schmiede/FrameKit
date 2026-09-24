@@ -68,29 +68,6 @@ def shelf_heights(values):
     return result
 
 
-def members(values):
-    """Return rectangular profile members; notched panels are separate."""
-    validate(values)
-    length, width, height, p = (values[k] for k in ('length', 'width', 'height', 'profile'))
-    result = []
-    base = base_height(values)
-    for x, side in ((0, 'links'), (length - p, 'rechts')):
-        for y, depth in ((0, 'vorne'), (width - p, 'hinten')):
-            result.append((f'Pfosten {depth} {side}', (x, y, base), (p, p, height-base)))
-    thickness = values.get('shelf_thickness', 18.0)
-    levels = [('oben', height - thickness - p)]
-    if values['bottom']:
-        levels.append(('unten', base))
-    heights = shelf_heights(values)
-    levels.extend((f'Boden {index:02d}', top - thickness - p) for index, top in enumerate(heights, 1))
-    for level, z in levels:
-        for y, side in ((0, 'vorne'), (width - p, 'hinten')):
-            result.append((f'Rahmen {level} {side}', (p, y, z), (length - 2*p, p, p)))
-        for x, side in ((0, 'links'), (length - p, 'rechts')):
-            result.append((f'Rahmen {level} {side}', (x, p, z), (p, width - 2*p, p)))
-    return result
-
-
 def panel_outline(length, width, notch):
     """Counterclockwise perimeter with four square post cutouts, in mm."""
     return [(notch, 0), (length-notch, 0), (length-notch, notch),
@@ -99,28 +76,21 @@ def panel_outline(length, width, notch):
             (0, width-notch), (0, notch), (notch, notch)]
 
 
+
+def _legacy_parts(values, kind):
+    # Compatibility view for callers of the original demo API; one calculation source.
+    from .model import build_model
+    return [(part['function'], tuple(part['position_mm']), tuple(part['bounds_mm']))
+            for part in build_model(values)['parts'] if part['kind'] == kind]
+
+
+def members(values):
+    return _legacy_parts(values, 'profile')
+
+
 def panels(values):
-    """Return (name, origin, bounding size) for a notched panel on every frame."""
-    validate(values)
-    thickness = values.get('shelf_thickness', 18.0)
-    levels = [('oben', values['height'])]
-    if values['bottom']:
-        levels.append(('unten', base_height(values) + values['profile'] + thickness))
-    levels.extend((f'Boden {index:02d}', top)
-                  for index, top in enumerate(shelf_heights(values), 1))
-    return [(f'{name} Platte', (0, 0, top-thickness),
-             (values['length'], values['width'], thickness)) for name, top in levels]
+    return _legacy_parts(values, 'panel')
 
 
 def supports(values):
-    """Return four upright cylinder envelopes centered beneath the corner posts."""
-    validate(values)
-    spec = values.get('accessory')
-    if spec is None:
-        return []
-    radius = spec['diameter'] / 2
-    p = values['profile']
-    return [(f'{spec["kind"]} {depth} {side} | {spec["name"]} | Platzhalter',
-             (x-radius, y-radius, 0), (spec['diameter'], spec['diameter'], spec['height']))
-            for x, side in ((p/2, 'links'), (values['length']-p/2, 'rechts'))
-            for y, depth in ((p/2, 'vorne'), (values['width']-p/2, 'hinten'))]
+    return _legacy_parts(values, 'support')

@@ -8,7 +8,40 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.1.4**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine aufliegende Platte mit Eckausklinkungen. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.1.5**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine aufliegende Platte mit Eckausklinkungen. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+
+## Screenshots
+
+### Version 0.1.5
+
+Alle folgenden Aufnahmen gehören zum Bildsatz **0.1.5**. Die Dialoge zeigen unterschiedliche Eingabestände und müssen nicht den Werten des abgebildeten Gestells entsprechen. Weitere Versionen werden als eigene Bildsätze geführt; siehe [Screenshot-Ablage](images/screenshots/README.md).
+
+<!-- Screenshot-Satz 0.1.5: Nur Bilder aus images/screenshots/0.1.5/ verwenden. Neue Versionen separat gruppieren. -->
+
+**Gestell und Bedienoberfläche:** Beispiel mit aufliegenden Bodenplatten, Eckausklinkungen und zylindrischen Fuß-/Rollenplatzhaltern neben dem Erstellungsdialog.
+
+![FrameKit 0.1.5 – Gestell mit Bodenplatten und Erstellungsdialog](images/screenshots/0.1.5/FrameKit_015_FrameErstellen.png)
+
+<details>
+<summary>Weitere Ansichten aus Version 0.1.5: Dialog, Einstellungen, Baugruppenstruktur und Info</summary>
+
+**Frame erstellen:** Abmessungen, Profilbreite, Zubehör und Zwischenböden konfigurieren. Bei leerer Höhenangabe wird die berechnete Bodenhöhe angezeigt.
+
+![FrameKit 0.1.5 – Dialog zur Gestellerstellung](images/screenshots/0.1.5/FrameKit_015_FrameErstellenDialog.png)
+
+**Einstellungen verwalten:** Persönliche Standardwerte speichern und eigene Fuß-/Rollenplatzhalter mit Name, Art, Höhe und Durchmesser anlegen oder löschen.
+
+![FrameKit 0.1.5 – Einstellungen und Platzhalterbibliothek](images/screenshots/0.1.5/FrameKit_015_Einstellungen.png)
+
+**Baugruppenstruktur:** Der Fusion-Browser gliedert das Gestell in Pfosten, Rahmen, Bodenebenen und Zubehör. Die Verbindungsgruppe ist für den späteren Ausbau reserviert.
+
+![FrameKit 0.1.5 – Strukturierte Baugruppe im Fusion-Browser](images/screenshots/0.1.5/FrameKit_015_BrowserStruktur.png)
+
+**Info:** Versionsanzeige, FrameKit-Logo und Links zu Homepage, Quellcode, Releases und Support.
+
+![FrameKit 0.1.5 – Info-Reiter mit Projektlinks](images/screenshots/0.1.5/FrameKit_015_Info.png)
+
+</details>
 
 ## Geplanter Funktionsumfang
 
@@ -59,6 +92,8 @@ Spätere Erweiterungen umfassen unter anderem weitere Rahmenformen, individuelle
 
 ## Dokumentation
 
+- [Ablaufplan und Versionen](docu/ablaufplan.md) – bearbeitbarer Plan und Status der Umsetzung.
+- [Bauteildaten und Baugruppenstruktur](docu/bauteildaten.md) – stabile IDs, Eigenschaften und Fusion-Zeitleiste ab 0.1.5.
 - [Änderungshistorie](docu/timeline.md) – bisherige Änderungen und aktueller Prüfstand.
 - [Demo installieren und testen](docu/demo_installation.md) – Dialog, Icons, Versionierung und Fusion-Prüfschritte.
 - [Projektplan](docu/projektplan_FrameKit.md) – vollständige Anforderungen, Konstruktionsregeln, Umsetzungsschritte und Abnahmekriterien.

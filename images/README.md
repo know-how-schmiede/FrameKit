@@ -1,4 +1,7 @@
 # FrameKit — Branding v1
+
+Versioned application screenshots and filing rules: [Screenshot sets](screenshots/README.md).
+
 Name: FrameKit
 Palette: Graphite #303D44, Teal #009E9A, Light #E5EDF0.
 Logo: generated transparent PNG concept.

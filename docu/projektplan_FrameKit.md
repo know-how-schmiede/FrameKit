@@ -2,6 +2,8 @@
 
 ## Ziel
 
+Die konkrete Reihenfolge und Versionszuordnung der weiteren Umsetzung stehen im [bearbeitbaren Ablaufplan](ablaufplan.md). Vor neuen Umsetzungsschritten dessen aktuellen Stand und die Benutzeränderungen lesen. Dieser Projektplan beschreibt die fachlichen Anforderungen; bereits getroffene Entscheidungen und der bestätigte Implementierungsstand sind im Ablaufplan zusammengefasst.
+
 Ein Fusion-Add-in erzeugt aus Dialogeingaben ein verschraubtes Untergestell oder einen einfachen Transportwagen aus Alu-Nutprofilen. Vor der Bauteilerstellung prüft der Benutzer eine räumliche Mittellinien-Vorschau.
 
 Die erste Version unterstützt gerade Profilzuschnitte, Zwischenböden mit Querträgern sowie Füße und Rollen. Eigene Profilquerschnitte lassen sich ohne Programmänderung ergänzen.

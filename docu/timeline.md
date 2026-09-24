@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 25.09.2026 – 0.1.5
+
+**Git-Zusammenfassung:** `feat: Gemeinsame Bauteildaten und strukturierte Baugruppen (0.1.5)`
+
+- Gemeinsames Gestellmodell mit Rollen, stabiler ID-Zuordnung, Profilreferenzen, Ausrichtung und Zuschnittlängen eingeführt.
+- Fusion-Unterbaugruppen, Bauteileigenschaften und getrennte Gestellkennungen ergänzt.
+- Erzeugungsschritte in parametrischen Dokumenten pro Bauteil benannt und gruppiert; bisherigen Geometrieumfang erhalten.
+
+**Prüfstand:** 28 lokale Tests und Syntaxprüfung erfolgreich; neue Struktur und Zeitleiste noch in Fusion zu prüfen.
+
+**Details:** [Bauteildaten und Baugruppenstruktur](bauteildaten.md)
+
 ## 25.09.2026 – 0.1.4
 
 **Git-Zusammenfassung:** `feat: Füße und Rollen mit eigener Platzhalterbibliothek (0.1.4)`
@@ -10,7 +22,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Eigene Einträge mit Name, Art, Höhe und Durchmesser in den Einstellungen speichern, auflisten und löschen.
 - Separate Bibliotheksdatei, gespeicherte Auswahl und Kompatibilität mit bisherigen Einstellungen ergänzt; Version **0.1.4**.
 
-**Prüfstand:** 19 lokale Tests und Syntaxprüfung erfolgreich; neue Dialogaktionen und Platzhalter noch in Fusion zu prüfen.
+**Prüfstand:** 19 lokale Tests und Syntaxprüfung erfolgreich. Funktion laut Benutzerrückmeldung am 25.09.2026 bestätigt.
 
 **Details:** [Füße, Rollen und eigene Platzhalter](demo_installation.md#füße-rollen-und-eigene-platzhalter)
 
