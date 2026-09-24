@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 25.09.2026 – 0.1.4
+
+**Git-Zusammenfassung:** `feat: Füße und Rollen mit eigener Platzhalterbibliothek (0.1.4)`
+
+- Auswahl von Füßen/Rollen ergänzt; vier Zylinderplatzhalter unter den Pfosten, Bauhöhe in Gesamthöhe berücksichtigt.
+- Eigene Einträge mit Name, Art, Höhe und Durchmesser in den Einstellungen speichern, auflisten und löschen.
+- Separate Bibliotheksdatei, gespeicherte Auswahl und Kompatibilität mit bisherigen Einstellungen ergänzt; Version **0.1.4**.
+
+**Prüfstand:** 19 lokale Tests und Syntaxprüfung erfolgreich; neue Dialogaktionen und Platzhalter noch in Fusion zu prüfen.
+
+**Details:** [Füße, Rollen und eigene Platzhalter](demo_installation.md#füße-rollen-und-eigene-platzhalter)
+
 ## 25.09.2026 – 0.1.3
 
 **Git-Zusammenfassung:** `feat: Aufliegende Bodenplatten mit Eckausklinkungen (0.1.3)`

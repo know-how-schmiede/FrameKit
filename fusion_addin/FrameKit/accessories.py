@@ -1,0 +1,50 @@
+"""Fusion-independent definitions for cylindrical foot/caster placeholders."""
+import math
+from uuid import uuid4
+
+KINDS = ('Fuß', 'Lenkrolle', 'Bockrolle', 'Absenkbare Rolle', 'Sonstiges')
+PRESETS = [
+    dict(id='demo-foot', name='Demo-Fuß', kind='Fuß', height=40.0, diameter=50.0),
+    dict(id='demo-caster', name='Demo-Rolle', kind='Lenkrolle', height=100.0, diameter=75.0),
+]
+
+
+def validate_spec(spec):
+    if not isinstance(spec, dict):
+        raise ValueError('Ungültige Fuß-/Rollendefinition.')
+    for key in ('id', 'name'):
+        if not isinstance(spec.get(key), str) or not spec[key].strip():
+            raise ValueError('Name und ID des Platzhalters dürfen nicht leer sein.')
+    if len(spec['name']) > 80:
+        raise ValueError('Der Name darf höchstens 80 Zeichen enthalten.')
+    if spec.get('kind') not in KINDS:
+        raise ValueError('Bitte eine gültige Art für den Platzhalter wählen.')
+    for key, label in (('height', 'Höhe'), ('diameter', 'Durchmesser')):
+        value = spec.get(key)
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or not 1 <= value <= 10000):
+            raise ValueError(f'{label} des Platzhalters muss zwischen 1 und 10000 mm liegen.')
+
+
+def validate_library(entries):
+    if not isinstance(entries, list):
+        raise ValueError('Die Platzhalterbibliothek muss eine Liste sein.')
+    ids, names = set(), set()
+    for spec in entries:
+        validate_spec(spec)
+        name = spec['name'].strip().casefold()
+        if spec['id'] in ids or name in names:
+            raise ValueError('Name und ID müssen in der Bibliothek eindeutig sein.')
+        ids.add(spec['id'])
+        names.add(name)
+
+
+def new_spec(name, kind, height, diameter):
+    spec = dict(id=uuid4().hex, name=name.strip(), kind=kind, height=height, diameter=diameter)
+    validate_spec(spec)
+    return spec
+
+
+def label(spec):
+    return (f'{spec["name"]} ({spec["kind"]}) – '
+            f'H {spec["height"]:g} mm / Ø {spec["diameter"]:g} mm')

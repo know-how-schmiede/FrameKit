@@ -3,7 +3,7 @@ import html
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import config, demo, settings
+from ... import accessories, config, demo, settings
 from ...geometry import create_frame
 from ...version import __version__
 from ...lib import fusionAddInUtils as futil
@@ -53,6 +53,7 @@ def command_created(args):
     command.okButtonText = 'Ausführen'
     inputs = command.commandInputs
     values, warning = settings.load()
+    library, library_warning = settings.load_library()
     frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
     frame_inputs = frame.children
     frame_inputs.addTextBoxCommandInput('intro', '',
@@ -60,10 +61,16 @@ def command_created(args):
         'Keine Nutgeometrie, Verbinder oder Tragfähigkeitsberechnung.', 3, True)
     fields = {}
     for key, label in (('length', 'Länge'), ('width', 'Breite'),
-                       ('height', 'Höhe'), ('profile', 'Profilbreite')):
+                       ('height', 'Gesamthöhe'), ('profile', 'Profilbreite')):
         fields[key] = frame_inputs.addValueInput(key, label, 'mm',
             adsk.core.ValueInput.createByString(f'{values[key]} mm'))
     bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
+    support_choice = frame_inputs.addDropDownCommandInput(
+        'support_choice', 'Füße / Rollen', adsk.core.DropDownStyles.TextListDropDownStyle)
+    frame_inputs.addTextBoxCommandInput('support_help', '',
+        'Vier gleiche Zylinderplatzhalter unter den Eckpfosten. Gesamthöhe und '
+        'Bodenhöhen gelten ab Aufstandsfläche, inklusive Füßen/Rollen. '
+        'Eigene Varianten unter „Einstellungen verwalten“ anlegen.', 3, True)
     shelves = frame_inputs.addGroupCommandInput('shelves', 'Bodenplatten und Zwischenböden')
     shelves.isExpanded = True
     shelf_inputs = shelves.children
@@ -72,7 +79,7 @@ def command_created(args):
     thickness = shelf_inputs.addValueInput('shelf_thickness', 'Plattenstärke', 'mm',
         adsk.core.ValueInput.createByString(f'{values["shelf_thickness"]} mm'))
     shelf_inputs.addTextBoxCommandInput('shelf_help', '',
-        'Höhe = Oberkante Boden ab Unterseite Gestell. Von unten nach oben angeben. '
+        'Höhe = Oberkante Boden ab Aufstandsfläche. Von unten nach oben angeben. '
         'Leer = automatisch gleichmäßige freie Abstände. Eingaben in mm, z. B. 250 oder 25 cm. '
         'Auf jedem Rahmen liegt eine Platte mit Aussparungen für die Pfosten. '
         'Gesamthöhe inklusive oberer Platte.', 5, True)
@@ -92,11 +99,57 @@ def command_created(args):
     manage.addTextBoxCommandInput('settings_help', '',
         'Die Werte aus „Frame erstellen“ können als persönliche Standardwerte gespeichert werden. '
         'Zum reinen Speichern „Demo-Gestell erstellen“ abwählen. '
-        'Erst „Ausführen“ speichert; „Abbrechen“ verwirft die Änderungen.', 4, True)
+        'Erst „Ausführen“ speichert Standardwerte; „Abbrechen“ verwirft deren Änderungen. '
+        'Die Platzhalterbibliothek wird über eigene Schaltflächen sofort gespeichert.', 5, True)
     persist = manage.addBoolValueInput('save_defaults', 'Als Standardwerte speichern', True, '', False)
     reset = manage.addBoolValueInput('reset_defaults', 'Werkseinstellungen laden', False, '', False)
     manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
     manage.addTextBoxCommandInput('settings_status', '', html.escape(warning), 2, True)
+    library_group = manage.addGroupCommandInput('support_library', 'Eigene Füße und Rollen')
+    library_group.isExpanded = True
+    lib_inputs = library_group.children
+    library_choice = lib_inputs.addDropDownCommandInput(
+        'library_choice', 'Gespeicherte Einträge', adsk.core.DropDownStyles.TextListDropDownStyle)
+    delete_entry = lib_inputs.addBoolValueInput('delete_support', 'Ausgewählten Eintrag löschen', False, '', False)
+    lib_inputs.addTextBoxCommandInput('library_help', '',
+        'Neue Platzhalter anlegen: Name, Art, Höhe und Durchmesser eingeben. '
+        'Speichern und Löschen wirken sofort, auch wenn der Dialog danach abgebrochen wird. '
+        'Bestehende Baugruppen bleiben unverändert.', 4, True)
+    new_name = lib_inputs.addStringValueInput('support_name', 'Name', '')
+    new_kind = lib_inputs.addDropDownCommandInput(
+        'support_kind', 'Art', adsk.core.DropDownStyles.TextListDropDownStyle)
+    for index, kind in enumerate(accessories.KINDS):
+        new_kind.listItems.add(kind, index == 0)
+    # Text fields keep unfinished library entries from blocking frame creation.
+    new_height = lib_inputs.addStringValueInput('support_height', 'Höhe (mm)', '100')
+    new_diameter = lib_inputs.addStringValueInput('support_diameter', 'Durchmesser (mm)', '75')
+    save_entry = lib_inputs.addBoolValueInput('save_support', 'Neuen Eintrag speichern', False, '', False)
+    library_status = lib_inputs.addTextBoxCommandInput('library_status', '', html.escape(library_warning), 3, True)
+    lib_inputs.addTextBoxCommandInput('library_path', 'Bibliotheksdatei',
+        html.escape(str(settings.library_path())), 3, True)
+
+    def selected_support():
+        selected = support_choice.selectedItem
+        return library[selected.index - 1] if selected and selected.index > 0 else None
+
+    def refresh_library(selected_id=None, listed_id=None):
+        support_choice.listItems.clear()
+        support_choice.listItems.add('Keine Füße / Rollen', True)
+        library_choice.listItems.clear()
+        for index, spec in enumerate(library):
+            support_choice.listItems.add(accessories.label(spec), spec['id'] == selected_id)
+            library_choice.listItems.add(accessories.label(spec),
+                spec['id'] == listed_id if listed_id else index == 0)
+        if not library:
+            library_choice.listItems.add('Keine gespeicherten Einträge', True)
+        delete_entry.isEnabled = bool(library)
+
+    saved_support = values.get('accessory')
+    saved_id = saved_support['id'] if saved_support else None
+    refresh_library(saved_id)
+    if saved_id and not any(spec['id'] == saved_id for spec in library):
+        library_status.text = (library_warning + '\n' if library_warning else '') + (
+            'Der gespeicherte Platzhalter ist nicht mehr verfügbar. Auswahl auf „Keine“ gesetzt.')
 
     info = inputs.addTabCommandInput('info_tab', 'info').children
     def info_text(identifier, text, rows):
@@ -135,6 +188,8 @@ def command_created(args):
             raise ValueError('Bitte gültige Längen eingeben.')
         result = {key: field.value * 10 for key, field in fields.items()}
         result['bottom'] = bottom.value
+        selected = selected_support()
+        result['accessory'] = selected.copy() if selected else None
         result['shelf_count'] = count.value
         if not thickness.isValidExpression:
             raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
@@ -170,8 +225,52 @@ def command_created(args):
         error.text = message
         event.areInputsValid = not bool(message)
 
+    updating = False
+
+    def library_number(field):
+        expression = field.value.strip()
+        units = app.activeProduct.unitsManager if app.activeProduct else None
+        if units and units.isValidExpression(expression, 'mm'):
+            return units.evaluateExpression(expression, 'mm') * 10
+        if not units:
+            try:
+                return float(expression.replace(',', '.'))
+            except ValueError:
+                pass
+        raise ValueError(f'{field.name}: gültige Länge eingeben (z. B. 100 mm).')
+
     def changed(event):
+        nonlocal updating, library
+        if updating:
+            return
+        if event.input.id in (save_entry.id, delete_entry.id) and event.input.value:
+            updating = True
+            try:
+                selected = selected_support()
+                selected_id = selected['id'] if selected else None
+                if event.input.id == save_entry.id:
+                    spec = accessories.new_spec(new_name.value, new_kind.selectedItem.name,
+                        library_number(new_height), library_number(new_diameter))
+                    revised = library + [spec]
+                    settings.save_library(revised)
+                    library = revised
+                    refresh_library(selected_id, spec['id'])
+                    library_status.text = f'Gespeichert: {accessories.label(spec)}'
+                    new_name.value = ''
+                elif library_choice.selectedItem and library:
+                    removed = library[library_choice.selectedItem.index]
+                    revised = [spec for spec in library if spec['id'] != removed['id']]
+                    settings.save_library(revised)
+                    library = revised
+                    refresh_library(selected_id)
+                    library_status.text = f'Gelöscht: {removed["name"]}'
+            except (ValueError, OSError) as exc:
+                library_status.text = f'Nicht gespeichert: {exc}'
+            finally:
+                event.input.value = False
+                updating = False
         if event.input.id == reset.id and reset.value:
+            support_choice.listItems.item(0).isSelected = True
             for key, field in fields.items():
                 field.expression = f'{demo.DEFAULTS[key]} mm'
             bottom.value = demo.DEFAULTS['bottom']

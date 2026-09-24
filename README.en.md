@@ -1,4 +1,4 @@
-﻿![FrameKit – Parametric frames for Autodesk Fusion](images/FrameKit-GitHub-Banner.png)
+![FrameKit – Parametric frames for Autodesk Fusion](images/FrameKit-GitHub-Banner.png)
 
 # FrameKit
 
@@ -8,7 +8,7 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.1.3**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Each frame carries a top-mounted panel with corner cutouts for the posts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.1.4**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a top-mounted panel with corner cutouts for the posts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
 
 ## Planned features
 
