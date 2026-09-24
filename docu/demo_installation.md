@@ -1,4 +1,4 @@
-# FrameKit 0.1.0 – Integrationsdemo
+# FrameKit 0.1.1 – Integrationsdemo
 
 Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus massiven Rechteckprofilen. Jedes der acht beziehungsweise zwölf Profile ist eine eigene Komponente. Nutquerschnitte, Vorschau, Zubehör, Projektbearbeitung und CSV-Export sind noch nicht implementiert.
 
@@ -11,6 +11,8 @@ Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt e
 5. Ein Konstruktionsdokument öffnen und **Volumenkörper → Erstellen → FrameKit** aufrufen. Der Befehl ist zusätzlich an die Werkzeugleiste angeheftet.
 
 Nach Codeänderungen das Add-in stoppen und erneut starten. Falls Fusion noch alte Module verwendet, Fusion neu starten.
+
+Nach erfolgreicher Gestellerstellung wird die Ansicht automatisch mit **Zoom auf alles** eingepasst. Beim ausschließlichen Speichern von Einstellungen bleibt die Ansicht unverändert.
 
 ## Dialog
 
@@ -31,13 +33,14 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Starten: genau ein FrameKit-Befehl unter **Volumenkörper → Erstellen**, Symbol in Menü und Werkzeugleiste sichtbar; auch mit dunklem Theme und hoher Skalierung prüfen.
 - Dialog: alle drei Reiter öffnen, Texte und Links prüfen.
 - Standardgestell erzeugen: **800 × 500 × 750 mm**, Profil **40 mm**, zwölf Komponenten unter einer FrameKit-Demo-Baugruppe. Ohne unteren Rahmen acht Komponenten.
+- Automatischer Zoom: vorher weit hineinzoomen und ein Gestell erstellen; anschließend müssen alle sichtbaren Modellobjekte in die Ansicht passen.
 - Negative oder zu kleine Maße eingeben: Ausführen muss gesperrt sein. Länge, Breite und Höhe müssen jeweils größer als zwei Profilbreiten sein.
 - Abbrechen: keine neue Geometrie und keine gespeicherten Änderungen.
 - Standardwerte speichern, Dialog erneut öffnen und Werte prüfen; Werkseinstellungen laden und speichern.
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. Diese prüfen Berechnung, Einstellungsdateien und Versionsabgleich außerhalb von Fusion. Sie ersetzen keinen Integrationstest im laufenden Fusion. Die tatsächliche Darstellung und Geometrieerstellung in Fusion sind noch nicht verifiziert.
+Lokale Tests: `python -m unittest discover -s tests -v`. Diese prüfen Berechnung, Einstellungsdateien und Versionsabgleich außerhalb von Fusion. Sie ersetzen keinen Integrationstest im laufenden Fusion. Die bisherige Demo wurde vom Benutzer als passend bestätigt. Der automatische Zoom aus Version 0.1.1 ist noch in Fusion zu prüfen.
 
 API-Grundlagen: [Autodesk: UI-Anpassung und Icon-Ressourcen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/UserInterface_UM.htm), [Dialogreiter](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/CommandInputs_addTabCommandInput.htm).
 

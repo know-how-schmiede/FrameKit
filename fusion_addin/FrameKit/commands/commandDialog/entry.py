@@ -148,6 +148,7 @@ def command_created(args):
                 if not design:
                     raise ValueError('Bitte ein Fusion-Konstruktionsdokument öffnen.')
                 create_frame(design, current)
+                app.activeViewport.fit()
             if persist.value:
                 settings.save(current)
         except Exception as exc:

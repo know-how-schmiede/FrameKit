@@ -2,6 +2,17 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 24.09.2026 – 0.1.1
+
+**Git-Zusammenfassung:** `fix: Nach Gestellerstellung auf alles zoomen (0.1.1)`
+
+- Nach erfolgreicher Gestellerstellung automatisch „Zoom auf alles“ ausführen.
+- Version in `version.py`, Manifest und aktueller Dokumentation auf **0.1.1** erhöht.
+
+**Prüfstand:** Bisherige Demo laut Benutzerrückmeldung in Ordnung. Fünf lokale Tests und Syntaxprüfung erfolgreich; neuer automatischer Zoom in Fusion noch zu prüfen.
+
+**Details:** [Demo und Installation](demo_installation.md)
+
 ## 24.09.2026 – 0.1.0
 
 **Git-Zusammenfassung:** `feat: FrameKit-Integrationsdemo 0.1.0 ergänzen`
