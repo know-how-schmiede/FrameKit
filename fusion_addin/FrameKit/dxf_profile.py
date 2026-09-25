@@ -1,7 +1,8 @@
 """Strict 2D ASCII DXF reader for extrusion sections; exact lines/arcs/circles.
 
-No optional Python packages are required in Fusion. Unsupported geometry is
-rejected, never silently discarded. Coordinates and tolerances below are in mm.
+No optional Python packages are required in Fusion. Reference points and marked
+construction geometry are ignored; unsupported contour geometry is rejected. Coordinates and
+tolerances below are in mm.
 """
 from math import atan2, atan, cos, sin, hypot, isfinite, pi, tau
 
@@ -11,6 +12,11 @@ MAX_CURVES = 2000
 UNITS = {1: ('in', 25.4), 2: ('ft', 304.8), 4: ('mm', 1.0),
          5: ('cm', 10.0), 6: ('m', 1000.0)}
 SCALES = {name: factor for name, factor in UNITS.values()}
+# Export convention, not a universal DXF construction flag. Do not infer
+# construction geometry from open endpoints or arbitrary layer names.
+CONSTRUCTION_LINETYPES = {name + suffix
+    for name in ('DASHED', 'DASHDOT', 'CENTER', 'CENTRE', 'PHANTOM')
+    for suffix in ('', '2', 'X2')}
 
 
 def number(value):
@@ -44,7 +50,7 @@ def read(data, unit='auto'):
         raise ValueError('Keine gültige ASCII-DXF-Datei.') from None
     if not pairs or pairs[-1] != (0, 'EOF'):
         raise ValueError('DXF-Dateiende fehlt.')
-    header, entities, section, record = [], [], None, None
+    header, entities, tables, section, record = [], [], [], None, None
     for index, (code, value) in enumerate(pairs):
         if code == 0 and value == 'SECTION':
             if section is not None or index+1 >= len(pairs) or pairs[index+1][0] != 2:
@@ -56,10 +62,10 @@ def read(data, unit='auto'):
             continue
         if section == 'HEADER':
             header.append((code, value))
-        elif section == 'ENTITIES':
+        elif section in ('ENTITIES', 'TABLES'):
             if code == 0:
                 record = [value, []]
-                entities.append(record)
+                (entities if section == 'ENTITIES' else tables).append(record)
             elif record is not None:
                 record[1].append((code, value))
     if section is not None:
@@ -77,6 +83,25 @@ def read(data, unit='auto'):
     else:
         raise ValueError('Ungültige DXF-Einheit.')
     curves, pending, vertices = [], None, []
+    ignored = dict(points=0, construction=0)
+    skip_polyline = False
+
+    def text_field(fields, code, default):
+        values = [value for key, value in fields if key == code]
+        if len(values) > 1:
+            raise ValueError(f'DXF-Gruppencode {code} ist mehrdeutig.')
+        return values[0].upper() if values else default
+
+    layers = {}
+    for kind, fields in tables:
+        if kind == 'LAYER':
+            layers[text_field(fields, 2, '0')] = text_field(fields, 6, 'CONTINUOUS')
+
+    def construction(fields):
+        linetype = text_field(fields, 6, 'BYLAYER')
+        if linetype == 'BYLAYER':
+            linetype = layers.get(text_field(fields, 8, '0'), 'CONTINUOUS')
+        return linetype in CONSTRUCTION_LINETYPES
 
     def get(fields, code, default=None):
         found = [value for key, value in fields if key == code]
@@ -127,6 +152,12 @@ def read(data, unit='auto'):
                     start_angle=atan2(start[1]-center[1], start[0]-center[0]), sweep=4*atan(bulge)))
 
     for kind, fields in entities:
+        if skip_polyline:
+            if kind == 'SEQEND':
+                skip_polyline = False
+            elif kind != 'VERTEX':
+                raise ValueError('POLYLINE ohne SEQEND.')
+            continue
         planar(fields)
         if pending is not None:
             if kind == 'VERTEX':
@@ -141,6 +172,17 @@ def read(data, unit='auto'):
                 raise ValueError('POLYLINE ohne SEQEND.')
             poly(pending, vertices)
             pending, vertices = None, []
+            continue
+        if kind == 'POINT':
+            # Sketch exports may include reference/origin points. These have
+            # no contour or area and must not affect bounds or connectivity.
+            point(fields)
+            ignored['points'] += 1
+            continue
+        if kind in ('XLINE', 'RAY') or (kind in (
+                'LINE', 'ARC', 'CIRCLE', 'LWPOLYLINE', 'POLYLINE') and construction(fields)):
+            ignored['construction'] += 1
+            skip_polyline = kind == 'POLYLINE'
             continue
         if kind == 'LINE':
             curves.append(dict(type='line', start=point(fields), end=point(fields, 11, 21)))
@@ -170,10 +212,11 @@ def read(data, unit='auto'):
                              'Nur LINE, ARC, CIRCLE und 2D-(LW)POLYLINE exportieren; Blöcke vorher auflösen.')
         if len(curves) > MAX_CURVES:
             raise ValueError('DXF enthält zu viele Konturelemente (maximal 2000).')
-    if pending is not None:
+    if pending is not None or skip_polyline:
         raise ValueError('POLYLINE ohne SEQEND.')
     geometry = inspect(curves)
     geometry.update(source_unit=unit, declared_unit=declared, scale_to_mm=scale)
+    geometry['ignored_entities'] = ignored
     return geometry
 
 

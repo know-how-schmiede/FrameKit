@@ -189,6 +189,7 @@ def command_created(args):
     profile_inputs.addTextBoxCommandInput('profile_help', '',
         'Quadratischer Querschnitt in XY, Mittelpunkt im Ursprung. '
         'LINE, ARC, CIRCLE und 2D-(LW)POLYLINE; Blöcke vorher auflösen. '
+        'Punkte und markierte Hilfsgeometrie werden ausgelassen. '
         'DXF wählen, erkannte Maße prüfen und Profil speichern. '
         'Speichern/Löschen wirken sofort, auch bei Abbrechen; bestehende Gestelle bleiben erhalten.', 5, True)
     profile_list = dropdown(profile_inputs, 'profile_list', 'Gespeicherte Profile', [], 0)
@@ -423,6 +424,12 @@ def command_created(args):
                             f'{spec["loop_count"]-1} Hohlräume; Einheit {spec["source_unit"]}. '
                             'Maße prüfen und bestätigen.')
                         profile_status.text = 'Konturen und Probeextrusion erfolgreich geprüft.'
+                        ignored = spec.get('ignored_entities', {})
+                        if any(ignored.values()):
+                            profile_status.text += (
+                                f' Ausgelassen: {ignored.get("points", 0)} Punkte, '
+                                f'{ignored.get("construction", 0)} Hilfselemente. '
+                                'Kontur und Hohlräume kontrollieren.')
                 elif event.input.id == save_profile.id:
                     if pending_profile is None or not profile_confirm.value:
                         raise ValueError('Zuerst DXF prüfen und erkannte Maße bestätigen.')

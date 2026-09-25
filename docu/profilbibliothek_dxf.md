@@ -17,6 +17,9 @@ Speichern und Löschen wirken sofort und werden durch **Abbrechen** des Gestelld
 ## Anforderungen an die DXF
 
 - ASCII-DXF mit Geometrie im Modellbereich. Unterstützt: **LINE, ARC, CIRCLE, LWPOLYLINE und einfache 2D-POLYLINE**, einschließlich Kreisbögen über Bulge-Werte.
+- Einzelne **POINT**-Elemente (z. B. exportierte Ursprungspunkte einer Skizze) werden nach der Ebenenprüfung ignoriert. Sie verändern weder Profilmaße noch Konturen und ersetzen keine geschlossene Kontur.
+- **Hilfsgeometrie** wird beim Import herausgefiltert: XLINE/RAY sowie unterstützte Konturelemente mit Linientyp DASHED, DASHDOT, CENTER, CENTRE oder PHANTOM (auch mit Suffix 2 oder X2). Der Linientyp kann direkt am Element oder über dessen Layer/BYLAYER angegeben sein; eine explizite Angabe am Element hat Vorrang. Die Quelldatei bleibt unverändert. Der Prüfdialog nennt die Anzahl ausgelassener Punkte und Hilfselemente.
+- Diese Linientypen werden als Exportkonvention für Hilfsgeometrie behandelt, nicht als allgemeingültiges DXF-Konstruktionsmerkmal. Die verbleibende Kontur und Hohlräume kontrollieren. Unmarkierte offene Linien werden weiterhin abgewiesen; beliebige Layernamen, unbekannte Linientypen und HIDDEN werden nicht als Hilfsgeometrie interpretiert.
 - Nur den Profilquerschnitt exportieren. Blöcke/INSERT vorher auflösen; Beschriftungen, Bemaßungen, Schraffuren, Splines, Ellipsen und andere nicht unterstützte Elemente werden mit einer Fehlermeldung abgewiesen. Binäre DXF wird ebenfalls abgewiesen.
 - Querschnitt in **XY bei Z=0**, Normalenrichtung **+Z**, keine Polylinienbreite oder Objekthöhe.
 - **Mitte der äußeren Begrenzung im Ursprung (0, 0)**. Gemeint ist nicht der Materialschwerpunkt. Zentrierung und Endpunktzuordnung verwenden eine Toleranz von 0,00001 mm; versetzte Dateien werden nicht automatisch verschoben.

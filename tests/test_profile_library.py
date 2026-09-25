@@ -40,6 +40,95 @@ def circle(x=0, y=0, radius=3):
 
 
 class DxfTests(unittest.TestCase):
+    def test_reference_points_do_not_change_contours_or_bounds(self):
+        markers = [(0, 'POINT'), (10, 0), (20, 0), (30, 0)]
+        markers += [(0, 'POINT'), (10, 100), (20, -200), (30, 0)]
+        outline = square() + circle()
+        shape = dxf.read(document(markers + outline + markers))
+        expected = dxf.read(document(outline))
+        self.assertEqual(shape.pop('ignored_entities'), dict(points=4, construction=0))
+        expected.pop('ignored_entities')
+        self.assertEqual(shape, expected)
+        with self.assertRaisesRegex(ValueError, 'Konturelemente'):
+            dxf.read(document(markers))
+        with self.assertRaisesRegex(ValueError, 'Offene'):
+            dxf.read(document(markers + poly([(-20, -20), (20, -20),
+                                              (20, 20), (-20, 20)], False)))
+
+    def test_point_does_not_hide_unterminated_polyline(self):
+        with self.assertRaisesRegex(ValueError, 'SEQEND'):
+            dxf.read(document([(0, 'POLYLINE'), (70, 1),
+                               (0, 'POINT'), (10, 0), (20, 0)]))
+
+    def test_marked_construction_geometry_is_excluded(self):
+        for linetype in ('DASHED', 'center2', 'PHANTOMX2', 'DASHDOT'):
+            # Crosses the outline and extends beyond its bounds.
+            helper = [(0, 'LINE'), (6, linetype), (10, -100), (20, 0),
+                      (11, 100), (21, 0)]
+            shape = dxf.read(document(square() + circle() + helper))
+            self.assertEqual(shape['width_mm'], 40)
+            self.assertEqual(shape['loop_count'], 2)
+            self.assertEqual(shape['ignored_entities'], dict(points=0, construction=1))
+            with self.assertRaisesRegex(ValueError, 'Konturelemente'):
+                dxf.read(document(helper))
+        for kind in ('XLINE', 'RAY'):
+            helper = [(0, kind), (10, 0), (20, 0), (11, 1), (21, 0)]
+            self.assertEqual(dxf.read(document(square() + helper))['width_mm'], 40)
+
+    def test_construction_linetype_inherited_from_layer_and_overridden(self):
+        tables = (b'0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n'
+                  b'0\nLAYER\n2\nGuides\n6\nDASHED\n0\nENDTAB\n0\nENDSEC\n')
+        helper = [(0, 'LINE'), (8, 'guides'), (10, -10), (20, 0), (11, 10), (21, 0)]
+        for setting in ([], [(6, 'BYLAYER')]):
+            data = tables + document(square() + helper + setting)
+            shape = dxf.read(data)
+            self.assertEqual(shape['width_mm'], 40)
+            self.assertEqual(shape['ignored_entities']['construction'], 1)
+        for linetype in ('CONTINUOUS', 'BYBLOCK', 'CUSTOM', 'HIDDEN'):
+            with self.assertRaisesRegex(ValueError, 'Offene|Ursprung'):
+                dxf.read(tables + document(square() + helper + [(6, linetype)]))
+
+    def test_construction_polylines_skip_the_complete_sequence(self):
+        old = [(0, 'POLYLINE'), (6, 'DASHED'), (70, 0),
+               (0, 'VERTEX'), (10, -100), (20, 0),
+               (0, 'VERTEX'), (10, 100), (20, 0)]
+        for helper in (old + [(0, 'SEQEND')],
+                       poly([(-100, 0), (100, 0)], False) + [(6, 'DASHED')],
+                       circle(radius=100) + [(6, 'CENTER')]):
+            shape = dxf.read(document(helper + square()))
+            self.assertEqual(shape['width_mm'], 40)
+            self.assertEqual(len(shape['curves']), 4)
+            self.assertEqual(shape['ignored_entities']['construction'], 1)
+        with self.assertRaisesRegex(ValueError, 'SEQEND'):
+            dxf.read(document(square() + old))
+        with self.assertRaisesRegex(ValueError, 'SEQEND'):
+            dxf.read(document(old + square()))
+
+    def test_unmarked_open_geometry_is_not_discarded(self):
+        helper = [(0, 'LINE'), (10, -20), (20, -20), (11, 20), (21, 20)]
+        with self.assertRaisesRegex(ValueError, 'Offene|verzweigte'):
+            dxf.read(document(square() + helper))
+        with self.assertRaisesRegex(ValueError, 'SPLINE'):
+            dxf.read(document(square() + [(0, 'SPLINE'), (6, 'DASHED')]))
+
+    def test_original_sketch_with_points_and_construction_lines(self):
+        source = FIXTURE.with_name('sketch_20_with_construction.dxf')
+        original = source.read_bytes()
+        spec, data = library.prepare(source, '20er')
+        self.assertEqual(data, original)
+        self.assertAlmostEqual(spec['width_mm'], 20, places=5)
+        self.assertAlmostEqual(spec['height_mm'], 20, places=5)
+        self.assertEqual(spec['loop_count'], 1)
+        self.assertEqual(len(spec['curves']), 44)
+        self.assertEqual(spec['ignored_entities'], dict(points=3, construction=3))
+        with tempfile.TemporaryDirectory() as folder:
+            library.add(spec, data, folder)
+            library.verify_source(spec, folder)
+            self.assertEqual((Path(folder) / spec['filename']).read_bytes(), original)
+            entries, warning = library.load(folder)
+            self.assertEqual(warning, '')
+            self.assertEqual(entries[0]['curves'], spec['curves'])
+
     def test_synthetic_tslots_and_holes(self):
         spec = dxf.read(FIXTURE.read_bytes())
         self.assertEqual((spec['width_mm'], spec['height_mm']), (40, 40))
