@@ -11,6 +11,23 @@ from fusion_addin.FrameKit import accessories, demo
 from test_preview import Graphics
 
 
+class Item:
+    def __init__(self, owner, name, selected, index):
+        self.owner, self.name, self.index = owner, name, index
+        self.isSelected = selected
+
+    @property
+    def isSelected(self):
+        return self._selected
+
+    @isSelected.setter
+    def isSelected(self, value):
+        if value:
+            for item in self.owner.items:
+                item._selected = False
+        self._selected = value
+
+
 class Items:
     def __init__(self):
         self.items = []
@@ -19,7 +36,7 @@ class Items:
         if selected:
             for item in self.items:
                 item.isSelected = False
-        item = NS(name=name, isSelected=selected, index=len(self.items))
+        item = Item(self, name, selected, len(self.items))
         self.items.append(item)
         return item
 
@@ -215,3 +232,38 @@ class PreviewCommandTests(unittest.TestCase):
         self.entry.stop()
         self.assertEqual(self.graphics.groups, [])
         self.assertEqual(self.entry._previews, [])
+
+    def select(self, name, index):
+        self.controls[name].listItems.item(index).isSelected = True
+        self.fire('inputChanged', input=self.controls[name])
+
+    def test_cross_member_copy_override_visibility_and_top_mount(self):
+        self.change('shelf_count', 1)
+        self.select('cross_all_count', 3)
+        self.select('cross_all_direction', 1)
+        self.change('cross_apply_all', True)
+        self.select('cross_bottom_count', 0)
+        self.select('cross_shelf_01_direction', 0)
+        self.select('top_panel_mount', 1)
+        self.assertTrue(self.controls['cross_shelf_01_count'].isVisible)
+        self.assertFalse(self.controls['cross_shelf_02_count'].isVisible)
+        self.show()
+        self.fire('execute')
+        _, values, calculated = self.create_frame.call_args.args
+        self.assertEqual(values['top_panel_mount'], 'on_top')
+        self.assertEqual(values['cross_members'], {
+            'top': dict(count=3, direction='laengs'),
+            'bottom': dict(count=0, direction='laengs'),
+            'shelf:01': dict(count=3, direction='quer')})
+        self.assertEqual(sum(':cross:' in p['key'] for p in calculated['parts']), 6)
+        self.change('bottom', False)
+        self.assertFalse(self.controls['cross_bottom_count'].isVisible)
+        self.change('reset_defaults', True)
+        self.assertEqual(self.controls['top_panel_mount'].selectedItem.index, 0)
+        self.assertEqual(self.controls['cross_top_count'].selectedItem.index, 0)
+
+    def test_cross_members_reject_tight_frame_in_dialog(self):
+        self.select('cross_top_count', 5)
+        self.change('length', 28)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertIn('zu wenig Platz', self.controls['validation'].text)

@@ -1,4 +1,4 @@
-﻿"""FrameKit integration demo: one native Fusion command with three tabs."""
+"""FrameKit integration demo: one native Fusion command with three tabs."""
 import html
 from pathlib import Path
 import adsk.core
@@ -84,10 +84,21 @@ def command_created(args):
         'shelf_count', 'Anzahl Zwischenböden', 0, demo.MAX_SHELVES, 1, values['shelf_count'])
     thickness = shelf_inputs.addValueInput('shelf_thickness', 'Plattenstärke', 'mm',
         adsk.core.ValueInput.createByString(f'{values["shelf_thickness"]} mm'))
+    def dropdown(parent, identifier, label, choices, selected):
+        control = parent.addDropDownCommandInput(
+            identifier, label, adsk.core.DropDownStyles.TextListDropDownStyle)
+        for index, text in enumerate(choices):
+            control.listItems.add(text, index == selected)
+        return control
+
+    mount = dropdown(shelf_inputs, 'top_panel_mount', 'Deckplatte',
+        ['Zwischen Pfosten (mit Aussparungen)', 'Auf Profilen (ohne Aussparungen)'],
+        int(values.get('top_panel_mount', 'notched') == 'on_top'))
     shelf_inputs.addTextBoxCommandInput('shelf_help', '',
         'Höhe = Oberkante Boden ab Aufstandsfläche. Von unten nach oben angeben. '
         'Leer = automatisch gleichmäßige freie Abstände. Eingaben in mm, z. B. 250 oder 25 cm. '
-        'Auf jedem Rahmen liegt eine Platte mit Aussparungen für die Pfosten. '
+        'Untere Platten haben Aussparungen für die Pfosten. Bei Deckplatte auf Profilen '
+        'enden die Pfosten unter der Platte. '
         'Gesamthöhe inklusive oberer Platte.', 5, True)
     height_fields = []
     for index in range(demo.MAX_SHELVES):
@@ -97,6 +108,27 @@ def command_created(args):
         field.isVisible = index < count.value
         height_fields.append(field)
     resolved = shelf_inputs.addTextBoxCommandInput('shelf_resolved', '', '', 3, True)
+    cross_group = frame_inputs.addGroupCommandInput('cross_members', 'Querträger je Ebene')
+    cross_inputs = cross_group.children
+    cross_inputs.addTextBoxCommandInput('cross_help', '',
+        '0 = keine Träger. Quer: vorne–hinten (Y), Längs: links–rechts (X). '
+        'Gleich große freie Felder; Oberkanten bündig mit dem Rahmen.', 3, True)
+    all_count = dropdown(cross_inputs, 'cross_all_count', 'Anzahl für alle Ebenen',
+                         [str(i) for i in range(6)], 0)
+    all_direction = dropdown(cross_inputs, 'cross_all_direction', 'Ausrichtung für alle Ebenen',
+                             ['Quer', 'Längs'], 0)
+    apply_all = cross_inputs.addBoolValueInput(
+        'cross_apply_all', 'Für alle Ebenen übernehmen', False, '', False)
+    cross_fields = {}
+    for key, label in demo.frame_levels(dict(bottom=True, shelf_count=demo.MAX_SHELVES)):
+        saved = values.get('cross_members', {}).get(key, {'count': 0, 'direction': 'quer'})
+        identifier = key.replace(':', '_')
+        number = dropdown(cross_inputs, f'cross_{identifier}_count', f'{label}: Anzahl',
+                          [str(i) for i in range(6)], saved['count'])
+        direction = dropdown(cross_inputs, f'cross_{identifier}_direction', f'{label}: Ausrichtung',
+                             ['Quer', 'Längs'], int(saved['direction'] == 'laengs'))
+        number.isVisible = direction.isVisible = key in dict(demo.frame_levels(values))
+        cross_fields[key] = (number, direction)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
     preview_inputs = frame_inputs.addGroupCommandInput('preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
@@ -218,6 +250,11 @@ def command_created(args):
         selected = selected_support()
         result['accessory'] = selected.copy() if selected else None
         result['shelf_count'] = count.value
+        result['top_panel_mount'] = 'on_top' if mount.selectedItem.index else 'notched'
+        result['cross_members'] = {
+            key: dict(count=cross_fields[key][0].selectedItem.index,
+                      direction='laengs' if cross_fields[key][1].selectedItem.index else 'quer')
+            for key, _ in demo.frame_levels(result)}
         if not thickness.isValidExpression:
             raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
         result['shelf_thickness'] = thickness.value * 10
@@ -300,7 +337,23 @@ def command_created(args):
             finally:
                 event.input.value = False
                 updating = False
+        if event.input.id == apply_all.id and apply_all.value:
+            updating = True
+            try:
+                for key, _ in demo.frame_levels(dict(bottom=bottom.value, shelf_count=count.value)):
+                    number, direction = cross_fields[key]
+                    number.listItems.item(all_count.selectedItem.index).isSelected = True
+                    direction.listItems.item(all_direction.selectedItem.index).isSelected = True
+                apply_all.value = False
+            finally:
+                updating = False
         if event.input.id == reset.id and reset.value:
+            mount.listItems.item(0).isSelected = True
+            all_count.listItems.item(0).isSelected = True
+            all_direction.listItems.item(0).isSelected = True
+            for number, direction in cross_fields.values():
+                number.listItems.item(0).isSelected = True
+                direction.listItems.item(0).isSelected = True
             support_choice.listItems.item(0).isSelected = True
             for key, field in fields.items():
                 field.expression = f'{demo.DEFAULTS[key]} mm'
@@ -312,6 +365,9 @@ def command_created(args):
             reset.value = False
         for index, field in enumerate(height_fields):
             field.isVisible = index < count.value
+        active_levels = dict(demo.frame_levels(dict(bottom=bottom.value, shelf_count=count.value)))
+        for key, (number, direction) in cross_fields.items():
+            number.isVisible = direction.isVisible = key in active_levels
         error.text = validation_message()
         show_preview.isEnabled = create.value
         show_panels.isEnabled = show_accessories.isEnabled = create.value and show_preview.value

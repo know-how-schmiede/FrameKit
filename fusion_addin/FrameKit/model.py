@@ -40,6 +40,8 @@ def build_model(values, previous=None):
     length, width, height, p = (values[key] for key in ('length', 'width', 'height', 'profile'))
     thickness = values.get('shelf_thickness', 18.0)
     base = base_height(values)
+    on_top = values.get('top_panel_mount', 'notched') == 'on_top'
+    post_top = height - thickness if on_top else height
     profile = dict(id=f'demo:square:{p:g}x{p:g}', name=f'{p:g}x{p:g} Demo-Vollprofil',
                    width_mm=p, height_mm=p, material=None, is_demo=True)
     groups = [dict(id='layout', name='00 | Layout'), dict(id='posts', name='01 | Pfosten'),
@@ -77,7 +79,8 @@ def build_model(values, previous=None):
             part['centerline_mm'] = [start, end]
             detail = f'{profile["name"]} | L={shape["depth_mm"]:g} mm'
         elif kind == 'panel':
-            detail = f'{length:g}x{width:g}x{thickness:g} mm | ausgeklinkt'
+            finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
+            detail = f'{length:g}x{width:g}x{thickness:g} mm | {finish}'
         else:
             part['accessory_definition'] = deepcopy(values['accessory'])
             detail = f'Ø={bounds[0]:g} mm | H={bounds[2]:g} mm'
@@ -87,8 +90,8 @@ def build_model(values, previous=None):
     for x, side, side_key in ((0, 'links', 'left'), (length-p, 'rechts', 'right')):
         for y, depth, depth_key in ((0, 'vorne', 'front'), (width-p, 'hinten', 'back')):
             add(f'post:{depth_key}:{side_key}', 'profile', 'posts', f'Pfosten {depth} {side}',
-                (x, y, base), (p, p, height-base),
-                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=height-base))
+                (x, y, base), (p, p, post_top-base),
+                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=post_top-base))
     for group, label, top in levels:
         z = top-thickness-p
         for y, side, key in ((0, 'vorne', 'front'), (width-p, 'hinten', 'back')):
@@ -99,9 +102,24 @@ def build_model(values, previous=None):
             add(f'{group}:beam:{key}', 'profile', group, f'Rahmen {label} {side}',
                 (x, p, z), (p, width-2*p, p),
                 dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=width-2*p), 'y')
+        spec = values.get('cross_members', {}).get(group, {'count': 0, 'direction': 'quer'})
+        count = spec['count']
+        transverse = spec['direction'] == 'quer'
+        span, run = (length, width) if transverse else (width, length)
+        gap = (span - 2*p - count*p) / (count+1)
+        for index in range(count):
+            offset = p + gap + index*(p+gap)
+            origin = (offset, p, z) if transverse else (p, offset, z)
+            bounds = (p, run-2*p, p) if transverse else (run-2*p, p, p)
+            add(f'{group}:cross:{index+1:02d}', 'profile', group,
+                f'Querträger {label} {index+1:02d}', origin, bounds,
+                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=run-2*p),
+                'y' if transverse else 'x')
+        outline = ([(0, 0), (length, 0), (length, width), (0, width)]
+                   if group == 'top' and on_top else panel_outline(length, width, p))
         add(f'{group}:panel', 'panel', group, f'{label} Platte', (0, 0, top-thickness),
             (length, width, thickness), dict(type='polygon',
-                points_mm=[list(point) for point in panel_outline(length, width, p)], depth_mm=thickness))
+                points_mm=[list(point) for point in outline], depth_mm=thickness))
     spec = values.get('accessory')
     if spec is not None:
         radius = spec['diameter']/2

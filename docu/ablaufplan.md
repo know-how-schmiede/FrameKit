@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.2.0**
+Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.2.1**
 
-**Status: S01 / 0.1.5 und S02 / 0.2.0 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S01 / 0.1.5, S02 / 0.2.0 und S03 / 0.2.1 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -35,7 +35,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | --- | --- | --- | --- | --- |
 | S01 | 0.1.5 | Bauteildaten, stabile IDs und strukturierte Baugruppe | 0.1.4 | Implementiert |
 | S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | Implementiert |
-| S03 | 0.2.1 | Querträger je Ebene | S01, S02 | Geplant |
+| S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | Implementiert |
 | S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | Geplant |
 | S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Geplant |
 | S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Geplant |
@@ -68,6 +68,10 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Vorschau und Baugruppe stimmen überein. Änderungen aktualisieren die Vorschau; Abbrechen und Fehler hinterlassen keine temporären Objekte.
 
 ### S03 · 0.2.1 – Querträger
+
+**Ergebnis:** [Querträger und Deckplattenmontage](quertraeger_deckplatte.md). 46 lokale Tests erfolgreich; Fusion-Abnahme offen.
+
+- Ergänzung: Deckplatte wahlweise mit Aussparungen oder auf den Profilen ohne Aussparungen; Pfostenlänge berücksichtigt Plattenstärke bei unveränderter Gesamthöhe.
 
 - Querträger pro vorhandener Rahmen-/Bodenebene aktivieren und Anzahl sowie Richtung längs/quer einstellen.
 - „Für alle Ebenen übernehmen“ ergänzen; anschließend einzelne Ebenen abweichend konfigurieren können.

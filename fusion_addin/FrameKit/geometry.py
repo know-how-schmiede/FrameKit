@@ -1,4 +1,4 @@
-﻿"""Build Fusion components exclusively from the calculated assembly model."""
+"""Build Fusion components exclusively from the calculated assembly model."""
 import json
 import adsk.core
 import adsk.fusion
@@ -34,7 +34,8 @@ def _create_part(parent, part, frame_id):
         sketch.sketchCurves.sketchCircles.addByCenterRadius(
             adsk.core.Point3D.create(x / 10, y / 10, 0), shape['radius_mm'] / 10)
     elif shape['type'] == 'polygon':
-        sketch.name = 'Bodenplatte mit Eckausklinkungen'
+        sketch.name = ('Platte ohne Aussparungen' if len(shape['points_mm']) == 4
+                       else 'Bodenplatte mit Eckausklinkungen')
         points = [adsk.core.Point3D.create(x / 10, y / 10, 0) for x, y in shape['points_mm']]
         lines = sketch.sketchCurves.sketchLines
         first = lines.addByTwoPoints(points[0], points[1])

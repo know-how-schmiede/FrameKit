@@ -8,9 +8,9 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.2.0**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine aufliegende Platte mit Eckausklinkungen. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.2.1**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines einfachen Gestells aus Rechteckprofilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
-Neu in **0.2.0**: zuschaltbare Mittellinien-Vorschau mit optionalen Bodenflächen und Zubehörumrissen. Beim Erstellen wird eine fixierte, standardmäßig ausgeblendete Layoutskizze gespeichert. Details und Fusion-Prüfschritte: [Vorschau und Layout](docu/vorschau_layout.md).
+Neu in **0.2.1**: je Ebene 0–5 gleichmäßig verteilte Querträger, Ausrichtung Quer/Längs und Übernahme auf alle Ebenen. Deckplattenmontage per Auswahlfeld mit korrekter Gesamthöhe. Mittellinien-Vorschau und fixierte Layoutskizze berücksichtigen die neuen Bauteile. Details: [Querträger und Deckplattenmontage](docu/quertraeger_deckplatte.md).
 
 ## Screenshots
 

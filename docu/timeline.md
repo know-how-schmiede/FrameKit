@@ -1,6 +1,18 @@
-﻿# FrameKit – Änderungshistorie
+# FrameKit – Änderungshistorie
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
+
+## 25.09.2026 – 0.2.1
+
+**Git-Zusammenfassung:** `feat: Querträger je Ebene und wählbare Deckplattenmontage (0.2.1)`
+
+- Anzahl 0–5 und Quer/Längs je Ebene per Auswahlfeld, gleiche freie Felder und Übernahme auf alle Ebenen.
+- Deckplatte alternativ ohne Aussparungen auf Profilen; Pfostenlänge berücksichtigt Plattenstärke und Zubehörhöhe.
+- Standardwerte, Bauteildaten, Vorschau und Layout unterstützen beide Ergänzungen.
+
+**Prüfstand:** 46 lokale Tests und Syntaxprüfung erfolgreich; Prüfung im laufenden Fusion steht aus.
+
+**Details:** [Querträger und Deckplattenmontage](quertraeger_deckplatte.md)
 
 ## 25.09.2026 – 0.2.0
 

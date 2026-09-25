@@ -8,9 +8,9 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.2.0**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a top-mounted panel with corner cutouts for the posts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.2.1**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a simple frame made from rectangular solid profiles with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
 
-New in **0.2.0**: an optional centerline preview with independently selectable shelf surfaces and accessory outlines. Creating a frame also stores a fixed layout sketch, hidden by default. See [Preview and layout](docu/vorschau_layout.md) (German) for details and Fusion verification steps.
+New in **0.2.1**: select 0–5 evenly spaced cross members per level, choose their direction, and copy settings to all levels. Choose top panel mounting with the overall height preserved. Preview and layout include the new members. See [Cross members and top panel mounting](docu/quertraeger_deckplatte.md) (German).
 
 ## Screenshots
 

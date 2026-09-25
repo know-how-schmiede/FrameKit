@@ -4,7 +4,8 @@ from .accessories import validate_spec
 
 MAX_SHELVES = 20
 DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True,
-                shelf_count=0, shelf_heights=[], shelf_thickness=18.0, accessory=None)
+                shelf_count=0, shelf_heights=[], shelf_thickness=18.0, accessory=None,
+                cross_members={}, top_panel_mount='notched')
 
 
 def validate(values):
@@ -24,6 +25,31 @@ def validate(values):
         if spec['diameter'] > min(values['length'], values['width']) - values['profile']:
             raise ValueError('Durchmesser zu groß: Fuß-/Rollenplatzhalter würden sich überlappen.')
     shelf_heights(values)
+    if values.get('top_panel_mount', 'notched') not in ('notched', 'on_top'):
+        raise ValueError('Ungültige Montageart der Deckplatte.')
+    settings = values.get('cross_members', {})
+    if not isinstance(settings, dict):
+        raise ValueError('Ungültige Querträgereinstellungen.')
+    allowed = {'top', 'bottom'} | {f'shelf:{i:02d}' for i in range(1, MAX_SHELVES+1)}
+    for key, spec in settings.items():
+        if key not in allowed or not isinstance(spec, dict):
+            raise ValueError('Ungültige Querträgerebene.')
+        count = spec.get('count')
+        if isinstance(count, bool) or not isinstance(count, int) or not 0 <= count <= 5:
+            raise ValueError('Querträgeranzahl muss zwischen 0 und 5 liegen.')
+        if spec.get('direction') not in ('quer', 'laengs'):
+            raise ValueError('Querträgerrichtung muss Quer oder Längs sein.')
+    for key, label in frame_levels(values):
+        spec = settings.get(key, {'count': 0, 'direction': 'quer'})
+        span = values['length' if spec['direction'] == 'quer' else 'width']
+        if spec['count'] and span - (2 + spec['count']) * values['profile'] <= 0:
+            raise ValueError(f'{label}: zu wenig Platz für die Querträger; Anzahl reduzieren.')
+
+
+def frame_levels(values):
+    return ([('top', 'Oben')] + ([('bottom', 'Unten')] if values['bottom'] else [])
+            + [(f'shelf:{i:02d}', f'Boden {i:02d}')
+               for i in range(1, values.get('shelf_count', 0)+1)])
 
 
 def base_height(values):

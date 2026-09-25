@@ -26,7 +26,8 @@ def load(path=None):
         stored = data['defaults']
         values = {key: stored[key] for key in ('length', 'width', 'height', 'profile', 'bottom')}
         # Settings from 0.1.0/0.1.1 have no shelf fields.
-        for key in ('shelf_count', 'shelf_heights', 'shelf_thickness', 'accessory'):
+        for key in ('shelf_count', 'shelf_heights', 'shelf_thickness', 'accessory',
+                    'cross_members', 'top_panel_mount'):
             values[key] = deepcopy(stored.get(key, DEFAULTS[key]))
         validate(values)
         return values, ''
