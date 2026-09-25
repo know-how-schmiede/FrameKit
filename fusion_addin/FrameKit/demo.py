@@ -5,7 +5,7 @@ from .accessories import validate_spec
 MAX_SHELVES = 20
 DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True,
                 shelf_count=0, shelf_heights=[], shelf_thickness=18.0, accessory=None,
-                cross_members={}, top_panel_mount='notched')
+                cross_members={}, top_panel_mount='notched', profile_definition=None)
 
 
 def validate(values):
@@ -15,6 +15,12 @@ def validate(values):
             raise ValueError('Abmessungen müssen Zahlen sein.')
         if not math.isfinite(value) or not 1 <= value <= 10000:
             raise ValueError('Abmessungen müssen zwischen 1 und 10000 mm liegen.')
+    definition = values.get('profile_definition')
+    if definition is not None:
+        from .profile_library import validate as validate_profile
+        validate_profile(definition)
+        if abs(values['profile']-definition['width_mm']) > 1e-5:
+            raise ValueError('Profilbreite stimmt nicht mit dem ausgewählten DXF-Profil überein.')
     if not isinstance(values.get('bottom'), bool):
         raise ValueError('Unterer Rahmen muss ein Wahrheitswert sein.')
     if min(values['length'], values['width'], values['height']) <= 2 * values['profile']:

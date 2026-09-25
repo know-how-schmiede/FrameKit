@@ -53,6 +53,8 @@ Zunächst prüfen, welche Fusion-Version und Entwicklungsumgebung verfügbar sin
 
 DXF dient als erstes Austauschformat für Profilquerschnitte. SVG bleibt eine spätere Erweiterung.
 
+Importierte Profilquerschnitte liegen in der XY-Ebene und sind um den Ursprung (0, 0) zentriert. Als Mittelpunkt gilt die Mitte der äußeren Profilabmessungen, nicht der Materialschwerpunkt. Der Import prüft diese Voraussetzung mit numerischer Toleranz; die Extrusion erfolgt entlang der lokalen Z-Achse. Die Positionierung im Gestell muss den mittigen Profilursprung berücksichtigen.
+
 Ein Profil besteht aus einer Querschnittsdatei und Metadaten:
 
 - Eindeutige Bibliotheks-ID.

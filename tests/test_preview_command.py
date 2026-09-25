@@ -3,11 +3,12 @@ from copy import deepcopy
 import importlib.util
 from pathlib import Path
 import sys
+import tempfile
 from types import ModuleType, SimpleNamespace as NS
 import unittest
 from unittest.mock import Mock, patch
 
-from fusion_addin.FrameKit import accessories, demo
+from fusion_addin.FrameKit import accessories, demo, profile_library
 from test_preview import Graphics
 
 
@@ -92,6 +93,12 @@ class Inputs:
 
 class PreviewCommandTests(unittest.TestCase):
     def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.profile_folder = Path(folder.name)/'profiles'
+        location = patch.object(profile_library, 'directory', return_value=self.profile_folder)
+        location.start()
+        self.addCleanup(location.stop)
         adsk = ModuleType('adsk')
         core, fusion = ModuleType('adsk.core'), ModuleType('adsk.fusion')
         adsk.core, adsk.fusion = core, fusion
@@ -267,3 +274,81 @@ class PreviewCommandTests(unittest.TestCase):
         self.change('length', 28)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
         self.assertIn('zu wenig Platz', self.controls['validation'].text)
+
+    def profile_dialog(self, filename, accepted=True):
+        core = sys.modules['adsk.core']
+        core.DialogResults = NS(DialogOK=1)
+        dialog = NS(filename=str(filename), showOpen=lambda: 1 if accepted else 0)
+        self.app.userInterface.createFileDialog = lambda: dialog
+        adapter = ModuleType('profile_geometry')
+        adapter.validate_in_fusion = Mock()
+        modules = patch.dict(sys.modules, {'fusion_addin.FrameKit.profile_geometry': adapter})
+        modules.start()
+        self.addCleanup(modules.stop)
+        return adapter
+
+    def test_dxf_import_confirm_save_select_and_delete(self):
+        from test_profile_library import FIXTURE
+        adapter = self.profile_dialog(FIXTURE)
+        self.change('choose_profile', True)
+        adapter.validate_in_fusion.assert_called_once()
+        self.assertIn('40 × 40 mm', self.controls['profile_detected'].text)
+        self.assertFalse(self.controls['save_profile'].isEnabled)
+        self.change('profile_confirm', True)
+        self.assertTrue(self.controls['save_profile'].isEnabled)
+        self.change('profile_name', 'Mein Profil')
+        self.change('profile_manufacturer', 'Benutzereingabe')
+        self.change('save_profile', True)
+        entries, warning = profile_library.load()
+        self.assertEqual(warning, '')
+        self.assertEqual(entries[0]['name'], 'Mein Profil')
+        self.assertEqual(entries[0]['manufacturer'], 'Benutzereingabe')
+        self.assertFalse(self.controls['profile'].isVisible)
+        self.assertEqual(self.controls['profile_choice'].selectedItem.index, 1)
+        self.show()
+        self.fire('execute')
+        _, values, calculated = self.create_frame.call_args.args
+        self.assertEqual(values['profile_definition'], entries[0])
+        self.assertEqual(values['profile'], 40)
+        self.assertTrue(any(p['geometry']['type'] == 'dxf' for p in calculated['parts']))
+        self.change('delete_profile', True)
+        self.assertEqual(profile_library.load(), ([], ''))
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertIn('fehlt in der Bibliothek', self.controls['validation'].text)
+        self.select('profile_choice', 0)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.assertTrue(self.controls['profile'].isVisible)
+
+    def test_dxf_cancel_unit_change_and_failed_probe_do_not_save(self):
+        from test_profile_library import FIXTURE
+        adapter = self.profile_dialog(FIXTURE, accepted=False)
+        self.change('choose_profile', True)
+        adapter.validate_in_fusion.assert_not_called()
+        self.assertFalse(self.controls['save_profile'].isEnabled)
+        adapter = self.profile_dialog(FIXTURE)
+        adapter.validate_in_fusion.side_effect = ValueError('Kontur fehlerhaft')
+        self.change('choose_profile', True)
+        self.assertIn('Kontur fehlerhaft', self.controls['profile_status'].text)
+        self.assertEqual(profile_library.load(), ([], ''))
+        adapter.validate_in_fusion.side_effect = None
+        self.change('choose_profile', True)
+        self.change('profile_confirm', True)
+        self.select('profile_unit', 1)
+        self.assertFalse(self.controls['save_profile'].isEnabled)
+        self.change('save_profile', True)
+        self.assertIn('Zuerst DXF prüfen', self.controls['profile_status'].text)
+        self.assertEqual(profile_library.load(), ([], ''))
+
+    def test_dxf_file_change_blocks_creation_and_reset_restores_demo(self):
+        from test_profile_library import FIXTURE
+        self.profile_dialog(FIXTURE)
+        self.change('choose_profile', True)
+        self.change('profile_confirm', True)
+        self.change('save_profile', True)
+        entries, _ = profile_library.load()
+        (self.profile_folder/entries[0]['filename']).write_text('changed')
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertIn('verändert', self.controls['validation'].text)
+        self.change('reset_defaults', True)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.assertEqual(self.controls['profile_choice'].selectedItem.index, 0)

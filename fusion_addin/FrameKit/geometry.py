@@ -15,7 +15,7 @@ def _set_attributes(component, values):
         component.attributes.add('FrameKit', key, value)
 
 
-def _create_part(parent, part, frame_id):
+def _create_part(parent, part, frame_id, profiles=None):
     transform = adsk.core.Matrix3D.create()
     axes = [adsk.core.Vector3D.create(*axis) for axis in part['orientation']]
     if not transform.setWithCoordinateSystem(
@@ -28,7 +28,12 @@ def _create_part(parent, part, frame_id):
     component.description = part['function']
     sketch = component.sketches.add(component.xYConstructionPlane)
     shape = part['geometry']
-    if shape['type'] == 'circle':
+    region = None
+    if shape['type'] == 'dxf':
+        from .profile_geometry import draw_section
+        sketch.name = 'DXF-Profilquerschnitt (mittig im Ursprung)'
+        region = draw_section(sketch, profiles[part['profile_ref']])
+    elif shape['type'] == 'circle':
         sketch.name = 'Fuß-/Rollenplatzhalter (Zylinder)'
         x, y = shape['center_mm']
         sketch.sketchCurves.sketchCircles.addByCenterRadius(
@@ -50,10 +55,12 @@ def _create_part(parent, part, frame_id):
             adsk.core.Point3D.create(shape['width_mm'] / 10, shape['height_mm'] / 10, 0))
     else:
         raise ValueError(f'Unbekannte Geometrie: {shape["type"]}')
-    if sketch.profiles.count != 1:
-        raise ValueError(f'{part["id"]}: keine eindeutige geschlossene Kontur.')
+    if region is None:
+        if sketch.profiles.count != 1:
+            raise ValueError(f'{part["id"]}: keine eindeutige geschlossene Kontur.')
+        region = sketch.profiles.item(0)
     extrusion = component.features.extrudeFeatures.addSimple(
-        sketch.profiles.item(0), adsk.core.ValueInput.createByReal(shape['depth_mm'] / 10),
+        region, adsk.core.ValueInput.createByReal(shape['depth_mm'] / 10),
         adsk.fusion.FeatureOperations.NewBodyFeatureOperation)
     extrusion.name = f'{part["id"]} | Extrusion'
     extrusion.bodies.item(0).name = part['display_name']
@@ -120,7 +127,7 @@ def create_frame(design, values, calculated_model=None):
             ranges.append((assembly.timelineObject, layout.timelineObject, f'{prefix} | Struktur und Layout'))
         # Each part's creation, sketch and extrusion remain sequential and independent.
         for part in model['parts']:
-            occurrence, extrusion = _create_part(containers[part['group_id']], part, frame_id)
+            occurrence, extrusion = _create_part(containers[part['group_id']], part, frame_id, model['profiles'])
             if parametric:
                 ranges.append((occurrence.timelineObject, extrusion.timelineObject,
                                f'{prefix} | {part["display_name"]}'))

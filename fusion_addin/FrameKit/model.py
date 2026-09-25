@@ -44,6 +44,8 @@ def build_model(values, previous=None):
     post_top = height - thickness if on_top else height
     profile = dict(id=f'demo:square:{p:g}x{p:g}', name=f'{p:g}x{p:g} Demo-Vollprofil',
                    width_mm=p, height_mm=p, material=None, is_demo=True)
+    if values.get('profile_definition') is not None:
+        profile = deepcopy(values['profile_definition'])
     groups = [dict(id='layout', name='00 | Layout'), dict(id='posts', name='01 | Pfosten'),
               dict(id='top', name='02 | Rahmen oben')]
     levels = [('top', 'oben', height)]
@@ -77,6 +79,10 @@ def build_model(values, previous=None):
             start = [origin[i] + p/2*(u[i]+v[i]) for i in range(3)]
             end = [start[i] + shape['depth_mm']*w[i] for i in range(3)]
             part['centerline_mm'] = [start, end]
+            if not profile['is_demo']:
+                # The DXF's local origin is its section center, not its lower corner.
+                part['position_mm'] = start
+                part['geometry'] = dict(type='dxf', depth_mm=shape['depth_mm'])
             detail = f'{profile["name"]} | L={shape["depth_mm"]:g} mm'
         elif kind == 'panel':
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'

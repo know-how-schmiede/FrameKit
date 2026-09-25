@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.2.1**
+Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.3.0**
 
-**Status: S01 / 0.1.5, S02 / 0.2.0 und S03 / 0.2.1 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S01 / 0.1.5, S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -36,7 +36,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S01 | 0.1.5 | Bauteildaten, stabile IDs und strukturierte Baugruppe | 0.1.4 | Implementiert |
 | S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | Implementiert |
 | S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | Implementiert |
-| S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | Geplant |
+| S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | Implementiert |
 | S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Geplant |
 | S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Geplant |
 | S07 | 0.4.1 | Verbindungssätze und Montageraum | S04, S05, S06 | Geplant |
@@ -81,8 +81,12 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S04 · 0.3.0 – Profilbibliothek und DXF
 
+**Ergebnis:** [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). 68 lokale Tests erfolgreich. Import für quadratische Querschnitte umgesetzt; Fusion-Abnahme und reales Hersteller-Referenzprofil noch offen. Synthetische Testgeometrie ist ausdrücklich kein Herstellerprofil.
+
 - Ein vom Benutzer festgelegtes Referenzprofil mit realem Nutquerschnitt integrieren und durch Extrusion erzeugen; Hohlräume erhalten.
 - „Profil hinzufügen“ mit DXF-Dateiauswahl, Importprüfung und Metadaten umsetzen: Hersteller, Serie, Artikelnummer, Nutgröße, Außenmaße, Einheit, Bezugspunkt, Ausrichtung und Material.
+- Bestätigter Bibliotheksablauf: lokale DXF auswählen, prüfen und mit Profilnamen sowie eindeutiger ID in den persönlichen FrameKit-Datenordner kopieren (außerhalb des Installationsverzeichnisses). Auswahl beim Erstellen über die Profilliste; Löschen entfernt Eintrag und Bibliothekskopie, nicht die Originaldatei oder bereits erzeugte Gestelle.
+- Importvoraussetzung: Querschnitt in der XY-Ebene, Mittelpunkt der äußeren Profilabmessungen im Ursprung (0, 0); gemeint ist die Mitte der äußeren Begrenzung, nicht der Materialschwerpunkt. Zentrierung beim Import mit numerischer Toleranz prüfen und bei Abweichungen eine verständliche Fehlermeldung anzeigen. Extrusion entlang der lokalen Z-Achse.
 - Bibliothekseinträge auswählen, auflisten und entfernen; verwendete Profildefinitionen im Projekt nachvollziehbar sichern. Fehlende oder geänderte externe Dateien dürfen gespeicherte Gestelle nicht stillschweigend verändern.
 - **Vorher festlegen:** Hersteller, Serie, erstes Profil und geeignete DXF-Referenzdatei. Keine Maße oder Produktdaten erfinden.
 - **Prüfung:** Referenzprofil sowie fehlerhafte Skalierung, offene Konturen und Hohlprofile testen. Fehlermeldungen müssen die Ursache nennen.

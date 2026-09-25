@@ -1,6 +1,6 @@
 # Bauteildaten und Baugruppenstruktur – ab 0.1.5
 
-Dieses Dokument beschreibt **S01** aus dem [Ablaufplan](ablaufplan.md). Seit S02 / 0.2.0 verwenden auch [Vorschau und Layout](vorschau_layout.md) diese Bauteildaten. Echte Nutprofile und Bearbeitung vorhandener Gestelle folgen in den dort vorgesehenen Versionen.
+Dieses Dokument beschreibt **S01** aus dem [Ablaufplan](ablaufplan.md). Seit S02 / 0.2.0 verwenden auch [Vorschau und Layout](vorschau_layout.md) diese Bauteildaten. Seit S04 / 0.3.0 werden echte DXF-Profilquerschnitte unterstützt; die Bearbeitung vorhandener Gestelle folgt in S08.
 
 ## Berechnung und Geometrie
 
@@ -14,12 +14,12 @@ Alle Maße werden in **Millimetern** gespeichert. Erst bei der Übergabe an Fusi
 | `id_registry` | Dauerhafte Zuordnung von Bauteilrollen zu lokalen IDs |
 | `configuration` | Kopie der verwendeten Dialogwerte und Zubehördefinition |
 | `groups` | Unterbaugruppen mit sprachunabhängigen Gruppenkennungen |
-| `profiles` | Verwendete Profildefinitionen; aktuell ausdrücklich Demo-Vollprofile |
+| `profiles` | Verwendete Demo-Vollprofile oder eigenständige DXF-Profildefinitionen einschließlich Konturen und Metadaten |
 | `parts` | Berechnete Profile, Platten und Zubehörplatzhalter |
 
-Jedes Bauteil enthält ID, eindeutige Gesamtkennung, Rolle, Funktion, Gruppe, Lage, Orientierung, Abmessungen und Geometriebeschreibung. Bei Profilen kommen Profilreferenz, Zuschnittlänge und Mittellinien-Endpunkte an den Schnittflächen hinzu. Platten speichern ihre ausgeklinkte Kontur; Zubehörteile speichern die verwendete Definition. Die Mittellinien sind zunächst Daten, noch keine sichtbare Vorschau.
+Jedes Bauteil enthält ID, eindeutige Gesamtkennung, Rolle, Funktion, Gruppe, Lage, Orientierung, Abmessungen und Geometriebeschreibung. Bei Profilen kommen Profilreferenz, Zuschnittlänge und Mittellinien-Endpunkte an den Schnittflächen hinzu. Platten speichern ihre ausgeklinkte Kontur; Zubehörteile speichern die verwendete Definition. Vorschau und Layout verwenden dieselben Mittellinien.
 
-`position_mm` bezeichnet den lokalen Geometrieursprung relativ zur Hauptbaugruppe. `orientation` enthält die lokalen X-, Y- und Z-Achsen als Richtungsvektoren im Gestellkoordinatensystem; Z ist die Extrusionsrichtung. `bounds_mm` beschreibt die achsparallelen Ausdehnungen im Gestell. Die Geometriebeschreibung enthält lokale Querschnittsdaten und Extrusionstiefe.
+`position_mm` bezeichnet den lokalen Geometrieursprung relativ zur Hauptbaugruppe. `orientation` enthält die lokalen X-, Y- und Z-Achsen als Richtungsvektoren im Gestellkoordinatensystem; Z ist die Extrusionsrichtung. `bounds_mm` beschreibt die achsparallelen Ausdehnungen im Gestell. Die Geometriebeschreibung enthält lokale Querschnittsdaten und Extrusionstiefe. Bei DXF-Profilen liegt `position_mm` im Querschnittsmittelpunkt an der ersten Schnittfläche; die exakten Konturen stehen unter `profiles[profile_ref]`, der Geometrietyp ist `dxf`. Demo-Profile behalten ihren bisherigen Ursprung an der unteren Querschnittsecke. Details: [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md).
 
 ## Stabile IDs
 

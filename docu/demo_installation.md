@@ -1,6 +1,6 @@
-# FrameKit 0.2.1 – Integrationsdemo
+# FrameKit 0.3.0 – Integrationsdemo
 
-Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus massiven Rechteckprofilen. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Nutquerschnitte, detailliertes Zubehör, Projektbearbeitung und CSV-Export sind noch nicht implementiert.
+Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus Demo-Vollprofilen oder importierten DXF-Profilquerschnitten. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Echte quadratische Nutquerschnitte werden über die [DXF-Profilbibliothek](profilbibliothek_dxf.md) importiert. Detailliertes Zubehör, Projektbearbeitung und CSV-Export folgen später.
 
 ## In Fusion laden
 
@@ -16,8 +16,8 @@ Nach erfolgreicher Gestellerstellung wird die Ansicht automatisch mit **Zoom auf
 
 ## Dialog
 
-- **Frame erstellen:** Außenlänge, Außenbreite, Höhe und quadratische Profilbreite in Millimetern einstellen; unteren Rahmen optional deaktivieren. **Ausführen** erstellt eine neue Demo-Baugruppe. Mehrfaches Ausführen erzeugt unabhängige Baugruppen.
-- **Einstellungen verwalten:** Aktuelle Abmessungen und Fuß-/Rollenauswahl als Standardwerte speichern oder Werkseinstellungen in den Dialog laden. Zum ausschließlichen Speichern im ersten Reiter **Demo-Gestell erstellen** deaktivieren. Standardwerte werden erst mit **Ausführen** gespeichert. Die separate Platzhalterbibliothek wird über eigene Schaltflächen sofort gespeichert; diese Änderungen bleiben auch nach **Abbrechen** erhalten.
+- **Frame erstellen:** Außenlänge, Außenbreite, Höhe in Millimetern einstellen sowie ein DXF-Profil oder eine Demo-Profilbreite auswählen; unteren Rahmen optional deaktivieren. **Ausführen** erstellt eine neue Baugruppe. Mehrfaches Ausführen erzeugt unabhängige Baugruppen.
+- **Einstellungen verwalten:** Aktuelle Abmessungen und Fuß-/Rollenauswahl als Standardwerte speichern oder Werkseinstellungen in den Dialog laden. Zum ausschließlichen Speichern im ersten Reiter **Gestell erstellen** deaktivieren. Standardwerte werden erst mit **Ausführen** gespeichert. Die Profil- und Platzhalterbibliotheken werden über eigene Schaltflächen sofort gespeichert; diese Änderungen bleiben auch nach **Abbrechen** erhalten.
 - **info:** Aufbau nach der PrintThread-Wizard-Vorlage: Name und Version aus `version.py`, FrameKit-Logo, Kurzbeschreibung sowie Links zu Homepage, Quellcode, Releases, Issues und YouTube. Autor und Lizenz schließen den Bereich ab.
 
 Die Einstellungen liegen unter Windows in `%APPDATA%/FrameKit/settings.json`, auf macOS in `~/Library/Application Support/FrameKit/settings.json`. Fehlende oder beschädigte Einstellungen führen zu Werkseinstellungen; beschädigte Dateien werden nicht automatisch überschrieben.
@@ -28,7 +28,7 @@ Im ersten Reiter **Vorschau anzeigen** einschalten. Bodenflächen und Zubehörum
 
 ## Icons und Version
 
-Aktueller Stand: **0.2.1**. Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
+Aktueller Stand: **0.3.0**. DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
 
 Die vorhandenen `CreateFrame`- und `ProfileLibrary`-SVGs werden im Add-in mitgeliefert: `16x16.svg` für kleine Bedienelemente, `32x32.svg` für große sowie jeweils `-dark_blue`-Varianten. Die Vektorgrafiken skalieren auch bei hoher Bildschirmauflösung. Das Add-in-Symbol verwendet ebenfalls das FrameKit-Rahmensymbol.
 
@@ -53,7 +53,7 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. 46 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Struktur und Zeitleiste aus 0.1.5 sowie Vorschau und Layout aus 0.2.0 sowie Querträger und Deckplattenmontage aus 0.2.1 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
+Lokale Tests: `python -m unittest discover -s tests -v`. 68 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Struktur und Zeitleiste aus 0.1.5 sowie Vorschau und Layout aus 0.2.0 sowie Querträger und Deckplattenmontage aus 0.2.1 und DXF-Profile aus 0.3.0 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
 
 ## Zwischenböden
 

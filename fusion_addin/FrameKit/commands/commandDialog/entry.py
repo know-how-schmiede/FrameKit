@@ -1,9 +1,10 @@
 """FrameKit integration demo: one native Fusion command with three tabs."""
 import html
+from copy import deepcopy
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import accessories, config, demo, settings
+from ... import accessories, config, demo, settings, profile_library
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
@@ -27,7 +28,7 @@ def start():
         raise RuntimeError('Fusion-Bereich Volumenkörper / Erstellen nicht gefunden.')
     stop()
     definition = ui.commandDefinitions.addButtonDefinition(
-        CMD_ID, f'FrameKit {__version__}', 'Ein einfaches Demo-Gestell erstellen.',
+        CMD_ID, f'FrameKit {__version__}', 'Ein Gestell aus Demo- oder DXF-Profilen erstellen.',
         str(RESOURCES / 'CreateFrame'))
     futil.add_handler(definition.commandCreated, command_created, local_handlers=_handlers)
     control = panel.controls.addCommand(definition)
@@ -60,16 +61,20 @@ def command_created(args):
     inputs = command.commandInputs
     values, warning = settings.load()
     library, library_warning = settings.load_library()
+    profiles, profiles_warning = profile_library.load()
     frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
     frame_inputs = frame.children
     frame_inputs.addTextBoxCommandInput('intro', '',
-        '<b>FrameKit Demo</b><br>Einfaches Gestell aus massiven Rechteckprofilen. '
-        'Keine Nutgeometrie, Verbinder oder Tragfähigkeitsberechnung.', 3, True)
+        '<b>FrameKit</b><br>Gestell aus Demo-Vollprofilen oder eigenen DXF-Profilen. '
+        'Keine Verbinder oder Tragfähigkeitsberechnung.', 3, True)
     fields = {}
     for key, label in (('length', 'Länge'), ('width', 'Breite'),
-                       ('height', 'Gesamthöhe'), ('profile', 'Profilbreite')):
+                       ('height', 'Gesamthöhe'), ('profile', 'Demo-Profilbreite')):
         fields[key] = frame_inputs.addValueInput(key, label, 'mm',
             adsk.core.ValueInput.createByString(f'{values[key]} mm'))
+    profile_choice = frame_inputs.addDropDownCommandInput(
+        'profile_choice', 'Profil für das gesamte Gestell', adsk.core.DropDownStyles.TextListDropDownStyle)
+    profile_dimensions = frame_inputs.addTextBoxCommandInput('profile_dimensions', '', '', 2, True)
     bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
     support_choice = frame_inputs.addDropDownCommandInput(
         'support_choice', 'Füße / Rollen', adsk.core.DropDownStyles.TextListDropDownStyle)
@@ -129,7 +134,7 @@ def command_created(args):
                              ['Quer', 'Längs'], int(saved['direction'] == 'laengs'))
         number.isVisible = direction.isVisible = key in dict(demo.frame_levels(values))
         cross_fields[key] = (number, direction)
-    create = frame_inputs.addBoolValueInput('create_geometry', 'Demo-Gestell erstellen', True, '', True)
+    create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
     preview_inputs = frame_inputs.addGroupCommandInput('preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
     show_panels = preview_inputs.addBoolValueInput('preview_panels', 'Bodenflächen anzeigen', True, '', True)
@@ -148,9 +153,9 @@ def command_created(args):
                                        str(RESOURCES / 'ProfileLibrary')).children
     manage.addTextBoxCommandInput('settings_help', '',
         'Die Werte aus „Frame erstellen“ können als persönliche Standardwerte gespeichert werden. '
-        'Zum reinen Speichern „Demo-Gestell erstellen“ abwählen. '
+        'Zum reinen Speichern „Gestell erstellen“ abwählen. '
         'Erst „Ausführen“ speichert Standardwerte; „Abbrechen“ verwirft deren Änderungen. '
-        'Die Platzhalterbibliothek wird über eigene Schaltflächen sofort gespeichert.', 5, True)
+        'Die Bibliotheken werden über eigene Schaltflächen sofort gespeichert.', 5, True)
     persist = manage.addBoolValueInput('save_defaults', 'Als Standardwerte speichern', True, '', False)
     reset = manage.addBoolValueInput('reset_defaults', 'Werkseinstellungen laden', False, '', False)
     manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
@@ -177,6 +182,70 @@ def command_created(args):
     library_status = lib_inputs.addTextBoxCommandInput('library_status', '', html.escape(library_warning), 3, True)
     lib_inputs.addTextBoxCommandInput('library_path', 'Bibliotheksdatei',
         html.escape(str(settings.library_path())), 3, True)
+
+    profile_group = manage.addGroupCommandInput('profile_library', 'Eigene DXF-Profile')
+    profile_group.isExpanded = True
+    profile_inputs = profile_group.children
+    profile_inputs.addTextBoxCommandInput('profile_help', '',
+        'Quadratischer Querschnitt in XY, Mittelpunkt im Ursprung. '
+        'LINE, ARC, CIRCLE und 2D-(LW)POLYLINE; Blöcke vorher auflösen. '
+        'DXF wählen, erkannte Maße prüfen und Profil speichern. '
+        'Speichern/Löschen wirken sofort, auch bei Abbrechen; bestehende Gestelle bleiben erhalten.', 5, True)
+    profile_list = dropdown(profile_inputs, 'profile_list', 'Gespeicherte Profile', [], 0)
+    delete_profile = profile_inputs.addBoolValueInput(
+        'delete_profile', 'Ausgewähltes Profil löschen', False, '', False)
+    profile_name = profile_inputs.addStringValueInput('profile_name', 'Profilname', '')
+    profile_unit = dropdown(profile_inputs, 'profile_unit', 'DXF-Einheit',
+                            ['Aus DXF', 'mm', 'cm', 'm', 'in', 'ft'], 0)
+    choose_profile = profile_inputs.addBoolValueInput(
+        'choose_profile', 'Lokale DXF auswählen und prüfen', False, '', False)
+    profile_detected = profile_inputs.addTextBoxCommandInput('profile_detected', '', '', 3, True)
+    profile_confirm = profile_inputs.addBoolValueInput(
+        'profile_confirm', 'Erkannte Profilmaße sind korrekt', True, '', False)
+    metadata_fields = {}
+    for key, label in (('manufacturer', 'Hersteller'), ('series', 'Serie'),
+                       ('article_number', 'Artikelnummer'), ('slot_size', 'Nutgröße'),
+                       ('material', 'Material')):
+        metadata_fields[key] = profile_inputs.addStringValueInput('profile_'+key, label+' (optional)', '')
+    save_profile = profile_inputs.addBoolValueInput(
+        'save_profile', 'Geprüftes Profil speichern', False, '', False)
+    save_profile.isEnabled = False
+    profile_status = profile_inputs.addTextBoxCommandInput('profile_status', '', html.escape(profiles_warning), 3, True)
+    profile_inputs.addTextBoxCommandInput('profile_path', 'Bibliotheksordner',
+        html.escape(str(profile_library.directory())), 3, True)
+    pending_profile = None
+    selectable_profiles = []
+
+    def selected_profile():
+        item = profile_choice.selectedItem
+        return selectable_profiles[item.index-1] if item and item.index > 0 else None
+
+    def refresh_profiles(selected_id=None, listed_id=None, saved=None):
+        nonlocal selectable_profiles
+        selectable_profiles = list(profiles)
+        if saved and not any(spec['id'] == saved['id'] for spec in profiles):
+            selectable_profiles.append(saved)
+        profile_choice.listItems.clear()
+        profile_choice.listItems.add('Demo-Vollprofil (einstellbare Breite)', True)
+        profile_list.listItems.clear()
+        for spec in selectable_profiles:
+            suffix = ' (nicht in Bibliothek verfügbar)' if spec not in profiles else ''
+            profile_choice.listItems.add(profile_library.label(spec)+suffix, spec['id'] == selected_id)
+        for index, spec in enumerate(profiles):
+            profile_list.listItems.add(profile_library.label(spec),
+                spec['id'] == listed_id if listed_id else index == 0)
+        if not profiles:
+            profile_list.listItems.add('Keine gespeicherten Profile', True)
+        delete_profile.isEnabled = bool(profiles)
+        update_profile_display()
+
+    def update_profile_display():
+        spec = selected_profile()
+        fields['profile'].isVisible = fields['profile'].isEnabled = spec is None
+        profile_dimensions.text = (html.escape(profile_library.label(spec)) if spec else '')
+
+    saved_profile = values.get('profile_definition')
+    refresh_profiles(saved_profile['id'] if saved_profile else None, saved=saved_profile)
 
     def selected_support():
         selected = support_choice.selectedItem
@@ -212,7 +281,7 @@ def command_created(args):
     logo.isFullWidth = True
     info_text('about_description',
         'FrameKit von Know-How-Schmiede erstellt Gestelle in Autodesk Fusion.<br>'
-        'Diese Integrationsdemo erzeugt einfache Rahmen aus Rechteckprofilen.', 3)
+        'Erstellt Rahmen aus Demo-Vollprofilen oder eigenen DXF-Profilquerschnitten.', 3)
     info_text('about_homepage',
         'Tutorials zu Fusion und weitere Plugins für Fusion finden Sie auf der '
         f'<a href="{config.HOMEPAGE_URL}">Homepage der Know-How-Schmiede</a>.<br>', 3)
@@ -243,9 +312,18 @@ def command_created(args):
         return calculated_model
 
     def read_values():
-        if any(not field.isValidExpression for field in fields.values()):
+        definition = selected_profile()
+        if any(not field.isValidExpression for key, field in fields.items()
+               if key != 'profile' or definition is None):
             raise ValueError('Bitte gültige Längen eingeben.')
-        result = {key: field.value * 10 for key, field in fields.items()}
+        result = {key: field.value * 10 for key, field in fields.items()
+                  if key != 'profile' or definition is None}
+        result['profile_definition'] = deepcopy(definition)
+        if definition is not None:
+            if not any(spec['id'] == definition['id'] for spec in profiles):
+                raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
+            profile_library.verify_source(definition)
+            result['profile'] = definition['width_mm']
         result['bottom'] = bottom.value
         selected = selected_support()
         result['accessory'] = selected.copy() if selected else None
@@ -306,11 +384,73 @@ def command_created(args):
         raise ValueError(f'{field.name}: gültige Länge eingeben (z. B. 100 mm).')
 
     def changed(event):
-        nonlocal updating, library
+        nonlocal updating, library, profiles, pending_profile
         if updating:
             return
         preview.clear()
         preview_status.text = ''
+        if event.input.id == profile_unit.id:
+            pending_profile = None
+            profile_confirm.value = False
+            profile_detected.text = 'Einheit geändert: DXF erneut auswählen und prüfen.'
+        if event.input.id in (choose_profile.id, save_profile.id, delete_profile.id) and event.input.value:
+            updating = True
+            try:
+                selected = selected_profile()
+                selected_id = selected['id'] if selected else None
+                if event.input.id == choose_profile.id:
+                    dialog = app.userInterface.createFileDialog()
+                    dialog.title = 'Profilquerschnitt auswählen'
+                    dialog.filter = 'DXF-Dateien (*.dxf)'
+                    dialog.isMultiSelectEnabled = False
+                    if dialog.showOpen() == adsk.core.DialogResults.DialogOK:
+                        pending_profile = None
+                        profile_confirm.value = False
+                        profile_detected.text = ''
+                        unit = ('auto', 'mm', 'cm', 'm', 'in', 'ft')[profile_unit.selectedItem.index]
+                        name = profile_name.value.strip() or Path(dialog.filename).stem
+                        candidate = profile_library.prepare(dialog.filename, name, unit)
+                        design = adsk.fusion.Design.cast(app.activeProduct)
+                        if not design:
+                            raise ValueError('Zur DXF-Prüfung bitte ein Fusion-Konstruktionsdokument öffnen.')
+                        from ...profile_geometry import validate_in_fusion
+                        validate_in_fusion(design, candidate[0])
+                        pending_profile = candidate
+                        spec = candidate[0]
+                        profile_name.value = spec['name']
+                        profile_detected.text = html.escape(
+                            f'{spec["source_name"]}: {spec["width_mm"]:g} × {spec["height_mm"]:g} mm; '
+                            f'{spec["loop_count"]-1} Hohlräume; Einheit {spec["source_unit"]}. '
+                            'Maße prüfen und bestätigen.')
+                        profile_status.text = 'Konturen und Probeextrusion erfolgreich geprüft.'
+                elif event.input.id == save_profile.id:
+                    if pending_profile is None or not profile_confirm.value:
+                        raise ValueError('Zuerst DXF prüfen und erkannte Maße bestätigen.')
+                    spec, data = pending_profile
+                    spec = deepcopy(spec)
+                    spec['name'] = profile_name.value.strip()
+                    for key, field in metadata_fields.items():
+                        spec[key] = field.value.strip()
+                    profiles = profile_library.add(spec, data)
+                    refresh_profiles(spec['id'], spec['id'])
+                    pending_profile = None
+                    profile_confirm.value = False
+                    profile_detected.text = ''
+                    profile_status.text = 'Gespeichert und ausgewählt: '+html.escape(profile_library.label(spec))
+                elif profiles and profile_list.selectedItem:
+                    removed = profiles[profile_list.selectedItem.index]
+                    profiles = profile_library.remove(removed['id'])
+                    # Preserve a missing selection visibly; never silently substitute a solid profile.
+                    refresh_profiles(selected_id, saved=selected)
+                    profile_status.text = 'Gelöscht: '+html.escape(removed['name'])
+            except Exception as exc:
+                profile_status.text = 'Profilaktion fehlgeschlagen: '+html.escape(str(exc))
+            finally:
+                event.input.value = False
+                updating = False
+        save_profile.isEnabled = pending_profile is not None and profile_confirm.value
+        if event.input.id == profile_choice.id:
+            update_profile_display()
         if event.input.id in (save_entry.id, delete_entry.id) and event.input.value:
             updating = True
             try:
@@ -348,6 +488,8 @@ def command_created(args):
             finally:
                 updating = False
         if event.input.id == reset.id and reset.value:
+            profile_choice.listItems.item(0).isSelected = True
+            update_profile_display()
             mount.listItems.item(0).isSelected = True
             all_count.listItems.item(0).isSelected = True
             all_direction.listItems.item(0).isSelected = True

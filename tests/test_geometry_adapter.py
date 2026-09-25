@@ -67,7 +67,7 @@ class Component:
         if self.design.fail_extrude:
             raise RuntimeError('Simulated extrusion failure')
         body = NS(name='')
-        feature = NS(timelineObject=self.design.tick(), distance=distance, bodies=NS(item=lambda index: body))
+        feature = NS(timelineObject=self.design.tick(), distance=distance, profile=profile, bodies=NS(item=lambda index: body))
         self.extrusions.append(feature)
         return feature
 
@@ -195,3 +195,33 @@ class GeometryAdapterTests(unittest.TestCase):
         self.assertEqual(design.designType, 0)
         self.assertEqual(design.groups, [])
         self.assertEqual(assembly.component.attributes['FrameKit', 'timelineMode'], 'direct-no-timeline')
+
+    def test_dxf_profiles_use_centered_origins_and_selected_hollow_region(self):
+        from fusion_addin.FrameKit import profile_library
+        from test_profile_library import FIXTURE
+        definition, _ = profile_library.prepare(FIXTURE, 'Synthetic')
+        values = dict(demo.DEFAULTS, profile_definition=definition,
+                      cross_members={'top': dict(count=2, direction='quer')})
+        native = ModuleType('profile_geometry')
+        material_region = object()
+        drawn = []
+        def draw(sketch, spec):
+            drawn.append(spec)
+            sketch.profiles.count = 6  # Material and five hole interiors.
+            return material_region
+        native.draw_section = draw
+        with patch.dict(sys.modules, {'fusion_addin.FrameKit.profile_geometry': native}):
+            design = Design()
+            assembly = self.adapter.create_frame(design, values)
+        data = json.loads(assembly.component.attributes['FrameKit', 'modelData'])
+        parts = {part['id']: part for part in data['parts']}
+        self.assertEqual(len(drawn), 14)
+        for group in assembly.component.children:
+            for occurrence in group.component.children:
+                part = parts[occurrence.component.partNumber]
+                if part['kind'] != 'profile':
+                    continue
+                self.assertIs(occurrence.component.extrusions[0].profile, material_region)
+                self.assertEqual(occurrence.transform.origin,
+                                 tuple(v/10 for v in part['centerline_mm'][0]))
+        self.assertEqual(data['profiles'][definition['id']], definition)

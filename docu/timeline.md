@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 25.09.2026 – 0.3.0
+
+**Git-Zusammenfassung:** `feat: DXF-Profilbibliothek und echte Profilquerschnitte (0.3.0)`
+
+- Lokale ASCII-DXF prüfen, Maße bestätigen, Metadaten erfassen und Profile speichern/auswählen/löschen.
+- Native Linien, Kreise und Bögen mit Hohlräumen extrudieren; Mittelpunkt im Ursprung berücksichtigen.
+- Bibliothekskopien mit Prüfsummen, eigenständige Profildefinitionen in Standardwerten und Baugruppen.
+
+**Prüfstand:** 68 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Abnahme und reales Hersteller-Referenzprofil offen. Testdaten sind synthetisch.
+
+**Details:** [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md)
+
 ## 25.09.2026 – 0.2.1
 
 **Git-Zusammenfassung:** `feat: Querträger je Ebene und wählbare Deckplattenmontage (0.2.1)`
