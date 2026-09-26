@@ -7,6 +7,7 @@ from copy import deepcopy
 from uuid import uuid4
 
 from .demo import validate, base_height, shelf_heights, panel_outline
+from .sections import resolve, level_depth
 
 SCHEMA_VERSION = 1
 ORIENTATIONS = {
@@ -37,21 +38,20 @@ def build_model(values, previous=None):
     else:
         frame_id, registry = uuid4().hex, {}
     next_number = max((int(value[1:]) for value in registry.values()), default=0) + 1
-    length, width, height, p = (values[key] for key in ('length', 'width', 'height', 'profile'))
+    length, width, height = (values[key] for key in ('length', 'width', 'height'))
     thickness = values.get('shelf_thickness', 18.0)
     base = base_height(values)
     on_top = values.get('top_panel_mount', 'notched') == 'on_top'
     post_top = height - thickness if on_top else height
-    profile = dict(id=f'demo:square:{p:g}x{p:g}', name=f'{p:g}x{p:g} Demo-Vollprofil',
-                   width_mm=p, height_mm=p, material=None, is_demo=True)
-    if values.get('profile_definition') is not None:
-        profile = deepcopy(values['profile_definition'])
+    px, py = resolve(values, 'posts')[2]
+    fw, fh = resolve(values, 'frame')[2]
+    profiles = {}
     groups = [dict(id='layout', name='00 | Layout'), dict(id='posts', name='01 | Pfosten'),
               dict(id='top', name='02 | Rahmen oben')]
     levels = [('top', 'oben', height)]
     if values['bottom']:
         groups.append(dict(id='bottom', name='03 | Rahmen unten'))
-        levels.append(('bottom', 'unten', base+p+thickness))
+        levels.append(('bottom', 'unten', base+level_depth(values, 'bottom')))
     for index, top in enumerate(shelf_heights(values), 1):
         key = f'shelf:{index:02d}'
         groups.append(dict(id=key, name=f'{index+3:02d} | Boden {index:02d}'))
@@ -61,7 +61,7 @@ def build_model(values, previous=None):
     groups.append(dict(id='connections', name='91 | Verbindungen', reserved=True))
     parts = []
 
-    def add(key, kind, group, function, origin, bounds, shape, axis='z'):
+    def add(key, kind, group, function, origin, bounds, shape, axis='z', section=None):
         nonlocal next_number
         if key not in registry:
             registry[key] = f'P{next_number:03d}'
@@ -70,19 +70,35 @@ def build_model(values, previous=None):
         part = dict(id=part_id, uid=f'{frame_id}/{part_id}', key=key, kind=kind,
                     group_id=group, function=function, position_mm=list(origin),
                     orientation=deepcopy(ORIENTATIONS[axis]), bounds_mm=list(bounds),
+                    bounds_origin_mm=list(origin),
                     geometry=shape, profile_ref=None, cut_length_mm=None,
                     centerline_mm=None, is_placeholder=kind == 'support')
         if kind == 'profile':
+            profile, rotation, _ = section
+            profiles[profile['id']] = profile
             part['profile_ref'] = profile['id']
+            part['section_rotation_deg'] = rotation
             part['cut_length_mm'] = shape['depth_mm']
-            u, v, w = part['orientation']
-            start = [origin[i] + p/2*(u[i]+v[i]) for i in range(3)]
+            # In horizontal beams local section width is horizontal, height vertical.
+            axes = (ORIENTATIONS[axis] if axis != 'y'
+                    else [[1, 0, 0], [0, 0, -1], [0, 1, 0]])
+            if profile['is_demo'] and rotation == 0:
+                # Retain the legacy transform for the symmetric demo square.
+                axes = ORIENTATIONS[axis]
+            u, v, w = [list(a) for a in axes]
+            for _ in range(rotation//90):
+                u, v = v, [-n for n in u]
+            part['orientation'] = [u, v, w]
+            start = [origin[i] + bounds[i]/2 - shape['depth_mm']*w[i]/2 for i in range(3)]
             end = [start[i] + shape['depth_mm']*w[i] for i in range(3)]
             part['centerline_mm'] = [start, end]
             if not profile['is_demo']:
-                # The DXF's local origin is its section center, not its lower corner.
                 part['position_mm'] = start
                 part['geometry'] = dict(type='dxf', depth_mm=shape['depth_mm'])
+            else:
+                part['position_mm'] = [start[i] - profile['width_mm']*u[i]/2
+                                       - profile['height_mm']*v[i]/2 for i in range(3)]
+                shape.update(width_mm=profile['width_mm'], height_mm=profile['height_mm'])
             detail = f'{profile["name"]} | L={shape["depth_mm"]:g} mm'
         elif kind == 'panel':
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
@@ -93,44 +109,49 @@ def build_model(values, previous=None):
         part['display_name'] = f'{part_id} | {function} | {detail}'
         parts.append(part)
 
-    for x, side, side_key in ((0, 'links', 'left'), (length-p, 'rechts', 'right')):
-        for y, depth, depth_key in ((0, 'vorne', 'front'), (width-p, 'hinten', 'back')):
+    post_section = resolve(values, 'posts')
+    frame_section = resolve(values, 'frame')
+    for x, side, side_key in ((0, 'links', 'left'), (length-px, 'rechts', 'right')):
+        for y, depth, depth_key in ((0, 'vorne', 'front'), (width-py, 'hinten', 'back')):
             add(f'post:{depth_key}:{side_key}', 'profile', 'posts', f'Pfosten {depth} {side}',
-                (x, y, base), (p, p, post_top-base),
-                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=post_top-base))
+                (x, y, base), (px, py, post_top-base),
+                dict(type='rectangle', depth_mm=post_top-base), section=post_section)
     for group, label, top in levels:
-        z = top-thickness-p
-        for y, side, key in ((0, 'vorne', 'front'), (width-p, 'hinten', 'back')):
+        z = top-thickness-fh
+        for y, side, key in ((0, 'vorne', 'front'), (width-fw, 'hinten', 'back')):
             add(f'{group}:beam:{key}', 'profile', group, f'Rahmen {label} {side}',
-                (p, y, z), (length-2*p, p, p),
-                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=length-2*p), 'x')
-        for x, side, key in ((0, 'links', 'left'), (length-p, 'rechts', 'right')):
+                (px, y, z), (length-2*px, fw, fh),
+                dict(type='rectangle', depth_mm=length-2*px), 'x', frame_section)
+        for x, side, key in ((0, 'links', 'left'), (length-fw, 'rechts', 'right')):
             add(f'{group}:beam:{key}', 'profile', group, f'Rahmen {label} {side}',
-                (x, p, z), (p, width-2*p, p),
-                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=width-2*p), 'y')
+                (x, py, z), (fw, width-2*py, fh),
+                dict(type='rectangle', depth_mm=width-2*py), 'y', frame_section)
         spec = values.get('cross_members', {}).get(group, {'count': 0, 'direction': 'quer'})
+        cross_section = resolve(values, 'cross', group)
+        cw, ch = cross_section[2]
         count = spec['count']
         transverse = spec['direction'] == 'quer'
         span, run = (length, width) if transverse else (width, length)
-        gap = (span - 2*p - count*p) / (count+1)
+        gap = (span - 2*fw - count*cw) / (count+1)
         for index in range(count):
-            offset = p + gap + index*(p+gap)
-            origin = (offset, p, z) if transverse else (p, offset, z)
-            bounds = (p, run-2*p, p) if transverse else (run-2*p, p, p)
+            offset = fw + gap + index*(cw+gap)
+            cross_z = top-thickness-ch
+            origin = (offset, fw, cross_z) if transverse else (fw, offset, cross_z)
+            bounds = (cw, run-2*fw, ch) if transverse else (run-2*fw, cw, ch)
             add(f'{group}:cross:{index+1:02d}', 'profile', group,
                 f'Querträger {label} {index+1:02d}', origin, bounds,
-                dict(type='rectangle', width_mm=p, height_mm=p, depth_mm=run-2*p),
-                'y' if transverse else 'x')
+                dict(type='rectangle', depth_mm=run-2*fw),
+                'y' if transverse else 'x', cross_section)
         outline = ([(0, 0), (length, 0), (length, width), (0, width)]
-                   if group == 'top' and on_top else panel_outline(length, width, p))
+                   if group == 'top' and on_top else panel_outline(length, width, px, py))
         add(f'{group}:panel', 'panel', group, f'{label} Platte', (0, 0, top-thickness),
             (length, width, thickness), dict(type='polygon',
                 points_mm=[list(point) for point in outline], depth_mm=thickness))
     spec = values.get('accessory')
     if spec is not None:
         radius = spec['diameter']/2
-        for x, side, side_key in ((p/2, 'links', 'left'), (length-p/2, 'rechts', 'right')):
-            for y, depth, depth_key in ((p/2, 'vorne', 'front'), (width-p/2, 'hinten', 'back')):
+        for x, side, side_key in ((px/2, 'links', 'left'), (length-px/2, 'rechts', 'right')):
+            for y, depth, depth_key in ((py/2, 'vorne', 'front'), (width-py/2, 'hinten', 'back')):
                 add(f'support:{depth_key}:{side_key}', 'support', 'accessories',
                     f'{spec["kind"]} {depth} {side} | {spec["name"]} | Platzhalter',
                     (x-radius, y-radius, 0), (2*radius, 2*radius, spec['height']),
@@ -138,4 +159,4 @@ def build_model(values, previous=None):
                          depth_mm=spec['height']))
     return dict(schema=SCHEMA_VERSION, units='mm', assembly_id=frame_id,
                 id_registry=registry, configuration=deepcopy(values), groups=groups,
-                profiles={profile['id']: profile}, parts=parts)
+                profiles=profiles, parts=parts)

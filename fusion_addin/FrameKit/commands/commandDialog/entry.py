@@ -96,6 +96,30 @@ def command_created(args):
             control.listItems.add(text, index == selected)
         return control
 
+    common_rotation = dropdown(frame_inputs, 'profile_rotation', 'Gemeinsame Profildrehung',
+        ['0°', '90°', '180°', '270°'], values.get('profile_rotation', 0)//90)
+    section_fields = {}
+    initial_sections = {}
+
+    def section_controls(parent, key, label, saved=None):
+        identifier = key.replace(':', '_')
+        choice = dropdown(parent, 'section_'+identifier, label+': Profil', [], 0)
+        rotation = dropdown(parent, 'rotation_'+identifier, label+': Profildrehung',
+            ['Übernehmen', '0°', '90°', '180°', '270°'],
+            saved['rotation']//90+1 if saved and 'rotation' in saved else 0)
+        section_fields[key] = (choice, rotation)
+        initial_sections[key] = saved
+        return choice, rotation
+
+    profile_groups = frame_inputs.addGroupCommandInput('profile_groups', 'Profile je Bauteilgruppe').children
+    profile_groups.addTextBoxCommandInput('section_help', '',
+        'Übernehmen verwendet das gemeinsame Profil bzw. bei Ebenen das Querträgerprofil. '
+        '0°: Pfosten DXF-X entlang Gestell-X, DXF-Y entlang Gestell-Y. '
+        'Bei Trägern ist DXF-X die horizontale Querschnittsbreite, DXF-Y die Höhe '
+        '(Längs nach oben, Quer nach unten). Drehung um die Extrusionsachse.', 5, True)
+    for key, label in (('posts', 'Pfosten'), ('frame', 'Rahmen'), ('cross', 'Querträger')):
+        section_controls(profile_groups, key, label, values.get('group_profiles', {}).get(key))
+
     mount = dropdown(shelf_inputs, 'top_panel_mount', 'Deckplatte',
         ['Zwischen Pfosten (mit Aussparungen)', 'Auf Profilen (ohne Aussparungen)'],
         int(values.get('top_panel_mount', 'notched') == 'on_top'))
@@ -122,6 +146,7 @@ def command_created(args):
                          [str(i) for i in range(6)], 0)
     all_direction = dropdown(cross_inputs, 'cross_all_direction', 'Ausrichtung für alle Ebenen',
                              ['Quer', 'Längs'], 0)
+    all_section = section_controls(cross_inputs, 'all', 'Für alle Ebenen')
     apply_all = cross_inputs.addBoolValueInput(
         'cross_apply_all', 'Für alle Ebenen übernehmen', False, '', False)
     cross_fields = {}
@@ -134,6 +159,9 @@ def command_created(args):
                              ['Quer', 'Längs'], int(saved['direction'] == 'laengs'))
         number.isVisible = direction.isVisible = key in dict(demo.frame_levels(values))
         cross_fields[key] = (number, direction)
+        controls = section_controls(cross_inputs, key, label, saved.get('section'))
+        for control in controls:
+            control.isVisible = number.isVisible
     create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
     preview_inputs = frame_inputs.addGroupCommandInput('preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
@@ -187,7 +215,7 @@ def command_created(args):
     profile_group.isExpanded = True
     profile_inputs = profile_group.children
     profile_inputs.addTextBoxCommandInput('profile_help', '',
-        'Quadratischer Querschnitt in XY, Mittelpunkt im Ursprung. '
+        'Querschnitt mit rechteckigen Außenmaßen in XY, Mittelpunkt im Ursprung. '
         'LINE, ARC, CIRCLE und 2D-(LW)POLYLINE; Blöcke vorher auflösen. '
         'Punkte und markierte Hilfsgeometrie werden ausgelassen. '
         'DXF wählen, erkannte Maße prüfen und Profil speichern. '
@@ -223,8 +251,13 @@ def command_created(args):
 
     def refresh_profiles(selected_id=None, listed_id=None, saved=None):
         nonlocal selectable_profiles
+        previous_sections = {key: read_section(key) for key in section_fields} if selectable_profiles else initial_sections
         selectable_profiles = list(profiles)
-        if saved and not any(spec['id'] == saved['id'] for spec in profiles):
+        for selection in previous_sections.values():
+            spec = selection.get('definition') if selection else None
+            if spec and not any(p['id'] == spec['id'] for p in selectable_profiles):
+                selectable_profiles.append(spec)
+        if saved and not any(spec['id'] == saved['id'] for spec in selectable_profiles):
             selectable_profiles.append(saved)
         profile_choice.listItems.clear()
         profile_choice.listItems.add('Demo-Vollprofil (einstellbare Breite)', True)
@@ -237,6 +270,15 @@ def command_created(args):
                 spec['id'] == listed_id if listed_id else index == 0)
         if not profiles:
             profile_list.listItems.add('Keine gespeicherten Profile', True)
+        for key, (choice, rotation) in section_fields.items():
+            previous = previous_sections.get(key) or {}
+            selected = previous.get('definition')
+            choice.listItems.clear()
+            choice.listItems.add('Übernehmen', True)
+            for spec in selectable_profiles:
+                suffix = ' (nicht in Bibliothek verfügbar)' if spec not in profiles else ''
+                choice.listItems.add(profile_library.label(spec)+suffix,
+                                     bool(selected and selected['id'] == spec['id']))
         delete_profile.isEnabled = bool(profiles)
         update_profile_display()
 
@@ -244,6 +286,15 @@ def command_created(args):
         spec = selected_profile()
         fields['profile'].isVisible = fields['profile'].isEnabled = spec is None
         profile_dimensions.text = (html.escape(profile_library.label(spec)) if spec else '')
+
+    def read_section(key):
+        choice, rotation = section_fields[key]
+        result = {}
+        if choice.selectedItem and choice.selectedItem.index:
+            result['definition'] = deepcopy(selectable_profiles[choice.selectedItem.index-1])
+        if rotation.selectedItem.index:
+            result['rotation'] = (rotation.selectedItem.index-1)*90
+        return result or None
 
     saved_profile = values.get('profile_definition')
     refresh_profiles(saved_profile['id'] if saved_profile else None, saved=saved_profile)
@@ -325,6 +376,11 @@ def command_created(args):
                 raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
             profile_library.verify_source(definition)
             result['profile'] = definition['width_mm']
+        if common_rotation.selectedItem.index:
+            result['profile_rotation'] = common_rotation.selectedItem.index*90
+        groups = {key: read_section(key) for key in ('posts', 'frame', 'cross') if read_section(key)}
+        if groups:
+            result['group_profiles'] = groups
         result['bottom'] = bottom.value
         selected = selected_support()
         result['accessory'] = selected.copy() if selected else None
@@ -334,6 +390,17 @@ def command_created(args):
             key: dict(count=cross_fields[key][0].selectedItem.index,
                       direction='laengs' if cross_fields[key][1].selectedItem.index else 'quer')
             for key, _ in demo.frame_levels(result)}
+        for key in result['cross_members']:
+            selection = read_section(key)
+            if selection:
+                result['cross_members'][key]['section'] = selection
+        used = list(groups.values()) + [spec.get('section') for spec in result['cross_members'].values()]
+        for selection in used:
+            definition = selection.get('definition') if selection else None
+            if definition:
+                if not any(spec['id'] == definition['id'] for spec in profiles):
+                    raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
+                profile_library.verify_source(definition)
         if not thickness.isValidExpression:
             raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
         result['shelf_thickness'] = thickness.value * 10
@@ -491,10 +558,16 @@ def command_created(args):
                     number, direction = cross_fields[key]
                     number.listItems.item(all_count.selectedItem.index).isSelected = True
                     direction.listItems.item(all_direction.selectedItem.index).isSelected = True
+                    for target, source in zip(section_fields[key], all_section):
+                        target.listItems.item(source.selectedItem.index).isSelected = True
                 apply_all.value = False
             finally:
                 updating = False
         if event.input.id == reset.id and reset.value:
+            common_rotation.listItems.item(0).isSelected = True
+            for choice, rotation in section_fields.values():
+                choice.listItems.item(0).isSelected = True
+                rotation.listItems.item(0).isSelected = True
             profile_choice.listItems.item(0).isSelected = True
             update_profile_display()
             mount.listItems.item(0).isSelected = True
@@ -517,6 +590,8 @@ def command_created(args):
         active_levels = dict(demo.frame_levels(dict(bottom=bottom.value, shelf_count=count.value)))
         for key, (number, direction) in cross_fields.items():
             number.isVisible = direction.isVisible = key in active_levels
+            for control in section_fields[key]:
+                control.isVisible = key in active_levels
         error.text = validation_message()
         show_preview.isEnabled = create.value
         show_panels.isEnabled = show_accessories.isEnabled = create.value and show_preview.value

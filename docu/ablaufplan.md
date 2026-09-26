@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **25.09.2026** · Aktuelle Add-in-Version: **0.3.0**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.3.1**
 
-**Status: S01 / 0.1.5, S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind implementiert; Prüfung in Fusion steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. S05 / 0.3.1 ist implementiert; dessen Fusion-Prüfung steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -34,10 +34,10 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | Schritt | Zielversion | Zusammengehöriger Funktionsumfang | Voraussetzung | Status |
 | --- | --- | --- | --- | --- |
 | S01 | 0.1.5 | Bauteildaten, stabile IDs und strukturierte Baugruppe | 0.1.4 | Implementiert |
-| S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | Implementiert |
-| S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | Implementiert |
-| S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | Implementiert |
-| S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Geplant |
+| S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | In Fusion bestätigt |
+| S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | In Fusion bestätigt |
+| S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | In Fusion bestätigt |
+| S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Implementiert |
 | S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Geplant |
 | S07 | 0.4.1 | Verbindungssätze und Montageraum | S04, S05, S06 | Geplant |
 | S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Geplant |
@@ -60,7 +60,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S02 · 0.2.0 – Vorschau und Layout
 
-**Ergebnis:** [Vorschau und Layout](vorschau_layout.md). 40 lokale Tests einschließlich Grafik- und Dialogereignissen erfolgreich; Fusion-Abnahme offen.
+**Ergebnis:** [Vorschau und Layout](vorschau_layout.md). 40 lokale Tests einschließlich Grafik- und Dialogereignissen erfolgreich; in Fusion am 26.09.2026 durch den Benutzer bestätigt.
 
 - „Vorschau anzeigen“ mit räumlichen Profilmittellinien ergänzen. Endpunkte entsprechen den tatsächlichen Schnittflächen; vorne/hinten/links/rechts eindeutig festlegen.
 - **Optionen:** Bodenflächen und Zubehörumrisse in der Vorschau ein-/ausblenden.
@@ -69,7 +69,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S03 · 0.2.1 – Querträger
 
-**Ergebnis:** [Querträger und Deckplattenmontage](quertraeger_deckplatte.md). 46 lokale Tests erfolgreich; Fusion-Abnahme offen.
+**Ergebnis:** [Querträger und Deckplattenmontage](quertraeger_deckplatte.md). 46 lokale Tests erfolgreich; in Fusion am 26.09.2026 durch den Benutzer bestätigt.
 
 - Ergänzung: Deckplatte wahlweise mit Aussparungen oder auf den Profilen ohne Aussparungen; Pfostenlänge berücksichtigt Plattenstärke bei unveränderter Gesamthöhe.
 
@@ -81,7 +81,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S04 · 0.3.0 – Profilbibliothek und DXF
 
-**Ergebnis:** [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). 68 lokale Tests erfolgreich. Import für quadratische Querschnitte umgesetzt; Fusion-Abnahme und reales Hersteller-Referenzprofil noch offen. Synthetische Testgeometrie ist ausdrücklich kein Herstellerprofil.
+**Ergebnis:** [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). 68 lokale Tests erfolgreich. Import für quadratische Querschnitte umgesetzt; In Fusion am 26.09.2026 durch den Benutzer bestätigt; reales Hersteller-Referenzprofil weiterhin offen. Synthetische Testgeometrie ist ausdrücklich kein Herstellerprofil.
 
 - Ein vom Benutzer festgelegtes Referenzprofil mit realem Nutquerschnitt integrieren und durch Extrusion erzeugen; Hohlräume erhalten.
 - „Profil hinzufügen“ mit DXF-Dateiauswahl, Importprüfung und Metadaten umsetzen: Hersteller, Serie, Artikelnummer, Nutgröße, Außenmaße, Einheit, Bezugspunkt, Ausrichtung und Material.
@@ -92,6 +92,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Referenzprofil sowie fehlerhafte Skalierung, offene Konturen und Hohlprofile testen. Fehlermeldungen müssen die Ursache nennen.
 
 ### S05 · 0.3.1 – Profile je Bauteilgruppe
+
+**Ergebnis:** [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). 82 lokale Tests erfolgreich; getrennte Profilwahl, rechteckige Querschnitte, Vierteldrehungen und Ebenenübernahme umgesetzt. Fusion-Prüfung von 0.3.1 offen.
 
 - Gemeinsames Profil als Standard sowie getrennte Profilwahl für Pfosten, Rahmen und Querträger anbieten.
 - Nichtquadratische Querschnitte und deren Orientierung in Länge, Breite, Höhenberechnung und Zuschnitten berücksichtigen.

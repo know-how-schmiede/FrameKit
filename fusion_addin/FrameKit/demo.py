@@ -1,6 +1,7 @@
 """Fusion-independent demo layout; dimensions in millimeters."""
 import math
 from .accessories import validate_spec
+from .sections import resolve, validate_selections, level_depth
 
 MAX_SHELVES = 20
 DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True,
@@ -23,14 +24,18 @@ def validate(values):
             raise ValueError('Profilbreite stimmt nicht mit dem ausgewählten DXF-Profil überein.')
     if not isinstance(values.get('bottom'), bool):
         raise ValueError('Unterer Rahmen muss ein Wahrheitswert sein.')
-    if min(values['length'], values['width'], values['height']) <= 2 * values['profile']:
-        raise ValueError('Länge, Breite und Höhe müssen größer als zwei Profilbreiten sein.')
+    validate_selections(values)
+    px, py = resolve(values, 'posts')[2]
+    fw = resolve(values, 'frame')[2][0]
+    if values['length'] <= 2*max(px, fw) or values['width'] <= 2*max(py, fw):
+        raise ValueError('Länge und Breite müssen größer als zwei Profilbreiten sein.')
+    if fw > min(px, py):
+        raise ValueError('Rahmenbreite darf die Pfostenmaße nicht überschreiten; Profile oder Drehung ändern.')
     spec = values.get('accessory')
     if spec is not None:
         validate_spec(spec)
-        if spec['diameter'] > min(values['length'], values['width']) - values['profile']:
+        if spec['diameter'] > min(values['length']-px, values['width']-py):
             raise ValueError('Durchmesser zu groß: Fuß-/Rollenplatzhalter würden sich überlappen.')
-    shelf_heights(values)
     if values.get('top_panel_mount', 'notched') not in ('notched', 'on_top'):
         raise ValueError('Ungültige Montageart der Deckplatte.')
     settings = values.get('cross_members', {})
@@ -45,11 +50,18 @@ def validate(values):
             raise ValueError('Querträgeranzahl muss zwischen 0 und 5 liegen.')
         if spec.get('direction') not in ('quer', 'laengs'):
             raise ValueError('Querträgerrichtung muss Quer oder Längs sein.')
+    shelf_heights(values)
     for key, label in frame_levels(values):
         spec = settings.get(key, {'count': 0, 'direction': 'quer'})
         span = values['length' if spec['direction'] == 'quer' else 'width']
-        if spec['count'] and span - (2 + spec['count']) * values['profile'] <= 0:
+        cw = resolve(values, 'cross', key)[2][0]
+        if spec['count'] and span - 2*fw - spec['count']*cw <= 0:
             raise ValueError(f'{label}: zu wenig Platz für die Querträger; Anzahl reduzieren.')
+        if spec['count']:
+            gap = (span - 2*fw - spec['count']*cw)/(spec['count']+1)
+            post_span = px if spec['direction'] == 'quer' else py
+            if fw + gap < post_span - 1e-7:
+                raise ValueError(f'{label}: Querträger kollidieren mit Pfosten; Anzahl oder Profil ändern.')
 
 
 def frame_levels(values):
@@ -71,13 +83,13 @@ def shelf_heights(values):
     requested = values.get('shelf_heights', [])
     if not isinstance(requested, list) or len(requested) != count:
         raise ValueError('Für jeden Zwischenboden ist eine Höhe oder ein leerer Wert erforderlich.')
-    p = values['profile']
     thickness = values.get('shelf_thickness', 18.0)
     if (isinstance(thickness, bool) or not isinstance(thickness, (int, float))
             or not math.isfinite(thickness) or not 1 <= thickness <= 10000):
         raise ValueError('Plattenstärke muss zwischen 1 und 10000 mm liegen.')
-    depth = p + thickness
-    lower = base_height(values) + (depth if values['bottom'] else 0)
+    depths = [level_depth(values, f'shelf:{i:02d}') for i in range(1, count+1)]
+    depths.append(level_depth(values, 'top'))
+    lower = base_height(values) + (level_depth(values, 'bottom') if values['bottom'] else 0)
     anchors = [(-1, lower)]
     for index, height in enumerate(requested):
         if height is None:
@@ -91,28 +103,29 @@ def shelf_heights(values):
     result = [None] * count
     for (left_index, left_top), (right_index, right_top) in zip(anchors, anchors[1:]):
         steps = right_index - left_index
-        gap = (right_top - left_top - steps * depth) / steps
+        gap = (right_top - left_top - sum(depths[left_index+1:right_index+1])) / steps
         if gap < -1e-7:
             raise ValueError('Zwischenböden überlappen oder liegen außerhalb des Gestells. '
                              'Höhen von unten nach oben angeben oder Anzahl reduzieren.')
         for index in range(left_index + 1, min(right_index + 1, count)):
-            result[index] = left_top + (index - left_index) * (depth + gap)
+            result[index] = left_top + sum(depths[left_index+1:index+1]) + (index-left_index)*gap
     return result
 
 
-def panel_outline(length, width, notch):
-    """Counterclockwise perimeter with four square post cutouts, in mm."""
-    return [(notch, 0), (length-notch, 0), (length-notch, notch),
-            (length, notch), (length, width-notch), (length-notch, width-notch),
-            (length-notch, width), (notch, width), (notch, width-notch),
-            (0, width-notch), (0, notch), (notch, notch)]
+def panel_outline(length, width, notch, notch_y=None):
+    """Counterclockwise perimeter with rectangular post cutouts, in mm."""
+    ny = notch if notch_y is None else notch_y
+    return [(notch, 0), (length-notch, 0), (length-notch, ny),
+            (length, ny), (length, width-ny), (length-notch, width-ny),
+            (length-notch, width), (notch, width), (notch, width-ny),
+            (0, width-ny), (0, ny), (notch, ny)]
 
 
 
 def _legacy_parts(values, kind):
     # Compatibility view for callers of the original demo API; one calculation source.
     from .model import build_model
-    return [(part['function'], tuple(part['position_mm']), tuple(part['bounds_mm']))
+    return [(part['function'], tuple(part['bounds_origin_mm']), tuple(part['bounds_mm']))
             for part in build_model(values)['parts'] if part['kind'] == kind]
 
 

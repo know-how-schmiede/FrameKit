@@ -8,11 +8,46 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.3.0**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.3.1**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
 Neu in **0.3.0**: lokale DXF-Profilbibliothek mit Importprüfung, Maßbestätigung, Auswahl und Löschen. Quadratische Querschnitte mit Mittelpunkt im Ursprung werden einschließlich Nuten und Hohlräumen extrudiert. Unterstützte DXF-Elemente, Speicherort und Fusion-Prüfschritte: [Profilbibliothek und DXF-Import](docu/profilbibliothek_dxf.md). Querträger und wählbare Deckplattenmontage aus 0.2.1 bleiben enthalten.
 
+Neu in **0.3.1 (S05)**: getrennte Profile für Pfosten, Rahmen und Querträger, abweichende Profile je Ebene und rechteckige DXF-Querschnitte mit Vierteldrehungen. Zuschnitte, Plattenaussparungen und Bodenabstände berücksichtigen die tatsächlichen Profilmaße. Siehe [Profile je Bauteilgruppe](docu/profile_je_bauteilgruppe.md). Die Versionen **0.2.0, 0.2.1 und 0.3.0** funktionieren laut Benutzerprüfung vom 26.09.2026; die Fusion-Prüfung von 0.3.1 steht noch aus.
+
 ## Screenshots
+
+### Version 0.3.0
+
+Vom Benutzer am 26.09.2026 erfolgreich getestet. Die Aufnahmen zeigen unterschiedliche Eingabestände.
+
+Erzeugtes Gestell mit DXF-Profilen, drei Platten und zylindrischen Zubehörplatzhaltern.
+
+![FrameKit 0.3.0 – Erzeugtes Gestell mit DXF-Profilen, drei Platten und zylindrischen Zubehörplatzhaltern.](images/screenshots/0.3.0/FrameKit_V0-3-0_-02.png)
+
+<details>
+<summary>Weitere Ansichten aus Version 0.3.0</summary>
+
+Baugruppenstruktur mit eingefürbten Komponenten, Querträgern und transparenten Platten.
+
+![FrameKit 0.3.0 – Baugruppenstruktur mit eingefürbten Komponenten, Querträgern und transparenten Platten.](images/screenshots/0.3.0/FrameKit_V0-3-0_-01.png)
+
+Mittellinien-Vorschau mit Bodenflächen, Zubehörumrissen und Querträgereinstellungen.
+
+![FrameKit 0.3.0 – Mittellinien-Vorschau mit Bodenflächen, Zubehörumrissen und Querträgereinstellungen.](images/screenshots/0.3.0/FrameKit_V0-3-0_-03.png)
+
+Erstellungsdialog mit Deckplattenmontage, Querträgern je Ebene und Vorschauoptionen.
+
+![FrameKit 0.3.0 – Erstellungsdialog mit Deckplattenmontage, Querträgern je Ebene und Vorschauoptionen.](images/screenshots/0.3.0/FrameKit_V0-3-0_-05.png)
+
+Einstellungen mit gespeichertem DXF-Profil 20 × 20 mm und Zubehörbibliothek.
+
+![FrameKit 0.3.0 – Einstellungen mit gespeichertem DXF-Profil 20 × 20 mm und Zubehörbibliothek.](images/screenshots/0.3.0/FrameKit_V0-3-0_-04.png)
+
+Historischer Import-Prüfstand: POINT-Fehlermeldung während des Tests. Punkte und markierte Hilfsgeometrie werden inzwischen ausgelassen.
+
+![FrameKit 0.3.0 – Historischer Import-Prüfstand: POINT-Fehlermeldung während des Tests. Punkte und markierte Hilfsgeometrie werden inzwischen ausgelassen.](images/screenshots/0.3.0/FrameKit_V0-3-0_-00.png)
+
+</details>
 
 ### Version 0.1.5
 

@@ -182,10 +182,9 @@ class DxfTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Offene'):
             dxf.read(document(poly([(-20,-20),(20,-20),(20,20),(-20,20)],False)))
 
-    def test_reject_offset_rectangle_and_3d(self):
+    def test_reject_offset_and_3d(self):
         for entities, message in (
             (poly([(-19,-20),(21,-20),(21,20),(-19,20)]), 'Ursprung'),
-            (poly([(-20,-10),(20,-10),(20,10),(-20,10)]), 'S05'),
             (square()+[(38,1)], 'XY-Ebene'),
             (circle(radius=20)+[(230,-1)], 'Ausrichtung'),
             (square()+[(43,2)], 'Polylinienbreite'),

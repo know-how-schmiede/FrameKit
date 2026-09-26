@@ -352,3 +352,49 @@ class PreviewCommandTests(unittest.TestCase):
         self.change('reset_defaults', True)
         self.assertTrue(self.fire('validateInputs').areInputsValid)
         self.assertEqual(self.controls['profile_choice'].selectedItem.index, 0)
+
+    def test_group_profiles_level_copy_rotation_and_deleted_selection(self):
+        from test_sections import rectangle
+        with tempfile.TemporaryDirectory() as folder:
+            rectangle(folder, 20, 40)
+            self.profile_dialog(Path(folder)/'20x40.dxf')
+            self.change('choose_profile', True)
+            self.change('profile_confirm', True)
+            self.change('save_profile', True)
+        # Shared demo 40; narrow rectangular frame and cross members.
+        self.select('profile_choice', 0)
+        self.select('section_frame', 1)
+        self.select('section_cross', 1)
+        self.change('shelf_count', 1)
+        self.select('cross_all_count', 2)
+        self.select('section_all', 1)
+        self.select('rotation_all', 2)  # 90 degrees
+        self.change('cross_apply_all', True)
+        self.select('rotation_shelf_01', 1)  # 0 degrees on one level
+        self.show()
+        self.fire('execute')
+        _, values, data = self.create_frame.call_args.args
+        self.assertEqual(values['cross_members']['top']['section']['rotation'], 90)
+        self.assertEqual(values['cross_members']['shelf:01']['section']['rotation'], 0)
+        top = next(p for p in data['parts'] if p['key'] == 'top:cross:01')
+        self.assertEqual(top['bounds_mm'], [40, 460, 20])
+        self.change('delete_profile', True)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertIn('fehlt in der Bibliothek', self.controls['validation'].text)
+        self.assertIn('nicht in Bibliothek', self.controls['section_frame'].selectedItem.name)
+        self.change('reset_defaults', True)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.assertEqual(self.controls['section_frame'].selectedItem.index, 0)
+        self.assertEqual(self.controls['rotation_top'].selectedItem.index, 0)
+
+    def test_saved_missing_group_profile_is_visible_and_blocks_creation(self):
+        from test_sections import rectangle
+        with tempfile.TemporaryDirectory() as folder:
+            spec = rectangle(folder, 20, 40)
+        saved = dict(deepcopy(demo.DEFAULTS), group_profiles={
+            'frame': dict(definition=spec, rotation=180)})
+        with patch.object(self.entry.settings, 'load', return_value=(saved, '')):
+            self.entry.command_created(NS(command=self.command))
+        self.assertIn('nicht in Bibliothek', self.controls['section_frame'].selectedItem.name)
+        self.assertEqual(self.controls['rotation_frame'].selectedItem.index, 3)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)

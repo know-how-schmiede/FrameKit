@@ -1,6 +1,6 @@
-# FrameKit 0.3.0 – Integrationsdemo
+# FrameKit 0.3.1 – Integrationsdemo
 
-Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus Demo-Vollprofilen oder importierten DXF-Profilquerschnitten. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Echte quadratische Nutquerschnitte werden über die [DXF-Profilbibliothek](profilbibliothek_dxf.md) importiert. Detailliertes Zubehör, Projektbearbeitung und CSV-Export folgen später.
+Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus Demo-Vollprofilen oder importierten DXF-Profilquerschnitten. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Quadratische und rechteckige Nutquerschnitte werden über die [DXF-Profilbibliothek](profilbibliothek_dxf.md) importiert. Detailliertes Zubehör, Projektbearbeitung und CSV-Export folgen später.
 
 ## In Fusion laden
 
@@ -28,7 +28,7 @@ Im ersten Reiter **Vorschau anzeigen** einschalten. Bodenflächen und Zubehörum
 
 ## Icons und Version
 
-Aktueller Stand: **0.3.0**. DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
+Aktueller Stand: **0.3.1**. Getrennte Profile und Drehungen: [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
 
 Die vorhandenen `CreateFrame`- und `ProfileLibrary`-SVGs werden im Add-in mitgeliefert: `16x16.svg` für kleine Bedienelemente, `32x32.svg` für große sowie jeweils `-dark_blue`-Varianten. Die Vektorgrafiken skalieren auch bei hoher Bildschirmauflösung. Das Add-in-Symbol verwendet ebenfalls das FrameKit-Rahmensymbol.
 
@@ -53,7 +53,7 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. 68 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Struktur und Zeitleiste aus 0.1.5 sowie Vorschau und Layout aus 0.2.0 sowie Querträger und Deckplattenmontage aus 0.2.1 und DXF-Profile aus 0.3.0 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
+Lokale Tests: `python -m unittest discover -s tests -v`. 82 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Die Versionen 0.2.0, 0.2.1 und 0.3.0 wurden am 26.09.2026 vom Benutzer getestet und als funktionsfähig bestätigt. Die getrennte Profilwahl und rechteckigen Querschnitte aus 0.3.1 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
 
 ## Zwischenböden
 
@@ -61,7 +61,7 @@ Unter **Frame erstellen → Bodenplatten und Zwischenböden** lässt sich die An
 
 - **Alle Höhen leer:** Die Böden werden mit gleichen freien Abständen zwischen der Oberseite der unteren Platte und der Unterseite des oberen Tragrahmens verteilt. Ohne unteren Rahmen beginnt der freie Bereich an der Unterseite der Pfosten, also bei der Höhe der Füße/Rollen beziehungsweise 0 mm ohne Zubehör.
 - **Höhen vorgegeben:** Diese Werte werden übernommen. Leere Felder zwischen festgelegten Höhen werden innerhalb des verbleibenden Bereichs gleichmäßig verteilt. Der Dialog zeigt die berechneten Oberkanten an.
-- **Konstruktion:** Auf jedem Rahmen liegt eine Platte auf, einschließlich oberem und optional unterem Rahmen. Sie reicht bis zu den Außenmaßen des Gestells und erhält vier quadratische Eckausklinkungen in Profilbreite für die Pfosten. Die Plattenstärke ist für alle Ebenen gemeinsam einstellbar, standardmäßig 18 mm. Die Gesamthöhe schließt die obere Platte ein; bei Zwischenböden liegt der Tragrahmen um die Plattenstärke unter der angegebenen Oberkante. Befestigungsteile und Montagespiel werden in der Demo nicht modelliert.
+- **Konstruktion:** Auf jedem Rahmen liegt eine Platte auf, einschließlich oberem und optional unterem Rahmen. Sie reicht bis zu den Außenmaßen des Gestells und erhält vier rechteckige Eckausklinkungen entsprechend den gedrehten Pfostenmaßen für die Pfosten. Die Plattenstärke ist für alle Ebenen gemeinsam einstellbar, standardmäßig 18 mm. Die Gesamthöhe schließt die obere Platte ein; bei Zwischenböden liegt der Tragrahmen um die Plattenstärke unter der angegebenen Oberkante. Befestigungsteile und Montagespiel werden in der Demo nicht modelliert.
 - **Prüfung:** Überlappende, absteigende oder außerhalb des Gestells liegende Ebenen verhindern die Erstellung. Auch automatisch verteilte Böden müssen einschließlich Rahmen und Plattenstärke in den verfügbaren Raum passen. Dies gilt auch ohne Zwischenböden für die obere und untere Ebene.
 
 Beispiel ohne Füße/Rollen bei Standardmaßen (Höhe 750 mm, Profil 40 mm, unterer Rahmen): Zwei automatische Böden liegen bei ungefähr **288,7 mm** und **519,3 mm**. Mit drei Böden und einer festen mittleren Höhe von **400 mm** ergeben sich **229 / 400 / 575 mm**.

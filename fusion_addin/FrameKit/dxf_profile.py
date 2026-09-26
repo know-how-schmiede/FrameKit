@@ -299,8 +299,6 @@ def inspect(curves):
         raise ValueError('Profilmittelpunkt liegt nicht im Ursprung (0, 0). Bitte DXF zentrieren.')
     if not 1 <= min(width, height) <= max(width, height) <= 10000:
         raise ValueError('Profilmaße müssen zwischen 1 und 10000 mm liegen. DXF-Einheit prüfen.')
-    if abs(width-height) > TOL:
-        raise ValueError('S04 unterstützt quadratische Außenmaße. Rechteckige Profile folgen in S05.')
     adjacent = [[] for _ in nodes]
     for index, (a, b, _) in enumerate(edges):
         adjacent[a].append(index)

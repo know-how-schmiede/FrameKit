@@ -6,6 +6,7 @@ Screenshots werden **pro tatsächlich abgebildeter Add-in-Version** in einem eig
 
 | Version | Ordner | Enthaltene Ansichten |
 | --- | --- | --- |
+| 0.3.0 | [0.3.0](0.3.0/) | Gestell, Browserstruktur, Vorschau, Erstellungsdialog, Bibliotheken, historischer POINT-Importhinweis |
 | 0.1.5 | [0.1.5](0.1.5/) | Gestell mit Dialog, Erstellungsdialog, Einstellungen, Browserstruktur, Info |
 
 Die vorhandenen Namen `FrameKit_015_*.png` gehören ausdrücklich zu **0.1.5**. Die Originaldateinamen wurden im Versionsordner beibehalten.

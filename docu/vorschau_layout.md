@@ -1,5 +1,7 @@
 # Vorschau und Layout – 0.2.0
 
+Aktualisierung vom 26.09.2026: Die Versionen 0.2.0, 0.2.1 und 0.3.0 funktionieren laut Benutzerprüfung. Ab 0.3.1 gelten zusätzlich [getrennte Profilwahl und rechteckige Querschnitte](profile_je_bauteilgruppe.md); deren Fusion-Prüfung steht noch aus. Die folgenden Angaben beschreiben den jeweiligen ursprünglichen Versionsumfang.
+
 ## Bedienung
 
 Unter **Frame erstellen → Vorschau → Vorschau anzeigen** lässt sich das Gestell vor der Erstellung prüfen. Die Vorschau ist beim Öffnen ausgeschaltet. Nach gültigen Eingabeänderungen wird sie aktualisiert; ungültige Eingaben entfernen die bisherige Darstellung.

@@ -8,11 +8,46 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.3.0**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.3.1**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
 
 New in **0.3.0**: a local DXF profile library with import validation, dimension confirmation, selection and deletion. Square sections centered at the origin retain their grooves and cavities when extruded. See [Profile library and DXF import](docu/profilbibliothek_dxf.md) (German) for supported entities, storage and Fusion verification. Cross members and top panel mounting from 0.2.1 remain available.
 
+New in **0.3.1 (S05)**: separate profile choices for posts, frames and cross members, per-level overrides, and rectangular DXF sections with quarter-turn rotation. Cut lengths, panel cutouts and shelf spacing use the actual section dimensions. See [Profiles by component group](docu/profile_je_bauteilgruppe.md) (German). Versions **0.2.0, 0.2.1 and 0.3.0** were tested successfully by the user on 26 September 2026; Fusion verification of 0.3.1 is pending.
+
 ## Screenshots
+
+### Version 0.3.0
+
+Tested successfully by the user on 26 September 2026. The screenshots show different input states.
+
+Completed frame with DXF profiles, three panels and cylindrical support placeholders.
+
+![FrameKit 0.3.0 – Completed frame with DXF profiles, three panels and cylindrical support placeholders.](images/screenshots/0.3.0/FrameKit_V0-3-0_-02.png)
+
+<details>
+<summary>More views from version 0.3.0</summary>
+
+Assembly structure with colored components, cross members and transparent panels.
+
+![FrameKit 0.3.0 – Assembly structure with colored components, cross members and transparent panels.](images/screenshots/0.3.0/FrameKit_V0-3-0_-01.png)
+
+Centerline preview with panel surfaces, accessory outlines and cross-member controls.
+
+![FrameKit 0.3.0 – Centerline preview with panel surfaces, accessory outlines and cross-member controls.](images/screenshots/0.3.0/FrameKit_V0-3-0_-03.png)
+
+Creation dialog with panel mounting, per-level cross members and preview options.
+
+![FrameKit 0.3.0 – Creation dialog with panel mounting, per-level cross members and preview options.](images/screenshots/0.3.0/FrameKit_V0-3-0_-05.png)
+
+Settings with the saved 20 × 20 mm DXF profile and the accessory library.
+
+![FrameKit 0.3.0 – Settings with the saved 20 × 20 mm DXF profile and the accessory library.](images/screenshots/0.3.0/FrameKit_V0-3-0_-04.png)
+
+Historical import diagnostic: POINT rejection during testing. POINT entities and marked construction geometry are now skipped.
+
+![FrameKit 0.3.0 – Historical import diagnostic: POINT rejection during testing. POINT entities and marked construction geometry are now skipped.](images/screenshots/0.3.0/FrameKit_V0-3-0_-00.png)
+
+</details>
 
 ### Version 0.1.5
 

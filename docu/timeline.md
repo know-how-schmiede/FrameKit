@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.3.1
+
+**Git-Zusammenfassung:** `feat: Profile je Bauteilgruppe und rechteckige Querschnitte (0.3.1)`
+
+- Eigene Profile für Pfosten, Rahmen und Querträger sowie je Ebene; Vierteldrehungen und Übernahme auf alle Ebenen.
+- Maßabhängige Zuschnitte, Aussparungen, bündige Auflagen und freie Bodenabstände.
+- Screenshot-Satz 0.3.0 in beiden READMEs eingebunden; Benutzerprüfung für 0.2.0, 0.2.1 und 0.3.0 festgehalten.
+
+**Prüfstand:** 82 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.3.1 offen. Der Benutzer hat 0.2.0, 0.2.1 und 0.3.0 am 26.09.2026 als getestet und funktionsfähig bestätigt.
+
+**Details:** [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md)
+
 ## 25.09.2026 – 0.3.0
 
 **Git-Zusammenfassung:** `feat: DXF-Profilbibliothek und echte Profilquerschnitte (0.3.0)`
@@ -10,7 +22,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Native Linien, Kreise und Bögen mit Hohlräumen extrudieren; Mittelpunkt im Ursprung berücksichtigen.
 - Bibliothekskopien mit Prüfsummen, eigenständige Profildefinitionen in Standardwerten und Baugruppen.
 
-**Prüfstand:** 68 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Abnahme und reales Hersteller-Referenzprofil offen. Testdaten sind synthetisch.
+**Prüfstand:** 68 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Funktion am 26.09.2026 durch den Benutzer bestätigt; reales Hersteller-Referenzprofil weiterhin offen. Testdaten sind synthetisch.
 
 **Details:** [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md)
 
@@ -22,7 +34,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Deckplatte alternativ ohne Aussparungen auf Profilen; Pfostenlänge berücksichtigt Plattenstärke und Zubehörhöhe.
 - Standardwerte, Bauteildaten, Vorschau und Layout unterstützen beide Ergänzungen.
 
-**Prüfstand:** 46 lokale Tests und Syntaxprüfung erfolgreich; Prüfung im laufenden Fusion steht aus.
+**Prüfstand:** 46 lokale Tests und Syntaxprüfung erfolgreich; Funktion im laufenden Fusion am 26.09.2026 durch den Benutzer bestätigt.
 
 **Details:** [Querträger und Deckplattenmontage](quertraeger_deckplatte.md)
 
@@ -34,7 +46,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Verdeckte, fixierte Layoutskizze aus denselben Bauteildaten gespeichert; Orientierung im Dialog erklärt.
 - Temporäre Grafik bei Abbruch, Änderungen und Fehlern bereinigt; Version und Dokumentation aktualisiert.
 
-**Prüfstand:** 40 lokale Tests und Syntaxprüfung erfolgreich; Prüfung im laufenden Fusion steht aus.
+**Prüfstand:** 40 lokale Tests und Syntaxprüfung erfolgreich; Funktion im laufenden Fusion am 26.09.2026 durch den Benutzer bestätigt.
 
 **Details:** [Vorschau und Layout](vorschau_layout.md)
 

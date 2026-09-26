@@ -1,5 +1,7 @@
 # Profilbibliothek und DXF-Import – 0.3.0
 
+Aktualisierung vom 26.09.2026: Die Versionen 0.2.0, 0.2.1 und 0.3.0 funktionieren laut Benutzerprüfung. Ab 0.3.1 gelten zusätzlich [getrennte Profilwahl und rechteckige Querschnitte](profile_je_bauteilgruppe.md); deren Fusion-Prüfung steht noch aus. Die folgenden Angaben beschreiben den jeweiligen ursprünglichen Versionsumfang.
+
 S04 ergänzt ein gemeinsames, frei importierbares DXF-Profil für das gesamte Gestell. Pfosten, Rahmen und Querträger erhalten denselben echten Querschnitt einschließlich Nuten und Hohlräumen. Das bisherige Demo-Vollprofil bleibt auswählbar. Rechteckige Außenmaße, getrennte Profile je Bauteilgruppe und deren Ausrichtung folgen in S05.
 
 ## Bedienung
