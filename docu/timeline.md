@@ -2,6 +2,26 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 27.09.2026 – Windows-Installer für 0.9.0
+
+**Git-Zusammenfassung:** `build: Inno-Setup-Installer nach SegmentJoinPilot-Vorbild`
+
+- Windows-EXE unter `installer/dist`, Installation ohne Administratorrechte mit Erkennung beider Fusion-Produktordner und Deutsch/Englisch.
+- Eigene AppId, Versionsabgleich und SHA-256-Datei; persönliche Benutzerdaten bleiben separat.
+- **Prüfstand:** Mit Inno Setup 6.7.0 erfolgreich kompiliert. EXE-Version und Prüfsumme geprüft; praktische Installation und Fusion-Abnahme offen. Add-in-Version bleibt 0.9.0.
+
+**Details:** [Windows-Installer](../installer/README.md)
+
+## 26.09.2026 – 0.9.0
+
+**Git-Zusammenfassung:** `feat: Reproduzierbares Installationspaket und Abnahmebeispiele (S12)`
+
+- ZIP-Build mit festem Dateiverzeichnis, Zeitstempeln und SHA-256-Prüfung; Version, Pflichtressourcen, Pfade und Python-Syntax geprüft.
+- Sieben portable Beispielgestelle mit DXF und Erwartungswerten; Installations-, Update-, Deinstallations- und Sicherungsanleitung.
+- **Prüfstand:** 164 lokale Tests unter Windows Build 26200 / Python 3.14.0 erfolgreich. Native Fusion-Abnahme, genaue Fusion-Buildnummer und Plattformbestätigung offen; keine 1.0-Freigabe.
+
+**Details:** [Installation und Abnahme](installation_abnahme.md)
+
 ## 26.09.2026 – 0.8.0
 
 **Git-Zusammenfassung:** `feat: Benannte Vorlagen und Datensicherung (S11)`

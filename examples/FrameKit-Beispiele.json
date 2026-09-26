@@ -1,0 +1,1632 @@
+{
+  "schema": 1,
+  "templates": [
+    {
+      "id": "framekit-example-01",
+      "name": "01 Einfaches Gestell",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": null,
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": null
+      }
+    },
+    {
+      "id": "framekit-example-02",
+      "name": "02 Zwei Zwischenböden",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 1200.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 2,
+        "shelf_heights": [
+          400.0,
+          800.0
+        ],
+        "shelf_thickness": 18.0,
+        "accessory": null,
+        "cross_members": {
+          "top": {
+            "count": 2,
+            "direction": "quer"
+          },
+          "shelf:01": {
+            "count": 2,
+            "direction": "quer"
+          },
+          "shelf:02": {
+            "count": 2,
+            "direction": "quer"
+          }
+        },
+        "top_panel_mount": "notched",
+        "profile_definition": null
+      }
+    },
+    {
+      "id": "framekit-example-03",
+      "name": "03 Transportwagen gemischte Rollen",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": null,
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": null,
+        "frame_type": "cart",
+        "corner_accessories": {
+          "front:left": {
+            "id": "demo-caster",
+            "name": "Demo-Rolle",
+            "kind": "Lenkrolle",
+            "height": 100.0,
+            "diameter": 75.0
+          },
+          "back:left": {
+            "id": "demo-fixed-caster",
+            "name": "Demo-Bockrolle",
+            "kind": "Bockrolle",
+            "height": 100.0,
+            "diameter": 75.0
+          },
+          "front:right": {
+            "id": "demo-caster",
+            "name": "Demo-Rolle",
+            "kind": "Lenkrolle",
+            "height": 100.0,
+            "diameter": 75.0
+          },
+          "back:right": {
+            "id": "demo-fixed-caster",
+            "name": "Demo-Bockrolle",
+            "kind": "Bockrolle",
+            "height": 100.0,
+            "diameter": 75.0
+          }
+        }
+      }
+    },
+    {
+      "id": "framekit-example-04",
+      "name": "04 Eigenes DXF-Profil",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": null,
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": {
+          "id": "00000000000000000000000000000040",
+          "name": "Synthetisches Nutprofil 40",
+          "filename": "00000000000000000000000000000040.dxf",
+          "source_name": "synthetic_tslot_40.dxf",
+          "source_sha256": "d67464f43d7ad2fa6061804d8894bddb0e69c9fd844d09ae7fbd74ad95b3f27b",
+          "geometry_sha256": "707cf5e7f1f64ce5e7b18a42a6cda0d4d482b50827bf0f158919a62689008dbe",
+          "units": "mm",
+          "origin": "bounds-center",
+          "extrusion_axis": "z",
+          "is_demo": false,
+          "curves": [
+            {
+              "type": "line",
+              "start": [
+                -20.0,
+                -20.0
+              ],
+              "end": [
+                -4.0,
+                -20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -4.0,
+                -20.0
+              ],
+              "end": [
+                -4.0,
+                -17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -4.0,
+                -17.0
+              ],
+              "end": [
+                -7.0,
+                -17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -7.0,
+                -17.0
+              ],
+              "end": [
+                -7.0,
+                -12.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -7.0,
+                -12.0
+              ],
+              "end": [
+                7.0,
+                -12.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                7.0,
+                -12.0
+              ],
+              "end": [
+                7.0,
+                -17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                7.0,
+                -17.0
+              ],
+              "end": [
+                4.0,
+                -17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                4.0,
+                -17.0
+              ],
+              "end": [
+                4.0,
+                -20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                4.0,
+                -20.0
+              ],
+              "end": [
+                20.0,
+                -20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                20.0,
+                -20.0
+              ],
+              "end": [
+                20.0,
+                -4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                20.0,
+                -4.0
+              ],
+              "end": [
+                17.0,
+                -4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                17.0,
+                -4.0
+              ],
+              "end": [
+                17.0,
+                -7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                17.0,
+                -7.0
+              ],
+              "end": [
+                12.0,
+                -7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                12.0,
+                -7.0
+              ],
+              "end": [
+                12.0,
+                7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                12.0,
+                7.0
+              ],
+              "end": [
+                17.0,
+                7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                17.0,
+                7.0
+              ],
+              "end": [
+                17.0,
+                4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                17.0,
+                4.0
+              ],
+              "end": [
+                20.0,
+                4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                20.0,
+                4.0
+              ],
+              "end": [
+                20.0,
+                20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                20.0,
+                20.0
+              ],
+              "end": [
+                4.0,
+                20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                4.0,
+                20.0
+              ],
+              "end": [
+                4.0,
+                17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                4.0,
+                17.0
+              ],
+              "end": [
+                7.0,
+                17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                7.0,
+                17.0
+              ],
+              "end": [
+                7.0,
+                12.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                7.0,
+                12.0
+              ],
+              "end": [
+                -7.0,
+                12.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -7.0,
+                12.0
+              ],
+              "end": [
+                -7.0,
+                17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -7.0,
+                17.0
+              ],
+              "end": [
+                -4.0,
+                17.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -4.0,
+                17.0
+              ],
+              "end": [
+                -4.0,
+                20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -4.0,
+                20.0
+              ],
+              "end": [
+                -20.0,
+                20.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -20.0,
+                20.0
+              ],
+              "end": [
+                -20.0,
+                4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -20.0,
+                4.0
+              ],
+              "end": [
+                -17.0,
+                4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -17.0,
+                4.0
+              ],
+              "end": [
+                -17.0,
+                7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -17.0,
+                7.0
+              ],
+              "end": [
+                -12.0,
+                7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -12.0,
+                7.0
+              ],
+              "end": [
+                -12.0,
+                -7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -12.0,
+                -7.0
+              ],
+              "end": [
+                -17.0,
+                -7.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -17.0,
+                -7.0
+              ],
+              "end": [
+                -17.0,
+                -4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -17.0,
+                -4.0
+              ],
+              "end": [
+                -20.0,
+                -4.0
+              ]
+            },
+            {
+              "type": "line",
+              "start": [
+                -20.0,
+                -4.0
+              ],
+              "end": [
+                -20.0,
+                -20.0
+              ]
+            },
+            {
+              "type": "circle",
+              "center": [
+                0.0,
+                0.0
+              ],
+              "radius": 3.0
+            },
+            {
+              "type": "circle",
+              "center": [
+                -13.0,
+                -13.0
+              ],
+              "radius": 2.0
+            },
+            {
+              "type": "circle",
+              "center": [
+                13.0,
+                -13.0
+              ],
+              "radius": 2.0
+            },
+            {
+              "type": "circle",
+              "center": [
+                13.0,
+                13.0
+              ],
+              "radius": 2.0
+            },
+            {
+              "type": "circle",
+              "center": [
+                -13.0,
+                13.0
+              ],
+              "radius": 2.0
+            }
+          ],
+          "width_mm": 40.0,
+          "height_mm": 40.0,
+          "loop_count": 6,
+          "area_mm2": 1145.460183660255,
+          "source_unit": "mm",
+          "declared_unit": 4,
+          "scale_to_mm": 1.0,
+          "ignored_entities": {
+            "points": 0,
+            "construction": 0
+          },
+          "manufacturer": "",
+          "series": "",
+          "article_number": "",
+          "slot_size": "",
+          "material": ""
+        }
+      }
+    },
+    {
+      "id": "framekit-example-05",
+      "name": "05 Unterschiedliche Gruppenprofile",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": null,
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": null,
+        "group_profiles": {
+          "posts": {
+            "definition": {
+              "id": "00000000000000000000000000000040",
+              "name": "Synthetisches Nutprofil 40",
+              "filename": "00000000000000000000000000000040.dxf",
+              "source_name": "synthetic_tslot_40.dxf",
+              "source_sha256": "d67464f43d7ad2fa6061804d8894bddb0e69c9fd844d09ae7fbd74ad95b3f27b",
+              "geometry_sha256": "707cf5e7f1f64ce5e7b18a42a6cda0d4d482b50827bf0f158919a62689008dbe",
+              "units": "mm",
+              "origin": "bounds-center",
+              "extrusion_axis": "z",
+              "is_demo": false,
+              "curves": [
+                {
+                  "type": "line",
+                  "start": [
+                    -20.0,
+                    -20.0
+                  ],
+                  "end": [
+                    -4.0,
+                    -20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -4.0,
+                    -20.0
+                  ],
+                  "end": [
+                    -4.0,
+                    -17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -4.0,
+                    -17.0
+                  ],
+                  "end": [
+                    -7.0,
+                    -17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -7.0,
+                    -17.0
+                  ],
+                  "end": [
+                    -7.0,
+                    -12.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -7.0,
+                    -12.0
+                  ],
+                  "end": [
+                    7.0,
+                    -12.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    7.0,
+                    -12.0
+                  ],
+                  "end": [
+                    7.0,
+                    -17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    7.0,
+                    -17.0
+                  ],
+                  "end": [
+                    4.0,
+                    -17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    4.0,
+                    -17.0
+                  ],
+                  "end": [
+                    4.0,
+                    -20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    4.0,
+                    -20.0
+                  ],
+                  "end": [
+                    20.0,
+                    -20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    20.0,
+                    -20.0
+                  ],
+                  "end": [
+                    20.0,
+                    -4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    20.0,
+                    -4.0
+                  ],
+                  "end": [
+                    17.0,
+                    -4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    17.0,
+                    -4.0
+                  ],
+                  "end": [
+                    17.0,
+                    -7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    17.0,
+                    -7.0
+                  ],
+                  "end": [
+                    12.0,
+                    -7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    12.0,
+                    -7.0
+                  ],
+                  "end": [
+                    12.0,
+                    7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    12.0,
+                    7.0
+                  ],
+                  "end": [
+                    17.0,
+                    7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    17.0,
+                    7.0
+                  ],
+                  "end": [
+                    17.0,
+                    4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    17.0,
+                    4.0
+                  ],
+                  "end": [
+                    20.0,
+                    4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    20.0,
+                    4.0
+                  ],
+                  "end": [
+                    20.0,
+                    20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    20.0,
+                    20.0
+                  ],
+                  "end": [
+                    4.0,
+                    20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    4.0,
+                    20.0
+                  ],
+                  "end": [
+                    4.0,
+                    17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    4.0,
+                    17.0
+                  ],
+                  "end": [
+                    7.0,
+                    17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    7.0,
+                    17.0
+                  ],
+                  "end": [
+                    7.0,
+                    12.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    7.0,
+                    12.0
+                  ],
+                  "end": [
+                    -7.0,
+                    12.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -7.0,
+                    12.0
+                  ],
+                  "end": [
+                    -7.0,
+                    17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -7.0,
+                    17.0
+                  ],
+                  "end": [
+                    -4.0,
+                    17.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -4.0,
+                    17.0
+                  ],
+                  "end": [
+                    -4.0,
+                    20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -4.0,
+                    20.0
+                  ],
+                  "end": [
+                    -20.0,
+                    20.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -20.0,
+                    20.0
+                  ],
+                  "end": [
+                    -20.0,
+                    4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -20.0,
+                    4.0
+                  ],
+                  "end": [
+                    -17.0,
+                    4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -17.0,
+                    4.0
+                  ],
+                  "end": [
+                    -17.0,
+                    7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -17.0,
+                    7.0
+                  ],
+                  "end": [
+                    -12.0,
+                    7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -12.0,
+                    7.0
+                  ],
+                  "end": [
+                    -12.0,
+                    -7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -12.0,
+                    -7.0
+                  ],
+                  "end": [
+                    -17.0,
+                    -7.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -17.0,
+                    -7.0
+                  ],
+                  "end": [
+                    -17.0,
+                    -4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -17.0,
+                    -4.0
+                  ],
+                  "end": [
+                    -20.0,
+                    -4.0
+                  ]
+                },
+                {
+                  "type": "line",
+                  "start": [
+                    -20.0,
+                    -4.0
+                  ],
+                  "end": [
+                    -20.0,
+                    -20.0
+                  ]
+                },
+                {
+                  "type": "circle",
+                  "center": [
+                    0.0,
+                    0.0
+                  ],
+                  "radius": 3.0
+                },
+                {
+                  "type": "circle",
+                  "center": [
+                    -13.0,
+                    -13.0
+                  ],
+                  "radius": 2.0
+                },
+                {
+                  "type": "circle",
+                  "center": [
+                    13.0,
+                    -13.0
+                  ],
+                  "radius": 2.0
+                },
+                {
+                  "type": "circle",
+                  "center": [
+                    13.0,
+                    13.0
+                  ],
+                  "radius": 2.0
+                },
+                {
+                  "type": "circle",
+                  "center": [
+                    -13.0,
+                    13.0
+                  ],
+                  "radius": 2.0
+                }
+              ],
+              "width_mm": 40.0,
+              "height_mm": 40.0,
+              "loop_count": 6,
+              "area_mm2": 1145.460183660255,
+              "source_unit": "mm",
+              "declared_unit": 4,
+              "scale_to_mm": 1.0,
+              "ignored_entities": {
+                "points": 0,
+                "construction": 0
+              },
+              "manufacturer": "",
+              "series": "",
+              "article_number": "",
+              "slot_size": "",
+              "material": ""
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "framekit-example-06",
+      "name": "06 Gestell mit Füßen",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": {
+          "id": "demo-foot",
+          "name": "Demo-Fuß",
+          "kind": "Fuß",
+          "height": 40.0,
+          "diameter": 50.0
+        },
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": null
+      }
+    },
+    {
+      "id": "framekit-example-07",
+      "name": "07 Absenkbare Rollen (synthetisch)",
+      "values": {
+        "length": 800.0,
+        "width": 500.0,
+        "height": 750.0,
+        "profile": 40.0,
+        "bottom": true,
+        "shelf_count": 0,
+        "shelf_heights": [],
+        "shelf_thickness": 18.0,
+        "accessory": {
+          "id": "example-lowering",
+          "name": "Synthetische absenkbare Rolle",
+          "kind": "Absenkbare Rolle",
+          "height": 100,
+          "diameter": 75,
+          "reference": "Synthetisches Beispiel, kein Herstellerteil",
+          "operating_state": "abgesenkt",
+          "definition_version": 2
+        },
+        "cross_members": {},
+        "top_panel_mount": "notched",
+        "profile_definition": null
+      }
+    }
+  ],
+  "accessories": [
+    {
+      "id": "demo-foot",
+      "name": "Demo-Fuß",
+      "kind": "Fuß",
+      "height": 40.0,
+      "diameter": 50.0
+    },
+    {
+      "id": "demo-caster",
+      "name": "Demo-Rolle",
+      "kind": "Lenkrolle",
+      "height": 100.0,
+      "diameter": 75.0
+    },
+    {
+      "id": "demo-fixed-caster",
+      "name": "Demo-Bockrolle",
+      "kind": "Bockrolle",
+      "height": 100.0,
+      "diameter": 75.0
+    },
+    {
+      "id": "example-lowering",
+      "name": "Synthetische absenkbare Rolle",
+      "kind": "Absenkbare Rolle",
+      "height": 100,
+      "diameter": 75,
+      "reference": "Synthetisches Beispiel, kein Herstellerteil",
+      "operating_state": "abgesenkt",
+      "definition_version": 2
+    }
+  ],
+  "profiles": [
+    {
+      "id": "00000000000000000000000000000040",
+      "name": "Synthetisches Nutprofil 40",
+      "filename": "00000000000000000000000000000040.dxf",
+      "source_name": "synthetic_tslot_40.dxf",
+      "source_sha256": "d67464f43d7ad2fa6061804d8894bddb0e69c9fd844d09ae7fbd74ad95b3f27b",
+      "geometry_sha256": "707cf5e7f1f64ce5e7b18a42a6cda0d4d482b50827bf0f158919a62689008dbe",
+      "units": "mm",
+      "origin": "bounds-center",
+      "extrusion_axis": "z",
+      "is_demo": false,
+      "curves": [
+        {
+          "type": "line",
+          "start": [
+            -20.0,
+            -20.0
+          ],
+          "end": [
+            -4.0,
+            -20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -4.0,
+            -20.0
+          ],
+          "end": [
+            -4.0,
+            -17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -4.0,
+            -17.0
+          ],
+          "end": [
+            -7.0,
+            -17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -7.0,
+            -17.0
+          ],
+          "end": [
+            -7.0,
+            -12.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -7.0,
+            -12.0
+          ],
+          "end": [
+            7.0,
+            -12.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            7.0,
+            -12.0
+          ],
+          "end": [
+            7.0,
+            -17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            7.0,
+            -17.0
+          ],
+          "end": [
+            4.0,
+            -17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            4.0,
+            -17.0
+          ],
+          "end": [
+            4.0,
+            -20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            4.0,
+            -20.0
+          ],
+          "end": [
+            20.0,
+            -20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            20.0,
+            -20.0
+          ],
+          "end": [
+            20.0,
+            -4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            20.0,
+            -4.0
+          ],
+          "end": [
+            17.0,
+            -4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            17.0,
+            -4.0
+          ],
+          "end": [
+            17.0,
+            -7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            17.0,
+            -7.0
+          ],
+          "end": [
+            12.0,
+            -7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            12.0,
+            -7.0
+          ],
+          "end": [
+            12.0,
+            7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            12.0,
+            7.0
+          ],
+          "end": [
+            17.0,
+            7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            17.0,
+            7.0
+          ],
+          "end": [
+            17.0,
+            4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            17.0,
+            4.0
+          ],
+          "end": [
+            20.0,
+            4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            20.0,
+            4.0
+          ],
+          "end": [
+            20.0,
+            20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            20.0,
+            20.0
+          ],
+          "end": [
+            4.0,
+            20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            4.0,
+            20.0
+          ],
+          "end": [
+            4.0,
+            17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            4.0,
+            17.0
+          ],
+          "end": [
+            7.0,
+            17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            7.0,
+            17.0
+          ],
+          "end": [
+            7.0,
+            12.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            7.0,
+            12.0
+          ],
+          "end": [
+            -7.0,
+            12.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -7.0,
+            12.0
+          ],
+          "end": [
+            -7.0,
+            17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -7.0,
+            17.0
+          ],
+          "end": [
+            -4.0,
+            17.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -4.0,
+            17.0
+          ],
+          "end": [
+            -4.0,
+            20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -4.0,
+            20.0
+          ],
+          "end": [
+            -20.0,
+            20.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -20.0,
+            20.0
+          ],
+          "end": [
+            -20.0,
+            4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -20.0,
+            4.0
+          ],
+          "end": [
+            -17.0,
+            4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -17.0,
+            4.0
+          ],
+          "end": [
+            -17.0,
+            7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -17.0,
+            7.0
+          ],
+          "end": [
+            -12.0,
+            7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -12.0,
+            7.0
+          ],
+          "end": [
+            -12.0,
+            -7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -12.0,
+            -7.0
+          ],
+          "end": [
+            -17.0,
+            -7.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -17.0,
+            -7.0
+          ],
+          "end": [
+            -17.0,
+            -4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -17.0,
+            -4.0
+          ],
+          "end": [
+            -20.0,
+            -4.0
+          ]
+        },
+        {
+          "type": "line",
+          "start": [
+            -20.0,
+            -4.0
+          ],
+          "end": [
+            -20.0,
+            -20.0
+          ]
+        },
+        {
+          "type": "circle",
+          "center": [
+            0.0,
+            0.0
+          ],
+          "radius": 3.0
+        },
+        {
+          "type": "circle",
+          "center": [
+            -13.0,
+            -13.0
+          ],
+          "radius": 2.0
+        },
+        {
+          "type": "circle",
+          "center": [
+            13.0,
+            -13.0
+          ],
+          "radius": 2.0
+        },
+        {
+          "type": "circle",
+          "center": [
+            13.0,
+            13.0
+          ],
+          "radius": 2.0
+        },
+        {
+          "type": "circle",
+          "center": [
+            -13.0,
+            13.0
+          ],
+          "radius": 2.0
+        }
+      ],
+      "width_mm": 40.0,
+      "height_mm": 40.0,
+      "loop_count": 6,
+      "area_mm2": 1145.460183660255,
+      "source_unit": "mm",
+      "declared_unit": 4,
+      "scale_to_mm": 1.0,
+      "ignored_entities": {
+        "points": 0,
+        "construction": 0
+      },
+      "manufacturer": "",
+      "series": "",
+      "article_number": "",
+      "slot_size": "",
+      "material": ""
+    }
+  ],
+  "files": {
+    "00000000000000000000000000000040.dxf": "MA0KU0VDVElPTg0KMg0KSEVBREVSDQo5DQokSU5TVU5JVFMNCjcwDQo0DQowDQpFTkRTRUMNCjANClNFQ1RJT04NCjINCkVOVElUSUVTDQowDQpMV1BPTFlMSU5FDQo5MA0KMzYNCjcwDQoxDQoxMA0KLTIwDQoyMA0KLTIwDQoxMA0KLTQNCjIwDQotMjANCjEwDQotNA0KMjANCi0xNw0KMTANCi03DQoyMA0KLTE3DQoxMA0KLTcNCjIwDQotMTINCjEwDQo3DQoyMA0KLTEyDQoxMA0KNw0KMjANCi0xNw0KMTANCjQNCjIwDQotMTcNCjEwDQo0DQoyMA0KLTIwDQoxMA0KMjANCjIwDQotMjANCjEwDQoyMA0KMjANCi00DQoxMA0KMTcNCjIwDQotNA0KMTANCjE3DQoyMA0KLTcNCjEwDQoxMg0KMjANCi03DQoxMA0KMTINCjIwDQo3DQoxMA0KMTcNCjIwDQo3DQoxMA0KMTcNCjIwDQo0DQoxMA0KMjANCjIwDQo0DQoxMA0KMjANCjIwDQoyMA0KMTANCjQNCjIwDQoyMA0KMTANCjQNCjIwDQoxNw0KMTANCjcNCjIwDQoxNw0KMTANCjcNCjIwDQoxMg0KMTANCi03DQoyMA0KMTINCjEwDQotNw0KMjANCjE3DQoxMA0KLTQNCjIwDQoxNw0KMTANCi00DQoyMA0KMjANCjEwDQotMjANCjIwDQoyMA0KMTANCi0yMA0KMjANCjQNCjEwDQotMTcNCjIwDQo0DQoxMA0KLTE3DQoyMA0KNw0KMTANCi0xMg0KMjANCjcNCjEwDQotMTINCjIwDQotNw0KMTANCi0xNw0KMjANCi03DQoxMA0KLTE3DQoyMA0KLTQNCjEwDQotMjANCjIwDQotNA0KMA0KQ0lSQ0xFDQoxMA0KMA0KMjANCjANCjQwDQozDQowDQpDSVJDTEUNCjEwDQotMTMNCjIwDQotMTMNCjQwDQoyDQowDQpDSVJDTEUNCjEwDQoxMw0KMjANCi0xMw0KNDANCjINCjANCkNJUkNMRQ0KMTANCjEzDQoyMA0KMTMNCjQwDQoyDQowDQpDSVJDTEUNCjEwDQotMTMNCjIwDQoxMw0KNDANCjINCjANCkVORFNFQw0KMA0KRU9GDQo="
+  }
+}

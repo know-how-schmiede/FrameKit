@@ -1,0 +1,86 @@
+[
+  {
+    "name": "01 Einfaches Gestell",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 14,
+    "cut_list_positions": 3,
+    "bom_positions": 4
+  },
+  {
+    "name": "02 Zwei Zwischenböden",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      1200.0
+    ],
+    "profile_count": 26,
+    "part_count": 30,
+    "cut_list_positions": 3,
+    "bom_positions": 4
+  },
+  {
+    "name": "03 Transportwagen gemischte Rollen",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 18,
+    "cut_list_positions": 3,
+    "bom_positions": 6
+  },
+  {
+    "name": "04 Eigenes DXF-Profil",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 14,
+    "cut_list_positions": 3,
+    "bom_positions": 4
+  },
+  {
+    "name": "05 Unterschiedliche Gruppenprofile",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 14,
+    "cut_list_positions": 3,
+    "bom_positions": 4
+  },
+  {
+    "name": "06 Gestell mit Füßen",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 18,
+    "cut_list_positions": 3,
+    "bom_positions": 5
+  },
+  {
+    "name": "07 Absenkbare Rollen (synthetisch)",
+    "dimensions_mm": [
+      800.0,
+      500.0,
+      750.0
+    ],
+    "profile_count": 12,
+    "part_count": 18,
+    "cut_list_positions": 3,
+    "bom_positions": 5
+  }
+]
