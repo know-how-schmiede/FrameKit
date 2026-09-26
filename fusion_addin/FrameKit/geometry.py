@@ -86,15 +86,38 @@ def _create_bracket(parent, part, frame_id, definitions, parametric):
     from .bracket_library import body
     size = part['geometry']['size_mm']
     transform = adsk.core.Matrix3D.create()
-    transform.setWithCoordinateSystem(
-        adsk.core.Point3D.create(*(v/10 for v in part['position_mm'])),
-        *(adsk.core.Vector3D.create(*axis) for axis in part['orientation']))
+    if not transform.setWithCoordinateSystem(
+            adsk.core.Point3D.create(*(v/10 for v in part['position_mm'])),
+            *(adsk.core.Vector3D.create(*axis) for axis in part['orientation'])):
+        raise ValueError(f'{part["id"]}: ungültige Winkelausrichtung.')
+    if not parametric:
+        # Bake placement into a fresh temporary solid. Direct-mode occurrences stay
+        # at identity: no shared-definition position overrides are required.
+        manager = adsk.fusion.TemporaryBRepManager.get()
+        source = manager.copy(body(size))
+        if source is None or not manager.transform(source, transform):
+            raise RuntimeError('STEP-Winkel konnte nicht positioniert werden.')
+        occurrence = parent.occurrences.addNewComponent(adsk.core.Matrix3D.create())
+        component = occurrence.component
+        component.name = part['display_name']
+        component.partNumber = f'Winkel_{size}x{size}'
+        created = component.bRepBodies.add(source)
+        if created is None:
+            raise RuntimeError('STEP-Winkel konnte nicht eingefügt werden.')
+        created.name = component.name
+        created.isLightBulbOn = True
+        occurrence.isLightBulbOn = True
+        _set_attributes(component, {'kind': 'connection', 'sourceFile': part['geometry']['source'],
+                                    'units': 'mm', 'placeholder': 'false'})
+        _set_attributes(occurrence, _part_attributes(part, frame_id))
+        return occurrence, occurrence
+    initial_transform = transform
     if size in definitions:
-        occurrence = parent.occurrences.addExistingComponent(definitions[size], transform)
+        occurrence = parent.occurrences.addExistingComponent(definitions[size], initial_transform)
         last = occurrence
     else:
         source = body(size)  # Validate before changing the document.
-        occurrence = parent.occurrences.addNewComponent(transform)
+        occurrence = parent.occurrences.addNewComponent(initial_transform)
         component = occurrence.component
         component.name = f'Winkel {size}x{size}'
         component.partNumber = f'Winkel_{size}x{size}'
@@ -153,7 +176,7 @@ def create_frame(design, values, calculated_model=None, placement=None):
     if parametric:
         design.timeline.moveToEnd()
     assembly = design.rootComponent.occurrences.addNewComponent(
-        placement if placement is not None else adsk.core.Matrix3D.create())
+        placement if parametric and placement is not None else adsk.core.Matrix3D.create())
     assembly.component.name = f'FrameKit {__version__} | {frame_id[:8]}'
     timeline_groups = []
     try:
@@ -194,6 +217,10 @@ def create_frame(design, values, calculated_model=None, placement=None):
                 group.name = name
             for group in timeline_groups:
                 group.isCollapsed = True
+        if not parametric:
+            # Apply the parent placement only after all local geometry is complete.
+            if placement is not None:
+                assembly.transform2 = placement
         _set_attributes(assembly.component, {
             'version': __version__, 'assemblyId': frame_id, 'schemaVersion': str(model['schema']),
             'modelData': _json(model),

@@ -200,6 +200,8 @@ Diese Schritte sind Vorschläge, noch nicht zur Umsetzung beauftragt. Jeder erh�
 
 ## Notizen des Benutzers
 
+- Direktmodus / 0.7.0: Winkelkorrektur mit unabhängigen, vor dem Einfügen positionierten STEP-Körperkopien nach Benutzerprüfung funktionsfähig. Erstellung/Bearbeitung ohne Historie wird damit für den gemeldeten Winkelfehler bestätigt.
+
 Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änderungen anschließend auch in der Versionsübersicht und im jeweiligen Schritt nachführen.
 
 - Für den nächsten Umsetzungsschritt vorgemerkt: Das Icon für „Gestell bearbeiten“ behält das bestehende Grundicon und erhält zusätzlich ein Bearbeiten-Symbol (z. B. einen Stift), damit es von „Gestell erstellen“ unterscheidbar ist. In S09 / 0.7.0 umgesetzt (Stift, beide Größen und Farbvarianten).

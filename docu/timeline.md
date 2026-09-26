@@ -4,6 +4,14 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 
 ## 26.09.2026 – 0.7.0 / S09
 
+**Benutzerbestätigung zur abschließenden Direktmodus-Korrektur:** „ok funktioniert jetzt.“ Die Winkel werden nach dem Neuaufbau ohne Konstruktionshistorie wieder korrekt dargestellt. Version bleibt 0.7.0.
+
+**Aktueller Direktmodus-Ansatz (0.7.0 unverändert):** Auch die Proxy-Korrektur führte laut Benutzer nicht zu sichtbaren Winkeln nach dem Erstellen. Der Direktmodus verwendet jetzt pro Winkel eine unabhängige Kopie des STEP-Körpers. Position und Orientierung werden vor dem Einfügen über TemporaryBRepManager auf diese Kopie angewendet; die Winkelvorkommen bleiben im Ursprung und benötigen keine Transformationsüberschreibungen. Die Gruppe „91 | Winkel“ bleibt erhalten. Mit Historie werden gemeinsame Definitionen weiterhin wiederverwendet. 144 lokale Tests erfolgreich; reale Körperlage/Sichtbarkeit in Fusion noch nicht bestätigt.
+
+**Weitere Direktmodus-Korrektur (0.7.0 unverändert):** Der vorherige Ansatz scheiterte in Fusion an `transform overrides can only be set on Occurrence proxy from root component`. Die Winkelgruppe wird nun im Kontext der Hauptbaugruppe und jeder Winkel im Kontext dieser Gruppe als Proxy aufgelöst; erst daran wird `transform2` gesetzt. Der API-Test verweigert jetzt wie Fusion Transformationsänderungen an verschachtelten nativen Vorkommen und prüft die Elternkette. 144 lokale Tests erfolgreich; native Fusion-Prüfung offen.
+
+**Nachkorrektur Direktmodus (weiterhin 0.7.0):** Benutzer meldet falsch positionierte Winkel nach Bearbeitung ohne Historie. Im Direktmodus werden STEP-Definitionen und ihre Instanzen jetzt zunächst im Ursprung angelegt. Erst nach vollständigem Aufbau werden sämtliche Winkel über `transform2` positioniert und anschließend die gespeicherte Hauptbaugruppenposition angewendet. Der parametrische Aufbau bleibt unverändert. 144 lokale Tests erfolgreich, einschließlich zweimaligem Neuaufbau mit Winkeln, Querträger und Zwischenboden bei gedrehter/verschobener Hauptbaugruppe. Tatsächliche Körperlage in Fusion noch zu bestätigen.
+
 **Benutzerbestätigung nach den CSV-Korrekturen:** Zuschnittliste funktioniert. Version bleibt 0.7.0.
 
 **Git-Zusammenfassung:** `feat: Zuschnittliste als CSV und eigenes Bearbeiten-Icon`

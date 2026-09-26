@@ -50,6 +50,40 @@ class Occurrences:
         return iter(self.component.children)
 
 
+class Occurrence(NS):
+    @property
+    def transform2(self):
+        return self.transform
+
+    @transform2.setter
+    def transform2(self, value):
+        if self.parent.design.designType == 0 and self.parent is not self.parent.design.rootComponent:
+            raise RuntimeError('3 : transform overrides can only be set on Occurrence proxy from root component')
+        self.transform = value
+
+    def createForAssemblyContext(self, parent):
+        if parent.component is not self.parent:
+            raise ValueError('Wrong parent context')
+        if not isinstance(parent, OccurrenceProxy) and parent.parent is not parent.parent.design.rootComponent:
+            raise ValueError('Context must be rooted')
+        return OccurrenceProxy(self, parent)
+
+
+class OccurrenceProxy:
+    def __init__(self, native, context):
+        self.nativeObject = native
+        self.assemblyContext = context
+        self.component = native.component
+
+    @property
+    def transform2(self):
+        return self.nativeObject.transform
+
+    @transform2.setter
+    def transform2(self, value):
+        self.nativeObject.transform = value
+
+
 class Component:
     def __init__(self, design):
         self.design, self.children, self.sketch_list, self.extrusions = design, [], [], []
@@ -87,8 +121,8 @@ class Component:
 
     def add_component(self, transform):
         component = Component(self.design)
-        occurrence = NS(component=component, transform=transform, timelineObject=self.design.tick(), isValid=True,
-                        attributes=Attributes(), transform2=transform, isLightBulbOn=True,
+        occurrence = Occurrence(parent=self, component=component, transform=transform, timelineObject=self.design.tick(), isValid=True,
+                        attributes=Attributes(), isLightBulbOn=True,
                         isReferencedComponent=False, name='FrameKit test')
 
         def delete():
@@ -170,21 +204,27 @@ class GeometryAdapterTests(unittest.TestCase):
             source = object()
             with patch.object(bracket_library, 'body', return_value=source) as load:
                 assembly = self.adapter.create_frame(design, values)
-            load.assert_called_once_with(40)
+            self.assertEqual(load.call_count, 1 if parametric else 8)
             group = next(g for g in assembly.component.children
                          if g.component.attributes['FrameKit', 'groupId'] == 'connections')
             self.assertEqual(group.component.name, '91 | Winkel')
             self.assertEqual(len(group.component.children), 8)
             components = [o.component for o in group.component.children]
-            self.assertTrue(all(c is components[0] for c in components))
-            self.assertEqual(components[0].imported, [source])
+            if parametric:
+                self.assertTrue(all(c is components[0] for c in components))
+                self.assertEqual(components[0].imported, [source])
+            else:
+                self.assertEqual(len({id(c) for c in components}), 8)
+                self.assertEqual(len({id(c.imported[0]) for c in components}), 8)
             self.assertFalse(components[0].sketch_list)
             self.assertNotIn(('FrameKit', 'partId'), components[0].attributes)
             ids = {o.attributes['FrameKit', 'partUid'] for o in group.component.children}
             self.assertEqual(len(ids), 8)
             for occurrence in group.component.children:
                 part = json.loads(occurrence.attributes['FrameKit', 'partData'])
-                self.assertEqual(occurrence.transform.origin, tuple(v/10 for v in part['position_mm']))
+                actual = occurrence.transform2 if parametric else occurrence.component.imported[0].placement
+                self.assertEqual(actual.origin, tuple(v/10 for v in part['position_mm']))
+                self.assertEqual(actual.axes, tuple(tuple(a) for a in part['orientation']))
                 self.assertEqual(occurrence.attributes['FrameKit', 'placeholder'], 'false')
 
     def test_missing_step_rolls_back_only_own_assembly(self):
@@ -202,6 +242,14 @@ class GeometryAdapterTests(unittest.TestCase):
         core.Matrix3D = NS(create=Matrix)
         core.Point3D = core.Vector3D = NS(create=lambda *values: values)
         core.ValueInput = NS(createByReal=lambda value: value)
+        def copy_body(source):
+            return NS(source=source, placement=None)
+
+        def transform_body(body, transform):
+            body.placement = transform.copy()
+            return True
+
+        fusion.TemporaryBRepManager = NS(get=lambda: NS(copy=copy_body, transform=transform_body))
         fusion.DesignTypes = NS(ParametricDesignType=1)
         fusion.FeatureOperations = NS(NewBodyFeatureOperation=0)
         self.modules = patch.dict(sys.modules, {'adsk': adsk, 'adsk.core': core, 'adsk.fusion': fusion})

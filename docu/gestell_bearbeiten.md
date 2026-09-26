@@ -60,3 +60,15 @@ Trotz aktivierter Vorschau wurde keine Grafik angezeigt. FrameKit fordert die Vo
 Die Rückmeldung zu 0.5.3 zeigt: Die Grafik existiert, ist aber vom Original verdeckt und bleibt nach Maßänderungen statisch. Der Dialog legt jetzt auch sämtliche Editorfelder beim Öffnen an. **Gestell laden** setzt nur Werte, Auswahlen und Sichtbarkeiten der vorhandenen Felder. Das Original wird vor der Vorschauanforderung ausgeblendet und bei reinen Grafikaktualisierungen nicht wieder eingeblendet. Bei ausgeschalteter/ungültiger Vorschau, Fehlern und Abbrechen wird seine ursprüngliche Sichtbarkeit wiederhergestellt.
 
 Nach Aktualisierung und Neustart prüfen: Gestell laden, Vorschau aktivieren, Länge nacheinander auf 900, 300 und 750 mm ändern. Das Original darf nicht manuell ausgeblendet werden müssen; die Vorschau muss jeweils ihre Form ändern. Danach Vorschau ausschalten und Abbrechen prüfen. Native Fusion-Bestätigung offen.
+
+### Winkel ohne Konstruktionshistorie – Nachkorrektur 0.7.0
+
+Der Benutzer meldete verschobene Winkel nach Änderungen im Direktmodus. Dort werden die gemeinsam verwendeten STEP-Winkel nun im Ursprung aufgebaut und erst danach als Vorkommen positioniert. Eine Verschiebung oder Drehung des gesamten Gestells wird zuletzt angewendet. Der Weg mit Konstruktionshistorie bleibt unverändert. Lokal sind wiederholter Neuaufbau, einzelne Winkelpositionen/-orientierungen und eine gedrehte/verschobene Baugruppe geprüft; die native Fusion-Bestätigung steht noch aus.
+
+Prüfung: Add-in neu laden, betroffenes Gestell über „Gestell bearbeiten“ neu aufbauen, danach Länge/Breite erneut ändern und alle Winkel kontrollieren. Zusätzlich ein verschobenes/gedrehtes Gestell ohne Historie prüfen.
+
+Nach dem gemeldeten `transform2`-Fehler werden die Winkel im Direktmodus über Vorkommen-Proxys mit vollständigem Kontext bis zur Dokumentwurzel positioniert. Direkte Transformationsänderungen an verschachtelten nativen Vorkommen sind im Test nun ausdrücklich gesperrt. Die Korrektur bleibt in Version 0.7.0; Bestätigung in Fusion steht aus.
+
+**Aktueller Stand nach erneutem Benutzerbericht:** Die Proxy-Variante wurde für den Direktmodus abgelöst. Jeder Winkel erhält eine unabhängige STEP-Körperkopie, die vor dem Einfügen in Gestellkoordinaten transformiert wird. Die Vorkommen bleiben ohne eigenen Positionsversatz; die Hauptbaugruppe wird abschließend platziert. „91 | Winkel“ bleibt gemeinsam schaltbar. Nur im parametrischen Modus teilen Winkel weiterhin eine Komponentendefinition. 144 lokale Tests erfolgreich; Sichtbarkeit und Position in Fusion noch zu bestätigen.
+
+**Benutzerbestätigung:** Die abschließende Korrektur mit unabhängigen STEP-Körperkopien funktioniert im Direktmodus. Winkel nach dem Neuaufbau ohne Konstruktionshistorie sind damit vom Benutzer bestätigt. Version unverändert 0.7.0.

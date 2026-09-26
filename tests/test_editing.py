@@ -92,6 +92,56 @@ class RebuildTests(unittest.TestCase):
             editing.load(design, rebuilt)  # The replacement must itself remain editable.
             self.assertFalse(first.isValid)  # Delete old construction, not a Remove feature.
 
+    def test_direct_brackets_are_populated_at_origin_before_placement_on_repeated_edits(self):
+        from fusion_addin.FrameKit import bracket_library
+        from test_geometry_adapter import Component
+        design = Design(False)
+        source = object()
+        original_add = Component.add_body
+        imports = []
+
+        def add_at_origin(component, body, feature=None):
+            self.assertIsNone(feature)
+            # Every ancestor and bracket instance must still be unplaced at import.
+            def visit(parent, ancestors):
+                for occurrence in parent.children:
+                    chain = ancestors + [occurrence]
+                    if occurrence.component is component:
+                        for entry in chain:
+                            self.assertEqual(entry.transform2.asArray(), Matrix().asArray())
+                        imports.append(component)
+                    visit(occurrence.component, chain)
+            visit(design.rootComponent, [])
+            return original_add(component, body, feature)
+
+        with patch.object(bracket_library, 'body', return_value=source), \
+                patch.object(Component, 'add_body', add_at_origin):
+            values = dict(demo.DEFAULTS, brackets=True, shelf_count=1, shelf_heights=[300],
+                          cross_members={'top': {'count': 1, 'direction': 'quer'}})
+            frame = self.adapter.create_frame(design, values)
+            placement = Matrix()
+            placement.setWithCoordinateSystem((100, 20, 5), (0, 1, 0), (-1, 0, 0), (0, 0, 1))
+            frame.transform2 = placement
+            for length in (1200, 600):
+                context = editing.load(design, frame)
+                values = dict(context['values'], length=length)
+                data = model.build_model(values, context['model'])
+                frame = self.replace(context, values, data)
+                self.assertEqual(frame.transform2.asArray(), placement.asArray())
+                group = next(g.component for g in frame.component.children
+                             if editing.attribute(g.component, 'groupId') == 'connections')
+                parts = [p for p in data['parts'] if p['kind'] == 'connection']
+                self.assertEqual(len(group.children), len(parts))
+                self.assertEqual(len({id(o.component) for o in group.children}), len(parts))
+                for occurrence in group.children:
+                    part = next(p for p in parts if p['id'] == editing.attribute(occurrence, 'partId'))
+                    self.assertEqual(occurrence.transform2.asArray(), Matrix().asArray())
+                    solid = occurrence.component.imported[0]
+                    self.assertIs(solid.source, source)
+                    self.assertEqual(solid.placement.origin, tuple(v/10 for v in part['position_mm']))
+                    self.assertEqual(solid.placement.axes, tuple(tuple(a) for a in part['orientation']))
+            self.assertEqual(len(imports), 3 * len(parts))
+
     def test_failed_build_keeps_original_and_other_frames(self):
         design = Design()
         old = self.adapter.create_frame(design, demo.DEFAULTS)
