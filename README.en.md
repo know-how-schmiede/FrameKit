@@ -8,7 +8,7 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.4.2**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.4.4**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
 
 New in **0.3.0**: a local DXF profile library with import validation, dimension confirmation, selection and deletion. Square sections centered at the origin retain their grooves and cavities when extruded. See [Profile library and DXF import](docu/profilbibliothek_dxf.md) (German) for supported entities, storage and Fusion verification. Cross members and top panel mounting from 0.2.1 remain available.
 
@@ -18,7 +18,9 @@ New in **0.4.0 (S06)**: frame/cart presets, individual foot/caster choices at ea
 
 New in **0.4.1**: colored errors and warnings throughout the dialog; enabling the preview fits the complete frame, including accessory overhangs, into the viewport. Subsequent input changes preserve manual zoom. Connector rules are recorded for the next step. Fusion verification is pending. See [Dialog messages and preview](docu/dialoghinweise_vorschau.md) (German).
 
-New in **0.4.2**: simplified triangular 20/30/40 mm bracket bodies, optional parallel brackets and collision checks. All bracket components share the **91 | Winkel (vereinfacht)** group for toggling visibility. No holes or fasteners are modeled. See [Simplified brackets](docu/winkel.md) (German); Fusion verification is pending.
+New in **0.4.3**: supplied 20/30/40 mm STEP brackets replace the triangular placeholders. One component per size is reused at multiple positions, aligned to the outer profile faces and grouped under **91 | Winkel** for visibility. Preview outlines show full-size mounting envelopes. Accessory errors also appear directly below the foot/caster selection. See [Brackets and verification](docu/winkel.md) (German); confirmed working in Fusion by the user on 2026-09-26.
+
+New in **0.4.4**: corrected dialog refresh behavior to address caret movement while typing (reported: `600` appears as `006`). Unchanged field states and messages are no longer rewritten; input validation does not modify dialog controls. 110 local tests pass; confirmation in Fusion is pending.
 
 ## Screenshots
 

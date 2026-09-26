@@ -7,7 +7,7 @@ from types import ModuleType, SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
 
-from fusion_addin.FrameKit import accessories, demo, model
+from fusion_addin.FrameKit import accessories, demo, model, bracket_library
 
 
 class Matrix:
@@ -26,14 +26,29 @@ class Component:
         self.design, self.children, self.sketch_list, self.extrusions = design, [], [], []
         self.name = ''
         self.attributes = Attributes()
-        self.occurrences = NS(addNewComponent=self.add_component)
+        self.occurrences = NS(addNewComponent=self.add_component, addExistingComponent=self.add_existing)
+        self.bRepBodies = NS(add=self.add_body)
+        self.imported = []
         self.xYConstructionPlane = object()
         self.sketches = NS(add=self.add_sketch)
-        self.features = NS(extrudeFeatures=NS(addSimple=self.extrude))
+        self.features = NS(extrudeFeatures=NS(addSimple=self.extrude), baseFeatures=NS(add=self.base_feature))
+
+    def base_feature(self):
+        return NS(timelineObject=self.design.tick(), startEdit=lambda: True, finishEdit=lambda: True)
+
+    def add_body(self, source, feature=None):
+        self.imported.append(source)
+        return NS(name='')
+
+    def add_existing(self, component, transform):
+        occurrence = self.add_component(transform)
+        occurrence.component = component
+        return occurrence
 
     def add_component(self, transform):
         component = Component(self.design)
-        occurrence = NS(component=component, transform=transform, timelineObject=self.design.tick(), isValid=True)
+        occurrence = NS(component=component, transform=transform, timelineObject=self.design.tick(), isValid=True,
+                        attributes=Attributes())
 
         def delete():
             occurrence.isValid = False
@@ -106,18 +121,37 @@ class Design:
 
 
 class GeometryAdapterTests(unittest.TestCase):
-    def test_brackets_are_triangle_bodies_in_one_independent_visibility_group(self):
+    def test_step_brackets_share_definition_but_keep_individual_identity(self):
+        for parametric in (True, False):
+            design = Design(parametric)
+            values = dict(demo.DEFAULTS, brackets=True)
+            source = object()
+            with patch.object(bracket_library, 'body', return_value=source) as load:
+                assembly = self.adapter.create_frame(design, values)
+            load.assert_called_once_with(40)
+            group = next(g for g in assembly.component.children
+                         if g.component.attributes['FrameKit', 'groupId'] == 'connections')
+            self.assertEqual(group.component.name, '91 | Winkel')
+            self.assertEqual(len(group.component.children), 8)
+            components = [o.component for o in group.component.children]
+            self.assertTrue(all(c is components[0] for c in components))
+            self.assertEqual(components[0].imported, [source])
+            self.assertFalse(components[0].sketch_list)
+            self.assertNotIn(('FrameKit', 'partId'), components[0].attributes)
+            ids = {o.attributes['FrameKit', 'partUid'] for o in group.component.children}
+            self.assertEqual(len(ids), 8)
+            for occurrence in group.component.children:
+                part = json.loads(occurrence.attributes['FrameKit', 'partData'])
+                self.assertEqual(occurrence.transform.origin, tuple(v/10 for v in part['position_mm']))
+                self.assertEqual(occurrence.attributes['FrameKit', 'placeholder'], 'false')
+
+    def test_missing_step_rolls_back_only_own_assembly(self):
         design = Design()
-        values = dict(demo.DEFAULTS, brackets=True)
-        assembly = self.adapter.create_frame(design, values)
-        group = next(g for g in assembly.component.children
-                     if g.component.attributes['FrameKit', 'groupId'] == 'connections')
-        self.assertEqual(group.component.name, '91 | Winkel (vereinfacht)')
-        self.assertEqual(len(group.component.children), 8)
-        for occurrence in group.component.children:
-            self.assertEqual(len(occurrence.component.sketch_list[0].lines), 3)
-            self.assertEqual(occurrence.component.extrusions[0].distance, 0.4)
-            self.assertEqual(occurrence.component.attributes['FrameKit', 'placeholder'], 'true')
+        foreign = design.rootComponent.add_component(Matrix())
+        with patch.object(bracket_library, 'body', side_effect=ValueError('Missing STEP')):
+            with self.assertRaisesRegex(ValueError, 'Missing STEP'):
+                self.adapter.create_frame(design, dict(demo.DEFAULTS, brackets=True))
+        self.assertEqual(design.rootComponent.children, [foreign])
 
     def setUp(self):
         adsk = ModuleType('adsk')

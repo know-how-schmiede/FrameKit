@@ -61,7 +61,7 @@ def build_model(values, previous=None):
     if any(spec is not None for spec in support_specs.values()):
         groups.append(dict(id='accessories', name='90 | Füße und Rollen'))
     brackets_enabled = values.get('brackets', False)
-    groups.append(dict(id='connections', name='91 | Winkel (vereinfacht)' if brackets_enabled
+    groups.append(dict(id='connections', name='91 | Winkel' if brackets_enabled
                        else '91 | Verbindungen', reserved=not brackets_enabled))
     parts = []
 
@@ -76,7 +76,7 @@ def build_model(values, previous=None):
                     orientation=deepcopy(ORIENTATIONS[axis]), bounds_mm=list(bounds),
                     bounds_origin_mm=list(origin),
                     geometry=shape, profile_ref=None, cut_length_mm=None,
-                    centerline_mm=None, is_placeholder=kind in ('support', 'connection'))
+                    centerline_mm=None, is_placeholder=kind == 'support')
         if kind == 'profile':
             profile, rotation, _ = section
             profiles[profile['id']] = profile
@@ -108,7 +108,7 @@ def build_model(values, previous=None):
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
             detail = f'{length:g}x{width:g}x{thickness:g} mm | {finish}'
         elif kind == 'connection':
-            detail = 'Dreieckkörper | vereinfacht, ohne Schrauben/Muttern'
+            detail = 'STEP-Bauteil | ohne Schrauben/Muttern'
         else:
             part['accessory_definition'] = deepcopy(support_specs[key.removeprefix('support:')])
             part['mounting_position_mm'] = [origin[0]+bounds[0]/2, origin[1]+bounds[1]/2, bounds[2]]
@@ -173,9 +173,12 @@ def build_model(values, previous=None):
             add(bracket['key'], 'connection', 'connections',
                 f'Winkel {bracket["size"]}x{bracket["size"]} | {bracket["label"]}',
                 bracket['origin'], bracket['bounds'],
-                dict(type='polygon', points_mm=bracket['points'], depth_mm=4))
+                dict(type='step', points_mm=bracket['points'], depth_mm=bracket['size'],
+                     size_mm=bracket['size'], source=f'Winkel_{bracket["size"]}x{bracket["size"]}.step'))
+            parts[-1]['bounds_origin_mm'] = bracket['bounds_origin']
+            parts[-1]['orientation'] = bracket['orientation']
             parts[-1]['connection_definition'] = dict(size_mm=bracket['size'],
-                visualization_depth_mm=4, member_keys=bracket['members'],
+                mounting_width_mm=bracket['size'], member_keys=bracket['members'],
                 parallel_count=bracket['parallel_count'], fastening_complete=False)
     return dict(schema=SCHEMA_VERSION, units='mm', assembly_id=frame_id,
                 id_registry=registry, configuration=deepcopy(values), groups=groups,

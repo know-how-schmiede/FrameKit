@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.2**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.4**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 ist implementiert (110 lokale Tests); Fusion-Bestätigung offen. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -41,6 +41,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | In Fusion bestätigt |
 | Z01 | 0.4.1 | Farbige Hinweise und Vorschau im Ansichtsbereich einpassen | S06 | Implementiert |
 | S07 | 0.4.2 | Vereinfachte Winkelkörper und Montageraum | S04, S05, S06 | Implementiert |
+| S07a | 0.4.3 | Gelieferte STEP-Winkel, gemeinsame Komponenten und Montageflächen | S07 | In Fusion bestätigt |
+| Z02 | 0.4.4 | Cursorversatz bei Zahlen-/Texteingabe korrigieren | S07a | Implementiert |
 | S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Geplant |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | Geplant |
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | Geplant |
@@ -195,6 +197,7 @@ Diese Schritte sind Vorschläge, noch nicht zur Umsetzung beauftragt. Jeder erh�
 Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änderungen anschließend auch in der Versionsübersicht und im jeweiligen Schritt nachführen.
 
 - Gewünschte Änderungen an Reihenfolge oder Versionsnummern:
+- Für den nächsten Umsetzungsschritt (Benutzerhinweis mit Screenshot von 0.4.2): Den statischen Hinweis „Zylinderplatzhalter unter den Pfosten …“ direkt unter der Auswahl in „Füße / Rollen je Ecke“ entfernen (`support_help`). An genau dieser Stelle stattdessen die zugehörige farbige Fehlermeldung anzeigen, beispielsweise bei unterschiedlichen Bauhöhen. Nach Korrektur die Meldung entfernen; den Zubehörfehler nicht ausschließlich am unteren Dialogende anzeigen. In 0.4.3 umgesetzt: statischer Text entfernt, rote Zubehörmeldung direkt unter der Auswahl; nach Korrektur ausgeblendet.
 - Vorschaupräzisierung: Nur das Gestell vollständig im Ansichtsbereich anzeigen, kein Fusion-Vollbildmodus. In 0.4.1 umgesetzt; Fusion-Prüfung offen.
 - Farbige Fehler-/Warnhinweise in allen Dialogbereichen: In 0.4.1 umgesetzt; Darstellung in hellem und dunklem Theme noch in Fusion prüfen.
 - Winkelzuordnungen und optionale parallele Winkel als einfache Körper in gemeinsamer ein-/ausblendbarer Gruppe umgesetzt: siehe S07 / 0.4.2.
@@ -203,3 +206,11 @@ Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änd
 - Bevorzugte Installation und Zielplattformen:
 
 [Deutsche README](../README.md) · [English README](../README.en.md) · [Projektplan](projektplan_FrameKit.md) · [Timeline](timeline.md)
+
+### Ergänzung S07a · 0.4.3 – STEP-Winkel
+
+Benutzerdateien aus `profiles/winkel` integriert, je Größe gemeinsame Komponente mit individuellen Vorkommen. Montage an Außenflächen, volle Winkelbreite und kollisionsfreie Doppelanordnung berücksichtigt. Paketdateien enthalten; Import einmal beim Add-in-Start. Version 0.4.3 am 26.09.2026 durch den Benutzer als funktionsfähig bestätigt. Details: [Winkel](winkel.md). S08 wird damit nicht vorgezogen.
+
+### Z02 · 0.4.4 – Eingabe ohne unnötige Dialogaktualisierung
+
+Benutzer meldet `600` → `006` beim Tippen. Der Handler schrieb bei jedem Tastendruck Sichtbarkeit, Aktivierung und Status erneut. Unveränderte Eigenschaften werden jetzt übersprungen; Sichtbarkeit der Ebenen wird nur bei Strukturänderungen angepasst. validateInputs prüft ohne UI-Schreibzugriffe, verschachtelte inputChanged-Aufrufe werden abgefangen. 110 lokale Tests einschließlich Schreibzugriffsprüfung beim Tippen erfolgreich. Tatsächliche Cursorposition in Fusion noch zu bestätigen.

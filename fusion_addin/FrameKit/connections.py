@@ -1,4 +1,4 @@
-"""Illustrative triangular brackets, without invented fastening specifications."""
+"""Mounting positions and conservative envelopes for the supplied STEP brackets."""
 from itertools import product
 
 
@@ -25,7 +25,7 @@ def envelope(part):
 def generate(parts, profiles, double_wide=False):
     """Frame inside corners and one flank at each cross-member end.
 
-    Four-mm prism depth is a visualization convention, not product wall thickness.
+    The STEP brackets occupy size x size x size mounting envelopes.
     Optional parallel brackets are spread over the shared vertical mounting span.
     """
     result, warnings = [], []
@@ -44,23 +44,23 @@ def generate(parts, profiles, double_wide=False):
         top = min(p['bounds_origin_mm'][2]+p['bounds_mm'][2] for p in (first, second))
         height = top-bottom
         count = 2 if double_wide and height >= 2*size-1e-5 else 1
-        if height < 4:
-            warnings.append(f'{label}: zu wenig gemeinsame Montagehöhe für den Platzhalter.')
+        if height < size-1e-5:
+            warnings.append(f'{label}: zu wenig gemeinsame Montagehöhe für den Winkel.')
             return
         for x, y, sx, sy in candidates:
-            triangle = [(x, y), (x+sx*size, y), (x, y+sy*size)]
-            # Consistent counterclockwise winding for sketch extrusion and preview.
-            if sx*sy < 0:
-                triangle.reverse()
-            positions = [bottom+height*(i+1)/(count+1)-2 for i in range(count)]
-            prisms = [(triangle, z, z+4) for z in positions]
+            footprint = [(x, y), (x+sx*size, y), (x+sx*size, y+sy*size), (x, y+sy*size)]
+            # Use disjoint equal-width slots: two 40-mm brackets fit an 80-mm face.
+            positions = [bottom+height*(i+0.5)/count-size/2 for i in range(count)]
+            prisms = [(footprint, z, z+size) for z in positions]
             if any(overlaps(prism, obstacle) for prism in prisms for obstacle in obstacles+accepted):
                 continue
-            for index, (triangle, z, _) in enumerate(prisms, 1):
-                low = [min(p[i] for p in triangle) for i in (0, 1)]
+            for index, (footprint, z, _) in enumerate(prisms, 1):
+                low = [min(p[i] for p in footprint) for i in (0, 1)]
                 result.append(dict(key=f'connection:{key}:{index}', label=label, size=size,
-                    origin=[*low, z], bounds=[size, size, 4],
-                    points=[[p[i]-low[i] for i in (0, 1)] for p in triangle],
+                    origin=[x, y, z], bounds_origin=[*low, z], bounds=[size, size, size],
+                    orientation=([[sx, 0, 0], [0, sy, 0], [0, 0, 1]] if sx*sy > 0
+                                 else [[0, sy, 0], [sx, 0, 0], [0, 0, 1]]),
+                    points=[[0, 0], [size, 0], [size, size], [0, size]],
                     members=[first['key'], second['key']], parallel_count=count))
             accepted.extend(prisms)
             return

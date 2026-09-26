@@ -13,4 +13,10 @@ def set_status(control, message='', severity='info'):
         label, color, background = STYLES[severity]
         text = (f'<span style="color:{color}; background-color:{background};">'
                 f'<b>{label}:</b> {text}</span>')
-    control.formattedText = text
+    set_if_changed(control, 'formattedText', text)
+
+
+def set_if_changed(control, property_name, value):
+    """Avoid redundant native UI writes, which can disturb an active text editor."""
+    if getattr(control, property_name) != value:
+        setattr(control, property_name, value)

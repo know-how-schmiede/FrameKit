@@ -363,6 +363,7 @@ class PreviewCommandTests(unittest.TestCase):
         entries, _ = profile_library.load()
         (self.profile_folder/entries[0]['filename']).write_text('changed')
         self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.change('length', self.controls['length'].value)
         self.assertIn('verändert', self.controls['validation'].text)
         self.change('reset_defaults', True)
         self.assertTrue(self.fire('validateInputs').areInputsValid)
@@ -414,6 +415,46 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertEqual(self.controls['rotation_frame'].selectedItem.index, 3)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
 
+    def test_typing_does_not_rewrite_editors_or_layout_and_validation_is_read_only(self):
+        original = Control.__setattr__
+        writes = []
+        def record(control, name, value):
+            writes.append((control.id, name, value))
+            original(control, name, value)
+        # Value inputs and string inputs in the frame/library tabs share the handler.
+        for key in ('length', 'width', 'height', 'profile', 'shelf_thickness',
+                    'support_height', 'support_diameter', 'support_name'):
+            control = self.controls[key]
+            for text in ('6', '60', '600', '600.5', '600'):
+                control.expression = text
+                control.value = float(text)/10 if key in (
+                    'length', 'width', 'height', 'profile', 'shelf_thickness') else text
+                writes.clear()
+                with patch.object(Control, '__setattr__', record):
+                    self.fire('inputChanged', input=control)
+                self.assertEqual(control.expression, text)
+                self.assertFalse([w for w in writes if w[1] in
+                    ('isVisible', 'isEnabled', 'expression', 'value')], (key, text, writes))
+                writes.clear()
+                with patch.object(Control, '__setattr__', record):
+                    self.fire('validateInputs')
+                self.assertEqual(writes, [], (key, text))
+
+    def test_unchanged_status_does_not_write_native_text_again(self):
+        from fusion_addin.FrameKit.dialog_status import set_status
+        control = self.controls['validation']
+        set_status(control, 'Ungültige Länge', 'error')
+        original = Control.__setattr__
+        writes = []
+        def record(control, name, value):
+            writes.append(name)
+            original(control, name, value)
+        with patch.object(Control, '__setattr__', record):
+            set_status(control, 'Ungültige Länge', 'error')
+        self.assertEqual(writes, [])
+        set_status(control)
+        self.assertEqual(control.text, '')
+
     def test_collapsed_groups_and_cart_preset_with_individual_validation(self):
         for key in ('support_options', 'shelves', 'profile_groups', 'cross_members',
                     'preview_options', 'support_library', 'profile_library'):
@@ -431,10 +472,15 @@ class PreviewCommandTests(unittest.TestCase):
         self.select('support_front_left', 1)  # 40 mm foot vs 100 mm casters
         self.assertFalse(self.fire('validateInputs').areInputsValid)
         self.assertIn('Bauhöhe', self.controls['validation'].text)
+        self.assertIn('Bauhöhe', self.controls['support_error'].text)
+        self.assertTrue(self.controls['support_error'].isVisible)
+        self.assertNotIn('support_help', self.controls)
         self.assertEqual(self.graphics.groups, [])
         self.select('frame_type', 0)
         self.assertFalse(self.controls['support_individual'].value)
         self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.assertFalse(self.controls['support_error'].isVisible)
+        self.assertEqual(self.controls['support_error'].text, '')
         self.change('reset_defaults', True)
         self.assertEqual(self.controls['support_choice'].selectedItem.index, 0)
 

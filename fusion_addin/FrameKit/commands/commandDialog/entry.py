@@ -9,7 +9,7 @@ from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
 from ...preview_camera import fit_preview
-from ...dialog_status import set_status
+from ...dialog_status import set_status, set_if_changed
 from ...version import __version__
 from ...lib import fusionAddInUtils as futil
 
@@ -80,7 +80,7 @@ def command_created(args):
     frame_inputs = frame.children
     frame_inputs.addTextBoxCommandInput('intro', '',
         '<b>FrameKit</b><br>Gestell aus Demo-Vollprofilen oder eigenen DXF-Profilen. '
-        'Vereinfachte Winkel optional; keine Tragfähigkeitsberechnung.', 3, True)
+        'STEP-Winkel optional; keine Tragfähigkeitsberechnung.', 3, True)
     frame_type = dropdown(frame_inputs, 'frame_type', 'Bauart', ['Untergestell', 'Transportwagen'],
                           int(values.get('frame_type', 'frame') == 'cart'))
     fields = {}
@@ -98,10 +98,8 @@ def command_created(args):
     support_choice = dropdown(support_inputs, 'support_choice', 'Gemeinsam für alle Ecken', [], 0)
     corner_choices = {key: dropdown(support_inputs, 'support_'+key.replace(':', '_'), label, [], 0)
                       for key, label in zip(accessories.CORNERS, accessories.CORNER_LABELS)}
-    support_inputs.addTextBoxCommandInput('support_help', '',
-        'Zylinderplatzhalter unter den Pfosten. Alle vier Bauhöhen müssen gleich sein. '
-        'Bauartwechsel belegt Zubehör neu: Untergestell mit Demo-Füßen; Wagen vorne '
-        'mit zwei Demo-Lenkrollen, hinten mit zwei Demo-Bockrollen. Eigene Varianten in den Einstellungen.', 4, True)
+    support_error = support_inputs.addTextBoxCommandInput('support_error', '', '', 3, True)
+    support_error.isVisible = False
     def support_visibility():
         support_choice.isVisible = not support_individual.value
         for choice in corner_choices.values():
@@ -179,16 +177,15 @@ def command_created(args):
         controls = section_controls(cross_inputs, key, label, saved.get('section'))
         for control in controls:
             control.isVisible = number.isVisible
-    bracket_inputs = collapsed_group(frame_inputs, 'bracket_options', 'Winkel (vereinfacht)').children
+    bracket_inputs = collapsed_group(frame_inputs, 'bracket_options', 'Winkel').children
     brackets = bracket_inputs.addBoolValueInput('brackets', 'Winkelkörper erstellen', True, '',
                                                values.get('brackets', True))
     brackets_double = bracket_inputs.addBoolValueInput('brackets_double', 'Zwei parallel bei doppelter Montagehöhe',
         True, '', values.get('brackets_double', False))
     bracket_inputs.addTextBoxCommandInput('bracket_help', '',
-        '20/30/40-mm-Dreieckkörper an Rahmeninnenecken und Querträgerenden. '
-        'Darstellungsdicke 4 mm, keine Bohrungen oder Schrauben. Bei doppelter gemeinsamer '
-        'Montagehöhe optional zwei parallele Körper. Alle Winkel liegen gemeinsam in '
-        '„91 | Winkel (vereinfacht)“ und sind dort ein-/ausblendbar.', 4, True)
+        'STEP-Winkel 20/30/40 mm an den Profilaußenflächen. Bei doppelter gemeinsamer '
+        'Montagehöhe optional zwei parallele Winkel. Gemeinsam unter „91 | Winkel“ '
+        'ein-/ausblendbar. Vorschau: Montagehüllen in Originalgröße.', 3, True)
     bracket_status = frame_inputs.addTextBoxCommandInput('bracket_status', '', '', 3, True)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
     preview_inputs = collapsed_group(frame_inputs, 'preview_options', 'Vorschau').children
@@ -478,7 +475,8 @@ def command_created(args):
         demo.validate(result)
         return result
 
-    def validation_message():
+    def validation_message(update_display=True):
+        message, support_message, summary, heights_text = '', '', '', ''
         try:
             current = read_values()
             calculated = current_model(current)
@@ -486,24 +484,26 @@ def command_created(args):
             summary = '; '.join(warnings[:3])
             if len(warnings) > 3:
                 summary += f'; weitere {len(warnings)-3} Hinweise in den Baugruppendaten.'
-            set_status(bracket_status, summary, 'warning')
             heights = demo.shelf_heights(current)
-            resolved.text = ('Oberkanten: ' + '; '.join(
+            heights_text = ('Oberkanten: ' + '; '.join(
                 f'{index:02d}: {height:.1f} mm' for index, height in enumerate(heights, 1))) if heights else ''
             if create.value and not adsk.fusion.Design.cast(app.activeProduct):
-                return 'Zum Erstellen bitte ein Fusion-Konstruktionsdokument öffnen.'
-            return ''
+                message = 'Zum Erstellen bitte ein Fusion-Konstruktionsdokument öffnen.'
         except ValueError as exc:
-            set_status(bracket_status)
-            resolved.text = ''
-            return str(exc)
+            message = str(exc)
+            if any(term in message for term in ('Füße/Rollen', 'Fuß-/Rollen')):
+                support_message = message
+        if update_display:
+            set_status(support_error, support_message, 'error')
+            set_if_changed(support_error, 'isVisible', bool(support_message))
+            set_status(bracket_status, summary, 'warning')
+            set_if_changed(resolved, 'text', heights_text)
+        return message
 
     def validate(event):
-        message = validation_message()
-        set_status(error, message, 'error')
-        if message:
-            preview.clear()
-        event.areInputsValid = not bool(message)
+        # Fusion can validate between keystrokes. Do not rebuild native controls
+        # or write status text here; inputChanged updates the display separately.
+        event.areInputsValid = not bool(validation_message(update_display=False))
 
     updating = False
 
@@ -519,7 +519,19 @@ def command_created(args):
                 pass
         raise ValueError(f'{field.name}: gültige Länge eingeben (z. B. 100 mm).')
 
+    handling_change = False
+
     def changed(event):
+        nonlocal handling_change
+        if handling_change or updating:
+            return
+        handling_change = True
+        try:
+            changed_impl(event)
+        finally:
+            handling_change = False
+
+    def changed_impl(event):
         nonlocal updating, library, profiles, pending_profile, editing_support_id
         nonlocal preview_fit_pending
         if updating:
@@ -593,7 +605,7 @@ def command_created(args):
             finally:
                 event.input.value = False
                 updating = False
-        save_profile.isEnabled = pending_profile is not None and profile_confirm.value
+        set_if_changed(save_profile, 'isEnabled', pending_profile is not None and profile_confirm.value)
         if event.input.id == profile_choice.id:
             update_profile_display()
         if event.input.id == frame_type.id:
@@ -716,16 +728,17 @@ def command_created(args):
             for field in height_fields:
                 field.value = ''
             reset.value = False
-        for index, field in enumerate(height_fields):
-            field.isVisible = index < count.value
-        active_levels = dict(demo.frame_levels(dict(bottom=bottom.value, shelf_count=count.value)))
-        for key, (number, direction) in cross_fields.items():
-            number.isVisible = direction.isVisible = key in active_levels
-            for control in section_fields[key]:
-                control.isVisible = key in active_levels
+        if event.input.id in (count.id, bottom.id, frame_type.id, reset.id):
+            for index, field in enumerate(height_fields):
+                set_if_changed(field, 'isVisible', index < count.value)
+            active_levels = dict(demo.frame_levels(dict(bottom=bottom.value, shelf_count=count.value)))
+            for key, (number, direction) in cross_fields.items():
+                for control in (number, direction, *section_fields[key]):
+                    set_if_changed(control, 'isVisible', key in active_levels)
         set_status(error, validation_message(), 'error')
-        show_preview.isEnabled = create.value
-        show_panels.isEnabled = show_accessories.isEnabled = create.value and show_preview.value
+        set_if_changed(show_preview, 'isEnabled', create.value)
+        for control in (show_panels, show_accessories):
+            set_if_changed(control, 'isEnabled', create.value and show_preview.value)
 
     def execute_preview(event):
         nonlocal preview_fit_pending

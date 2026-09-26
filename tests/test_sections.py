@@ -18,6 +18,30 @@ def rectangle(folder, width, height):
 
 
 class SectionTests(unittest.TestCase):
+    def test_repository_dxf_rounding_does_not_reject_identical_sections(self):
+        folder = Path(__file__).parents[1]/'profiles'
+        for name in ('20erProfil_Test_Skizze1.dxf', '20erProfil_Test_Skizze1_Import.dxf'):
+            definition, _ = profile_library.prepare(folder/name, name)
+            self.assertGreater(definition['width_mm'], definition['height_mm'])
+            for rotation in (0, 90, 180, 270):
+                with self.subTest(file=name, rotation=rotation):
+                    values = dict(demo.DEFAULTS, profile=definition['width_mm'],
+                                  profile_definition=definition, profile_rotation=rotation)
+                    data = model.build_model(values)
+                    self.assertEqual(len([p for p in data['parts'] if p['kind'] == 'profile']), 12)
+                    self.assertEqual(data['profiles'][definition['id']], definition)
+
+    def test_frame_width_tolerance_still_rejects_real_oversize(self):
+        for difference in (0.000005, 0.00002, 1):
+            definition = rectangle(self.folder, 30+difference, 30)
+            values = dict(demo.DEFAULTS, profile=definition['width_mm'], profile_definition=definition)
+            with self.subTest(difference=difference):
+                if difference < 0.00001:
+                    model.build_model(values)
+                else:
+                    with self.assertRaisesRegex(ValueError, 'Rahmenbreite'):
+                        model.build_model(values)
+
     def setUp(self):
         folder = tempfile.TemporaryDirectory()
         self.addCleanup(folder.cleanup)

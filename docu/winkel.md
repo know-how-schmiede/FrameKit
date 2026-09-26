@@ -1,29 +1,33 @@
-# Vereinfachte Winkel – 0.4.2
+# STEP-Winkel – 0.4.3
 
-Unter **Winkel (vereinfacht)** ist **Winkelkörper erstellen** beim Öffnen einer Konfiguration ohne bisherige Winkeloption standardmäßig aktiviert. Die Option lässt sich abschalten und als Standard speichern. Alle neuen Ausklappbereiche bleiben anfangs geschlossen.
+FrameKit verwendet die bereitgestellten Dateien `profiles/winkel/Winkel_20x20.step`, `Winkel_30x30.step` und `Winkel_40x40.step`. Unveränderte Kopien liegen im installierbaren Add-in unter `resources/brackets`; die Installation benötigt keinen Zugriff auf den Repository-Ordner.
 
-Die Körper liegen in der eigenen Fusion-Unterbaugruppe **91 | Winkel (vereinfacht)**. Das Augensymbol dieser Gruppe blendet alle Winkel des jeweiligen Gestells gemeinsam ein oder aus. Jeder Winkel ist zusätzlich eine eigene Komponente mit stabiler ID und kann einzeln geschaltet werden. Andere Gestelle und Profil-/Plattengruppen bleiben unabhängig.
+Unter **Winkel → Winkelkörper erstellen** werden die Bauteile aktiviert. Die Gruppe **91 | Winkel** schaltet alle Winkel eines Gestells gemeinsam. Je verwendeter Größe wird innerhalb des Gestells eine Komponente angelegt; weitere Positionen verwenden Instanzen derselben Komponente. Einzelne Vorkommen lassen sich separat ein-/ausblenden. Geometrieänderungen an der gemeinsamen Komponente wirken auf alle ihre Vorkommen. Verschiedene Gestelle bleiben unabhängig. Stabile Platzierungs-IDs, Position und vollständige Bauteildaten liegen an den Vorkommen; die Komponente trägt die gemeinsame Typ-/Quelldatei-Information.
 
-## Geometrische Regeln
+## Montage und Vorschau
 
-- Profilgrundgrößen 20, 30 und 40 mm ergeben rechtwinklige Dreieckkörper mit gleich langen Schenkeln 20 × 20, 30 × 30 beziehungsweise 40 × 40 mm. Die Grundgröße ist die kleinere Querschnittsabmessung. Beide zugeordneten Profile müssen dieselbe unterstützte Grundgröße besitzen; andere Kombinationen werden als fehlende Zuordnung gemeldet.
-- Die Dreiecke liegen horizontal in den Rahmeninnenecken, unter der Plattenunterseite innerhalb der gemeinsamen Profilhöhe. Pro Querträger kommt zusätzlich ein Körper an jedes Ende, auf einer freien seitlichen Flanke. Dies ist eine geometrische Darstellung der Winkelpositionen, keine vollständige Pfosten-/Rahmenverschraubung.
-- Zur Darstellung wird das Dreieck **4 mm** hoch extrudiert. Das ist eine ausdrücklich vereinfachte Darstellungsdicke, keine behauptete Hersteller-Wandstärke. Bohrungen, Radien, Schrauben und Muttern werden nicht erzeugt.
-- **Zwei parallel bei doppelter Montagehöhe** ist optional und standardmäßig aus. Bei aktivierter Option und einer gemeinsamen vertikalen Profilhöhe von mindestens zweimal der Grundgröße werden zwei Körper gleichmäßig über diese Höhe verteilt. Beispielsweise kann ein vertikal 80 mm hohes 40 × 80-Profil zwei 40er-Körper erhalten. Ein um 90° gedrehtes, nur 40 mm hohes Profil erhält in dieser horizontalen Anordnung einen Körper. Eine automatische Aussage über Nutpositionen oder Schraubpunkte ist damit nicht verbunden.
-- Nutbreiten erzeugen gemäß Benutzerregel keine unterschiedlichen Winkelkörper. Passende Schrauben/Muttern sind noch nicht festgelegt; die gespeicherten Winkeldaten kennzeichnen die Befestigung als unvollständig.
+- Die gelieferten Dateien enthalten jeweils einen Volumenkörper mit Außenmaßen 20³, 30³ beziehungsweise 40³ mm. Die Auflageflächen liegen bei X=0 und Z=0, die Breite verläuft entlang Y. FrameKit normalisiert diese Ausrichtung ohne Skalierung oder Spiegelung.
+- Je Rahmeninnenecke sowie je Querträgerende wird ein Winkel mit beiden Auflageflächen an den äußeren Profilflächen angeordnet. Der Körper wird über die gemeinsame Montagehöhe zentriert; Nuten gelten nicht als freier Montageraum.
+- Beide beteiligten Profile müssen dieselbe Grundgröße 20, 30 oder 40 mm besitzen. Die Grundgröße ist ihre kleinere Querschnittsabmessung. Die Nutbreite erzeugt keine zusätzliche Variante.
+- **Zwei parallel bei doppelter Montagehöhe** verwendet denselben Winkeltyp zweimal. Bei einem vertikal 80 mm hohen 40×80-Profil liegen zwei 40-mm-breite Winkel in getrennten, gleichmäßig verteilten Montagebereichen. Nach einer Drehung auf nur 40 mm vertikale Höhe bleibt ein Winkel.
+- Die Kollisionsprüfung verwendet konservative quaderförmige Außenhüllen. Berührende Flächen sind erlaubt; bei belegtem Raum wird am Querträger die andere Flanke versucht, andernfalls der Winkel ausgelassen und ein farbiger Hinweis angezeigt. Die Prüfung nutzt keine Aussparungen der STEP-Körper als freien Raum.
+- Die **violette Vorschau zeigt die Montagehüllen**, nicht die detaillierten STEP-Kanten. Sie verwendet die tatsächlichen Außenmaße und dieselben Positionen wie die späteren Bauteile. Die Liniengrafik wird bei einer Änderung erneuert; die STEP-Dateien werden dabei nicht erneut importiert.
+- Schrauben, Muttern und Tragfähigkeitsberechnungen sind nicht Bestandteil dieser Integration. Die vorhandenen STEP-Körper werden unverändert verwendet.
 
-Körper werden gegen die äußeren Profil-, Platten- und Zubehörabmessungen sowie bereits platzierte Winkel geprüft. Berührung an Montageflächen ist erlaubt, Überschneidung nicht. An Querträgern wird bei belegter Flanke die andere Seite versucht. Falls kein Platz vorhanden ist, wird der Winkel ausgelassen und ein farbiger Hinweis angezeigt. Auch fehlende Größenzuordnungen erscheinen als Hinweis. Alle Hinweise stehen zusätzlich in den gespeicherten Baugruppendaten; im Dialog werden die ersten drei plus die Anzahl weiterer Hinweise angezeigt. Die Prüfung der Außenabmessungen ist konservativ und nutzt keine Nuten oder Hohlräume als freien Montageraum.
+## Import und Installation
 
-Die Vorschau zeigt die Winkel als violette Dreieckprismen-Umrisse. Sie verwendet dieselben Positionen wie die späteren Körper. Deaktivieren von **Winkelkörper erstellen** entfernt auch diese Umrisse. Die einheitliche Fusion-Gruppe steht nach der Erstellung zur Verfügung.
+Das Add-in lädt die drei STEP-Dateien einmal beim Start über temporäre Fusion-Dokumente. Diese werden nach dem Kopieren der Körper ungespeichert geschlossen; das vorher aktive Dokument wird wieder aktiviert. Während der Dialogausführung werden nur die zwischengespeicherten Körper eingefügt. Nach Austausch der Dateien muss FrameKit neu gestartet werden. Bei fehlenden Dateien, falschen Außenmaßen oder ungültigen Körpern wird die betroffene Winkelerstellung mit einer Fehlermeldung abgebrochen; es gibt keinen stillen Rückfall auf Platzhalter.
+
+API-Grundlagen: [Import in ein neues Dokument](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_ImportManager_importToNewDocument.htm), [Einfügen von BRep-Körpern und Basisfeatures](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_BRepBodies_add.htm).
 
 ## Prüfstand
 
-**101 lokale Tests erfolgreich**, einschließlich Größen, Stückzahlen der Platzhalter, Orientierung, Kollisionen, optionaler Doppelanordnung, stabiler IDs, Einstellungen, Dialogoptionen und Dreieckextrusion im API-Ersatz. **Prüfung im laufenden Fusion offen.**
+**108 lokale Tests erfolgreich.** Geprüft werden unter anderem identische Original-/Paketdateien, Maße und Einheiten, Montageausrichtung ohne Spiegelung, kollisionsfreie Doppelanordnung, gemeinsame Komponente mit individuellen Vorkommens-IDs, Import-Lebenszyklus und Fehlerbereinigung im API-Ersatz. **Version 0.4.3 wurde am 26.09.2026 vom Benutzer als funktionsfähig in Fusion bestätigt.** Die folgenden Punkte bleiben als wiederverwendbare Prüfliste dokumentiert.
 
-1. Gestelle mit Profilen 20 × 20, 30 × 30 und 40 × 40 erstellen: vier Winkel pro Rahmenebene sowie zwei zusätzliche pro Querträger, soweit ausreichend Platz besteht.
-2. Gruppe **91 | Winkel (vereinfacht)** aus-/einblenden und einzelne Winkel separat schalten.
-3. Breites 40 × 80-Profil mit 80 mm vertikaler Montagehöhe prüfen: Einzel-/Doppeloption vergleichen.
-4. Enge Gestelle, Querträger nahe den Ecken und nicht zugeordnete Profilgrößen prüfen: keine sich überschneidenden Körper; Hinweise sichtbar.
-5. Vorschau mit Körpern vergleichen, Optionen speichern und erneut laden; mehrere Gestelle unabhängig schalten.
+1. Add-in vollständig aktualisieren und neu starten; das vorherige Dokument muss erhalten bleiben.
+2. Gestelle mit 20er-, 30er- und 40er-Profilen erstellen: Auflageflächen und Ausrichtung an allen vier Ecken sowie Querträgerenden prüfen.
+3. Einzelne Vorkommen und die Gruppe **91 | Winkel** aus-/einblenden; Wiederverwendung derselben Komponente prüfen.
+4. 40×80 mit 80 mm vertikaler Höhe und Doppeloption prüfen; anschließend Profil drehen und Einzelanordnung vergleichen.
+5. Vorschau-Montagehüllen mit fertigen Körpern vergleichen; enge Montagebereiche und mehrere unabhängige Gestelle prüfen.
 
 [Ablaufplan](ablaufplan.md) · [Installation](demo_installation.md) · [Deutsche README](../README.md)

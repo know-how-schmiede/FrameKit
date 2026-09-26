@@ -1,4 +1,4 @@
-# FrameKit 0.4.2 – Integrationsdemo
+# FrameKit 0.4.4 – Integrationsdemo
 
 Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus Demo-Vollprofilen oder importierten DXF-Profilquerschnitten. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Quadratische und rechteckige Nutquerschnitte werden über die [DXF-Profilbibliothek](profilbibliothek_dxf.md) importiert. Detailliertes Zubehör, Projektbearbeitung und CSV-Export folgen später.
 
@@ -30,7 +30,7 @@ Im ersten Reiter **Vorschau anzeigen** einschalten. Dabei wird das Gestell volls
 
 ## Icons und Version
 
-Aktueller Stand: **0.4.2**. [Vereinfachte Winkel und Sichtbarkeit](winkel.md). [Farbige Hinweise und Vorschau einpassen](dialoghinweise_vorschau.md). Bauart und Zubehör je Ecke: [Anleitung und Prüfschritte](bauart_zubehoer.md). Getrennte Profile und Drehungen: [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
+Aktueller Stand: **0.4.4**. [STEP-Winkel und Sichtbarkeit](winkel.md). [Farbige Hinweise und Vorschau einpassen](dialoghinweise_vorschau.md). Bauart und Zubehör je Ecke: [Anleitung und Prüfschritte](bauart_zubehoer.md). Getrennte Profile und Drehungen: [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
 
 Die vorhandenen `CreateFrame`- und `ProfileLibrary`-SVGs werden im Add-in mitgeliefert: `16x16.svg` für kleine Bedienelemente, `32x32.svg` für große sowie jeweils `-dark_blue`-Varianten. Die Vektorgrafiken skalieren auch bei hoher Bildschirmauflösung. Das Add-in-Symbol verwendet ebenfalls das FrameKit-Rahmensymbol.
 
@@ -55,7 +55,7 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. 101 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Die Versionen 0.2.0, 0.2.1 und 0.3.0 wurden am 26.09.2026 vom Benutzer getestet und als funktionsfähig bestätigt. Auch 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. Auch 0.4.0 wurde am 26.09.2026 als fehlerfrei bestätigt; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
+Lokale Tests: `python -m unittest discover -s tests -v`. 110 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Die Versionen 0.2.0, 0.2.1 und 0.3.0 wurden am 26.09.2026 vom Benutzer getestet und als funktionsfähig bestätigt. Auch 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. Auch 0.4.0 wurde am 26.09.2026 als fehlerfrei bestätigt; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
 
 ## Zwischenböden
 
@@ -83,3 +83,7 @@ Details zu Bedienung, Grenzen und Fusion-Prüffällen: [Bauart und Zubehöranord
 API-Grundlagen: [Autodesk: UI-Anpassung und Icon-Ressourcen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/UserInterface_UM.htm), [Dialogreiter](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/CommandInputs_addTabCommandInput.htm).
 
 [Deutsche README](../README.md) · [English README](../README.en.md) · [Projektplan](projektplan_FrameKit.md)
+
+Für 0.4.3 den vollständigen Add-in-Ordner einschließlich `resources/brackets` aktualisieren und FrameKit neu starten. Beim Start werden die drei STEP-Typen einmal geladen. Version 0.4.3 wurde am 26.09.2026 vom Benutzer als funktionsfähig in Fusion bestätigt.
+
+Prüfung für 0.4.4: FrameKit neu starten, Zahlenfelder vollständig markieren und `600`, `1200`, Dezimalzahlen sowie Einheiten eingeben. Auch Einfügen/Löschen mitten im Ausdruck, Zwischenbodenhöhen und Zubehörfelder prüfen. Reihenfolge und Cursorposition müssen erhalten bleiben; Fehler müssen nach Korrektur verschwinden. Die Cursorprüfung in Fusion ist noch offen.

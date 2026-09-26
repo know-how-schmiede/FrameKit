@@ -6,6 +6,9 @@ from .lib import fusionAddInUtils as futil
 def run(context):
     try:
         # This will run the start function in each of your commands as defined in commands/__init__.py
+        from . import bracket_library
+        import adsk.core
+        bracket_library.prepare(adsk.core.Application.get())
         commands.start()
 
     except:

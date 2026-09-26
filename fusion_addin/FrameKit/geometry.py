@@ -66,7 +66,12 @@ def _create_part(parent, part, frame_id, profiles=None):
     extrusion.name = f'{part["id"]} | Extrusion'
     extrusion.bodies.item(0).name = part['display_name']
     sketch.isVisible = False
-    _set_attributes(component, {
+    _set_attributes(component, _part_attributes(part, frame_id))
+    return occurrence, extrusion
+
+
+def _part_attributes(part, frame_id):
+    return {
         'schemaVersion': '1', 'assemblyId': frame_id, 'partId': part['id'],
         'partUid': part['uid'], 'partKey': part['key'], 'kind': part['kind'],
         'function': part['function'], 'groupId': part['group_id'],
@@ -74,8 +79,46 @@ def _create_part(parent, part, frame_id, profiles=None):
         'positionMm': _json(part['position_mm']), 'orientation': _json(part['orientation']),
         'cutLengthMm': '' if part['cut_length_mm'] is None else str(part['cut_length_mm']),
         'placeholder': 'true' if part['is_placeholder'] else 'false', 'partData': _json(part),
-    })
-    return occurrence, extrusion
+    }
+
+
+def _create_bracket(parent, part, frame_id, definitions, parametric):
+    from .bracket_library import body
+    size = part['geometry']['size_mm']
+    transform = adsk.core.Matrix3D.create()
+    transform.setWithCoordinateSystem(
+        adsk.core.Point3D.create(*(v/10 for v in part['position_mm'])),
+        *(adsk.core.Vector3D.create(*axis) for axis in part['orientation']))
+    if size in definitions:
+        occurrence = parent.occurrences.addExistingComponent(definitions[size], transform)
+        last = occurrence
+    else:
+        source = body(size)  # Validate before changing the document.
+        occurrence = parent.occurrences.addNewComponent(transform)
+        component = occurrence.component
+        component.name = f'Winkel {size}x{size}'
+        component.partNumber = f'Winkel_{size}x{size}'
+        _set_attributes(component, {'kind': 'connection', 'sourceFile': part['geometry']['source'],
+                                    'units': 'mm', 'placeholder': 'false'})
+        feature = component.features.baseFeatures.add() if parametric else None
+        if feature is not None:
+            feature.name = f'Winkel {size}x{size} | STEP'
+            if not feature.startEdit():
+                raise RuntimeError('Winkel-Basisfeature konnte nicht geöffnet werden.')
+        try:
+            created = (component.bRepBodies.add(source, feature) if feature is not None
+                       else component.bRepBodies.add(source))
+            if created is None:
+                raise RuntimeError('STEP-Winkel konnte nicht eingefügt werden.')
+            created.name = component.name
+        finally:
+            if feature is not None and not feature.finishEdit():
+                raise RuntimeError('Winkel-Basisfeature konnte nicht abgeschlossen werden.')
+        definitions[size] = component
+        last = feature if feature is not None else occurrence
+    # Identity and placement belong to the occurrence, not its shared definition.
+    _set_attributes(occurrence, _part_attributes(part, frame_id))
+    return occurrence, last
 
 
 def _create_layout(component, model):
@@ -126,9 +169,14 @@ def create_frame(design, values, calculated_model=None):
         layout = _create_layout(containers['layout'], model)
         if parametric:
             ranges.append((assembly.timelineObject, layout.timelineObject, f'{prefix} | Struktur und Layout'))
-        # Each part's creation, sketch and extrusion remain sequential and independent.
+        # Each placement gets its own timeline range; bracket definitions are shared.
+        bracket_definitions = {}
         for part in model['parts']:
-            occurrence, extrusion = _create_part(containers[part['group_id']], part, frame_id, model['profiles'])
+            if part['geometry']['type'] == 'step':
+                occurrence, extrusion = _create_bracket(containers[part['group_id']], part,
+                    frame_id, bracket_definitions, parametric)
+            else:
+                occurrence, extrusion = _create_part(containers[part['group_id']], part, frame_id, model['profiles'])
             if parametric:
                 ranges.append((occurrence.timelineObject, extrusion.timelineObject,
                                f'{prefix} | {part["display_name"]}'))
@@ -136,6 +184,8 @@ def create_frame(design, values, calculated_model=None):
             # Freeze indices before grouping; group from back to front, without nesting.
             indices = [(first.index, last.index, name) for first, last, name in ranges]
             for start, end, name in reversed(indices):
+                if start == end:
+                    continue  # A reused occurrence has one timeline entry, no range.
                 group = design.timeline.timelineGroups.add(start, end)
                 if group is None:
                     raise RuntimeError(f'Zeitleistengruppe konnte nicht erstellt werden: {name}')

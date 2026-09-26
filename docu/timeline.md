@@ -2,7 +2,30 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.4.4
+
+**Git-Zusammenfassung:** `fix: Unnötige Dialogaktualisierungen beim Tippen vermeiden (0.4.4)`
+
+- Gemeldeten Cursorversatz (`600` → `006`) adressiert: keine wiederholten Schreibzugriffe auf unveränderte Sichtbarkeit, Aktivierung und Hinweistexte.
+- Eingabevalidierung ohne UI-Änderungen; Schutz gegen verschachtelte Änderungsereignisse. Zubehörfehler werden direkt auf ihren Zielzustand gesetzt, ohne vorheriges Aus-/Einblenden.
+
+**Prüfstand:** 110 lokale Tests erfolgreich, einschließlich Zahlen-/Textfelder und schreibfreier Validierung. Cursorverhalten im laufenden Fusion noch zu bestätigen. 0.4.3 wurde zuvor vom Benutzer als funktionsfähig bestätigt.
+
+## 26.09.2026 – 0.4.3
+
+**Git-Zusammenfassung:** `feat: STEP-Winkel als wiederverwendbare Komponenten (0.4.3)`
+
+- Gelieferte 20er-/30er-/40er-STEP-Dateien integriert; einmaliger Import beim Add-in-Start, gemeinsame Komponente je Größe und separate Platzierungs-IDs.
+- Auflage an äußeren Profilflächen, vollständige Montagehüllen und überschneidungsfreie parallele Anordnung; gemeinsame Gruppe „91 | Winkel“.
+- Statischen Zubehör-Platzhaltertext durch lokale rote Fehlermeldung ersetzt; beide READMEs und Installation aktualisiert.
+
+**Prüfstand:** 108 lokale Tests erfolgreich; Version 0.4.3 am 26.09.2026 durch den Benutzer als funktionsfähig in Fusion bestätigt.
+
+**Details:** [STEP-Winkel](winkel.md)
+
 ## 26.09.2026 – 0.4.2
+
+**Nachkorrektur:** Die Rahmen-/Pfostenprüfung berücksichtigt jetzt die DXF-Toleranz von 0,00001 mm. Beide 20er-Dateien unter `profiles` reproduzierten zuvor die falsche Ablehnung bei nur rund 0,00000007 mm Differenz zwischen Breite und Höhe. Originalkonturen bleiben unverändert; tatsächliche Überbreiten werden weiterhin abgelehnt. 103 lokale Tests erfolgreich, einschließlich beider Dateien und der Toleranzgrenze. Fusion-Prüfung der Korrektur offen.
 
 **Git-Zusammenfassung:** `feat: Vereinfachte Winkelkörper in gemeinsamer Baugruppe (0.4.2)`
 

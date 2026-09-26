@@ -2,6 +2,7 @@
 import math
 from .accessories import corner_specs, support_height
 from .sections import resolve, validate_selections, level_depth
+from .dxf_profile import TOL as PROFILE_TOLERANCE_MM
 
 MAX_SHELVES = 20
 DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=True,
@@ -32,7 +33,8 @@ def validate(values):
     fw = resolve(values, 'frame')[2][0]
     if values['length'] <= 2*max(px, fw) or values['width'] <= 2*max(py, fw):
         raise ValueError('Länge und Breite müssen größer als zwei Profilbreiten sein.')
-    if fw > min(px, py):
+    # DXF bounds retain floating-point export noise even for nominally square sections.
+    if fw - min(px, py) > PROFILE_TOLERANCE_MM:
         raise ValueError('Rahmenbreite darf die Pfostenmaße nicht überschreiten; Profile oder Drehung ändern.')
     if values.get('frame_type', 'frame') not in ('frame', 'cart'):
         raise ValueError('Bauart muss Untergestell oder Transportwagen sein.')

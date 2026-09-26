@@ -23,14 +23,14 @@ class ConnectionTests(unittest.TestCase):
             for p in brackets:
                 self.assertEqual(p['connection_definition']['size_mm'], size)
                 self.assertFalse(p['connection_definition']['fastening_complete'])
-                self.assertTrue(p['is_placeholder'])
-                self.assertEqual(len(p['geometry']['points_mm']), 3)
-                x, y, z = p['position_mm']
-                prism = ([(x+u, y+v) for u, v in p['geometry']['points_mm']], z, z+4)
+                self.assertFalse(p['is_placeholder'])
+                self.assertEqual(len(p['geometry']['points_mm']), 4)
+                self.assertEqual(p['geometry']['type'], 'step')
+                prism = envelope(p)
                 for other in data['parts']:
                     if other['kind'] != 'connection':
                         self.assertFalse(overlaps(prism, envelope(other)), (p['key'], other['key']))
-            self.assertEqual(len(display_geometry(data)['connections']), len(brackets)*18)
+            self.assertEqual(len(display_geometry(data)['connections']), len(brackets)*24)
 
     def test_double_wide_is_optional_and_uses_common_vertical_space(self):
         with tempfile.TemporaryDirectory() as folder:
