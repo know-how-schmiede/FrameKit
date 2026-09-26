@@ -25,7 +25,7 @@ class Preview:
             self.group.isSelectable = False
             self.group.isChildrenSelectable = False
             for kind, rgb in (('profiles', (30, 130, 215)), ('panels', (110, 170, 190)),
-                              ('accessories', (220, 140, 40))):
+                              ('accessories', (220, 140, 40)), ('connections', (160, 80, 190))):
                 if not data[kind]:
                     continue
                 coordinates = adsk.fusion.CustomGraphicsCoordinates.create(

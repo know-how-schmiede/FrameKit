@@ -1,5 +1,7 @@
 """Drive command events with UI/graphics doubles; no running Fusion required."""
 from copy import deepcopy
+import html
+import re
 import importlib.util
 from pathlib import Path
 import sys
@@ -49,6 +51,15 @@ class Items:
 
 
 class Control(NS):
+    @property
+    def formattedText(self):
+        return getattr(self, '_formatted', '')
+
+    @formattedText.setter
+    def formattedText(self, value):
+        self._formatted = value
+        self.text = html.unescape(re.sub('<[^>]+>', '', value.replace('<br>', '\n')))
+
     @property
     def selectedItem(self):
         return next((item for item in self.listItems.items if item.isSelected), None)
@@ -144,6 +155,9 @@ class PreviewCommandTests(unittest.TestCase):
 
         sys.modules[prefix+'.preview'] = load(prefix+'.preview', folder/'preview.py')
         self.entry = load(prefix+'.commands.commandDialog.entry_under_test', folder/'commands/commandDialog/entry.py')
+        fit = patch.object(self.entry, 'fit_preview')
+        self.fit_preview = fit.start()
+        self.addCleanup(fit.stop)
         library = deepcopy(accessories.PRESETS)
         for name, value in (('load', (deepcopy(demo.DEFAULTS), '')), ('load_library', (library, ''))):
             patcher = patch.object(self.entry.settings, name, return_value=value)
@@ -208,7 +222,7 @@ class PreviewCommandTests(unittest.TestCase):
         self.show()
         self.change('preview_panels', False)
         self.fire('executePreview')
-        self.assertEqual(len(self.graphics.groups[0].entities), 1)
+        self.assertEqual(len(self.graphics.groups[0].entities), 2)  # profiles and bracket outlines
         self.change('show_preview', False)
         self.fire('executePreview')
         self.assertEqual(self.graphics.groups, [])
@@ -262,7 +276,8 @@ class PreviewCommandTests(unittest.TestCase):
             'top': dict(count=3, direction='laengs'),
             'bottom': dict(count=0, direction='laengs'),
             'shelf:01': dict(count=3, direction='quer')})
-        self.assertEqual(sum(':cross:' in p['key'] for p in calculated['parts']), 6)
+        self.assertEqual(sum(':cross:' in p['key'] and p['kind'] == 'profile'
+                             for p in calculated['parts']), 6)
         self.change('bottom', False)
         self.assertFalse(self.controls['cross_bottom_count'].isVisible)
         self.change('reset_defaults', True)
@@ -465,3 +480,69 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertIn('disk full', self.controls['library_status'].text)
         self.assertIn('Demo-Fuß', self.controls['support_choice'].selectedItem.name)
         self.assertIn('Demo-Fuß', self.controls['library_choice'].selectedItem.name)
+
+    def test_error_colors_across_validation_preview_and_libraries(self):
+        self.select('frame_type', 1)
+        self.select('support_front_left', 1)
+        self.assertIn('#B71C1C', self.controls['validation'].formattedText)
+        self.select('frame_type', 0)
+        self.assertEqual(self.controls['validation'].formattedText, '')
+        self.graphics.fail_kind = 'mesh'
+        self.change('show_preview', True)
+        self.fire('executePreview')
+        self.assertIn('#B71C1C', self.controls['preview_status'].formattedText)
+        self.change('support_name', '<invalid & name>')
+        self.change('support_height', '-1')
+        self.change('save_support', True)
+        self.assertIn('#B71C1C', self.controls['library_status'].formattedText)
+        self.change('save_profile', True)
+        self.assertIn('#B71C1C', self.controls['profile_status'].formattedText)
+
+    def test_loading_warnings_are_formatted_and_user_names_are_escaped(self):
+        with patch.object(self.entry.settings, 'load', return_value=(deepcopy(demo.DEFAULTS), 'Warnung <x>')):
+            self.entry.command_created(NS(command=self.command))
+        self.assertIn('#854700', self.controls['settings_status'].formattedText)
+        self.assertIn('&lt;x&gt;', self.controls['settings_status'].formattedText)
+        self.change('support_name', '<Fuß & Test>')
+        with patch.object(self.entry.settings, 'save_library'):
+            self.change('save_support', True)
+        text = self.controls['library_status'].formattedText
+        self.assertIn('&lt;Fuß &amp; Test&gt;', text)
+        self.assertNotIn('#B71C1C', text)
+
+    def test_preview_fits_on_open_and_reopen_but_preserves_manual_zoom_on_updates(self):
+        self.show()
+        self.fit_preview.assert_called_once()
+        self.change('length', 100)
+        self.fire('executePreview')
+        self.fit_preview.assert_called_once()
+        self.change('show_preview', False)
+        self.fire('executePreview')
+        self.show()
+        self.assertEqual(self.fit_preview.call_count, 2)
+        viewport, data = self.fit_preview.call_args.args
+        self.assertIs(viewport, self.app.activeViewport)
+        self.assertEqual(data['configuration']['length'], 1000)
+
+    def test_failed_fit_keeps_preview_visible_and_reports_warning(self):
+        self.fit_preview.side_effect = ValueError('camera unavailable')
+        self.show()
+        self.assertIn('Einpassen fehlgeschlagen', self.controls['preview_status'].text)
+        self.assertIn('#854700', self.controls['preview_status'].formattedText)
+
+    def test_brackets_default_toggle_saved_options_and_missing_size_warning(self):
+        self.assertFalse(self.controls['bracket_options'].isExpanded)
+        self.assertTrue(self.controls['brackets'].value)
+        self.fire('execute')
+        _, values, data = self.create_frame.call_args.args
+        self.assertEqual(sum(p['kind'] == 'connection' for p in data['parts']), 8)
+        self.change('brackets', False)
+        self.fire('execute')
+        _, values, data = self.create_frame.call_args.args
+        self.assertFalse(values['brackets'])
+        self.assertFalse(any(p['kind'] == 'connection' for p in data['parts']))
+        self.change('brackets', True)
+        self.change('profile', 2.5)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.assertIn('keine gemeinsame Winkelgröße', self.controls['bracket_status'].text)
+        self.assertIn('#854700', self.controls['bracket_status'].formattedText)

@@ -8,6 +8,8 @@ from ... import accessories, config, demo, settings, profile_library
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
+from ...preview_camera import fit_preview
+from ...dialog_status import set_status
 from ...version import __version__
 from ...lib import fusionAddInUtils as futil
 
@@ -78,7 +80,7 @@ def command_created(args):
     frame_inputs = frame.children
     frame_inputs.addTextBoxCommandInput('intro', '',
         '<b>FrameKit</b><br>Gestell aus Demo-Vollprofilen oder eigenen DXF-Profilen. '
-        'Keine Verbinder oder Tragfähigkeitsberechnung.', 3, True)
+        'Vereinfachte Winkel optional; keine Tragfähigkeitsberechnung.', 3, True)
     frame_type = dropdown(frame_inputs, 'frame_type', 'Bauart', ['Untergestell', 'Transportwagen'],
                           int(values.get('frame_type', 'frame') == 'cart'))
     fields = {}
@@ -177,6 +179,17 @@ def command_created(args):
         controls = section_controls(cross_inputs, key, label, saved.get('section'))
         for control in controls:
             control.isVisible = number.isVisible
+    bracket_inputs = collapsed_group(frame_inputs, 'bracket_options', 'Winkel (vereinfacht)').children
+    brackets = bracket_inputs.addBoolValueInput('brackets', 'Winkelkörper erstellen', True, '',
+                                               values.get('brackets', True))
+    brackets_double = bracket_inputs.addBoolValueInput('brackets_double', 'Zwei parallel bei doppelter Montagehöhe',
+        True, '', values.get('brackets_double', False))
+    bracket_inputs.addTextBoxCommandInput('bracket_help', '',
+        '20/30/40-mm-Dreieckkörper an Rahmeninnenecken und Querträgerenden. '
+        'Darstellungsdicke 4 mm, keine Bohrungen oder Schrauben. Bei doppelter gemeinsamer '
+        'Montagehöhe optional zwei parallele Körper. Alle Winkel liegen gemeinsam in '
+        '„91 | Winkel (vereinfacht)“ und sind dort ein-/ausblendbar.', 4, True)
+    bracket_status = frame_inputs.addTextBoxCommandInput('bracket_status', '', '', 3, True)
     create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
     preview_inputs = collapsed_group(frame_inputs, 'preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
@@ -202,7 +215,8 @@ def command_created(args):
     persist = manage.addBoolValueInput('save_defaults', 'Als Standardwerte speichern', True, '', False)
     reset = manage.addBoolValueInput('reset_defaults', 'Werkseinstellungen laden', False, '', False)
     manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
-    manage.addTextBoxCommandInput('settings_status', '', html.escape(warning), 2, True)
+    settings_status = manage.addTextBoxCommandInput('settings_status', '', '', 2, True)
+    set_status(settings_status, warning, 'warning')
     library_group = collapsed_group(manage, 'support_library', 'Eigene Füße und Rollen')
     lib_inputs = library_group.children
     library_choice = lib_inputs.addDropDownCommandInput(
@@ -238,7 +252,8 @@ def command_created(args):
     editing_support_id = None
     update_entry.isEnabled = False
     save_entry = lib_inputs.addBoolValueInput('save_support', 'Neuen Eintrag speichern', False, '', False)
-    library_status = lib_inputs.addTextBoxCommandInput('library_status', '', html.escape(library_warning), 3, True)
+    library_status = lib_inputs.addTextBoxCommandInput('library_status', '', '', 3, True)
+    set_status(library_status, library_warning, 'error')
     lib_inputs.addTextBoxCommandInput('library_path', 'Bibliotheksdatei',
         html.escape(str(settings.library_path())), 3, True)
 
@@ -269,7 +284,8 @@ def command_created(args):
     save_profile = profile_inputs.addBoolValueInput(
         'save_profile', 'Geprüftes Profil speichern', False, '', False)
     save_profile.isEnabled = False
-    profile_status = profile_inputs.addTextBoxCommandInput('profile_status', '', html.escape(profiles_warning), 3, True)
+    profile_status = profile_inputs.addTextBoxCommandInput('profile_status', '', '', 3, True)
+    set_status(profile_status, profiles_warning, 'error')
     profile_inputs.addTextBoxCommandInput('profile_path', 'Bibliotheksordner',
         html.escape(str(profile_library.directory())), 3, True)
     pending_profile = None
@@ -394,6 +410,7 @@ def command_created(args):
     preview = Preview()
     _previews.append(preview)
     calculated_model = None
+    preview_fit_pending = True
 
     def current_model(current):
         nonlocal calculated_model
@@ -422,6 +439,8 @@ def command_created(args):
         result['bottom'] = bottom.value
         selected = selected_support()
         result['accessory'] = deepcopy(selected)
+        result['brackets'] = brackets.value
+        result['brackets_double'] = brackets_double.value
         result['frame_type'] = 'cart' if frame_type.selectedItem.index else 'frame'
         if support_individual.value:
             result['corner_accessories'] = {key: deepcopy(selected_support(key)) for key in corner_choices}
@@ -462,6 +481,12 @@ def command_created(args):
     def validation_message():
         try:
             current = read_values()
+            calculated = current_model(current)
+            warnings = calculated.get('connection_warnings', [])
+            summary = '; '.join(warnings[:3])
+            if len(warnings) > 3:
+                summary += f'; weitere {len(warnings)-3} Hinweise in den Baugruppendaten.'
+            set_status(bracket_status, summary, 'warning')
             heights = demo.shelf_heights(current)
             resolved.text = ('Oberkanten: ' + '; '.join(
                 f'{index:02d}: {height:.1f} mm' for index, height in enumerate(heights, 1))) if heights else ''
@@ -469,12 +494,13 @@ def command_created(args):
                 return 'Zum Erstellen bitte ein Fusion-Konstruktionsdokument öffnen.'
             return ''
         except ValueError as exc:
+            set_status(bracket_status)
             resolved.text = ''
             return str(exc)
 
     def validate(event):
         message = validation_message()
-        error.text = message
+        set_status(error, message, 'error')
         if message:
             preview.clear()
         event.areInputsValid = not bool(message)
@@ -495,14 +521,17 @@ def command_created(args):
 
     def changed(event):
         nonlocal updating, library, profiles, pending_profile, editing_support_id
+        nonlocal preview_fit_pending
         if updating:
             return
+        if event.input.id in (show_preview.id, create.id):
+            preview_fit_pending = True
         preview.clear()
-        preview_status.text = ''
+        set_status(preview_status)
         if event.input.id == profile_unit.id:
             pending_profile = None
             profile_confirm.value = False
-            profile_detected.text = 'Einheit geändert: DXF erneut auswählen und prüfen.'
+            set_status(profile_detected, 'Einheit geändert: DXF erneut auswählen und prüfen.', 'warning')
         if event.input.id in (choose_profile.id, save_profile.id, delete_profile.id) and event.input.value:
             updating = True
             try:
@@ -516,7 +545,7 @@ def command_created(args):
                     if dialog.showOpen() == adsk.core.DialogResults.DialogOK:
                         pending_profile = None
                         profile_confirm.value = False
-                        profile_detected.text = ''
+                        set_status(profile_detected)
                         unit = ('auto', 'mm', 'cm', 'm', 'in', 'ft')[profile_unit.selectedItem.index]
                         name = profile_name.value.strip() or Path(dialog.filename).stem
                         candidate = profile_library.prepare(dialog.filename, name, unit)
@@ -528,17 +557,17 @@ def command_created(args):
                         pending_profile = candidate
                         spec = candidate[0]
                         profile_name.value = spec['name']
-                        profile_detected.text = html.escape(
+                        set_status(profile_detected,
                             f'{spec["source_name"]}: {spec["width_mm"]:g} × {spec["height_mm"]:g} mm; '
                             f'{spec["loop_count"]-1} Hohlräume; Einheit {spec["source_unit"]}. '
                             'Maße prüfen und bestätigen.')
-                        profile_status.text = 'Konturen und Probeextrusion erfolgreich geprüft.'
+                        set_status(profile_status, 'Konturen und Probeextrusion erfolgreich geprüft.')
                         ignored = spec.get('ignored_entities', {})
                         if any(ignored.values()):
-                            profile_status.text += (
+                            set_status(profile_status, profile_status.text + (
                                 f' Ausgelassen: {ignored.get("points", 0)} Punkte, '
                                 f'{ignored.get("construction", 0)} Hilfselemente. '
-                                'Kontur und Hohlräume kontrollieren.')
+                                'Kontur und Hohlräume kontrollieren.'), 'warning')
                 elif event.input.id == save_profile.id:
                     if pending_profile is None or not profile_confirm.value:
                         raise ValueError('Zuerst DXF prüfen und erkannte Maße bestätigen.')
@@ -551,16 +580,16 @@ def command_created(args):
                     refresh_profiles(spec['id'], spec['id'])
                     pending_profile = None
                     profile_confirm.value = False
-                    profile_detected.text = ''
-                    profile_status.text = 'Gespeichert und ausgewählt: '+html.escape(profile_library.label(spec))
+                    set_status(profile_detected)
+                    set_status(profile_status, 'Gespeichert und ausgewählt: '+profile_library.label(spec))
                 elif profiles and profile_list.selectedItem:
                     removed = profiles[profile_list.selectedItem.index]
                     profiles = profile_library.remove(removed['id'])
                     # Preserve a missing selection visibly; never silently substitute a solid profile.
                     refresh_profiles(selected_id, saved=selected)
-                    profile_status.text = 'Gelöscht: '+html.escape(removed['name'])
+                    set_status(profile_status, 'Gelöscht: '+removed['name'])
             except Exception as exc:
-                profile_status.text = 'Profilaktion fehlgeschlagen: '+html.escape(str(exc))
+                set_status(profile_status, 'Profilaktion fehlgeschlagen: '+str(exc), 'error')
             finally:
                 event.input.value = False
                 updating = False
@@ -606,7 +635,7 @@ def command_created(args):
                     reference.value = listed.get('reference', '')
                     operating_state.value = listed.get('operating_state', '')
                     update_entry.isEnabled = True
-                    library_status.text = 'Zum Bearbeiten geladen: '+listed['name']
+                    set_status(library_status, 'Zum Bearbeiten geladen: '+listed['name'])
                 elif event.input.id in (save_entry.id, update_entry.id):
                     spec = accessories.new_spec(new_name.value, new_kind.selectedItem.name,
                         library_number(new_height), library_number(new_diameter),
@@ -625,14 +654,14 @@ def command_created(args):
                     settings.save_library(revised)
                     library = revised
                     refresh_library(listed_id=spec['id'])
-                    library_status.text = 'Gespeichert: '+accessories.label(spec)+'; Auswahl im Gestell bleibt unverändert.'
+                    set_status(library_status, 'Gespeichert: '+accessories.label(spec)+'; Auswahl im Gestell bleibt unverändert.')
                 elif event.input.id == duplicate_entry.id and listed:
                     spec = accessories.duplicate(listed, library)
                     revised = library + [spec]
                     settings.save_library(revised)
                     library = revised
                     refresh_library(listed_id=spec['id'])
-                    library_status.text = 'Dupliziert: '+spec['name']
+                    set_status(library_status, 'Dupliziert: '+spec['name'])
                 elif event.input.id == delete_entry.id and listed:
                     revised = [spec for spec in library if spec['id'] != listed['id']]
                     settings.save_library(revised)
@@ -641,9 +670,9 @@ def command_created(args):
                     if editing_support_id == listed['id']:
                         editing_support_id = None
                         update_entry.isEnabled = False
-                    library_status.text = 'Gelöscht: '+listed['name']+'; gespeicherte Gestellauswahl bleibt erhalten.'
+                    set_status(library_status, 'Gelöscht: '+listed['name']+'; gespeicherte Gestellauswahl bleibt erhalten.')
             except (ValueError, OSError) as exc:
-                library_status.text = f'Nicht gespeichert: {exc}'
+                set_status(library_status, f'Nicht gespeichert: {exc}', 'error')
             finally:
                 event.input.value = False
                 updating = False
@@ -672,6 +701,8 @@ def command_created(args):
             for number, direction in cross_fields.values():
                 number.listItems.item(0).isSelected = True
                 direction.listItems.item(0).isSelected = True
+            brackets.value = True
+            brackets_double.value = False
             frame_type.listItems.item(0).isSelected = True
             support_individual.value = False
             for choice in support_controls.values():
@@ -692,11 +723,12 @@ def command_created(args):
             number.isVisible = direction.isVisible = key in active_levels
             for control in section_fields[key]:
                 control.isVisible = key in active_levels
-        error.text = validation_message()
+        set_status(error, validation_message(), 'error')
         show_preview.isEnabled = create.value
         show_panels.isEnabled = show_accessories.isEnabled = create.value and show_preview.value
 
     def execute_preview(event):
+        nonlocal preview_fit_pending
         # Graphics are not a completed command result: OK must always run execute.
         event.isValidResult = False
         try:
@@ -708,11 +740,17 @@ def command_created(args):
             if not design:
                 return
             preview.show(design, current_model(current), show_panels.value, show_accessories.value)
-            preview_status.text = ''
+            set_status(preview_status)
+            if preview_fit_pending:
+                try:
+                    fit_preview(app.activeViewport, current_model(current))
+                    preview_fit_pending = False
+                except Exception as exc:
+                    set_status(preview_status, f'Vorschau sichtbar, Einpassen fehlgeschlagen: {exc}', 'warning')
             app.activeViewport.refresh()
         except Exception as exc:
             preview.clear()
-            preview_status.text = f'Vorschau nicht verfügbar: {exc}'
+            set_status(preview_status, f'Vorschau nicht verfügbar: {exc}', 'error')
             futil.handle_error('FrameKit-Vorschau', show_message_box=False)
 
     def execute(event):
@@ -726,8 +764,14 @@ def command_created(args):
                 create_frame(design, current, current_model(current))
                 app.activeViewport.fit()
             if persist.value:
-                settings.save(current)
+                try:
+                    settings.save(current)
+                    set_status(settings_status, 'Standardwerte gespeichert.')
+                except (ValueError, OSError) as exc:
+                    set_status(settings_status, f'Standardwerte nicht gespeichert: {exc}', 'error')
+                    raise
         except Exception as exc:
+            set_status(error, f'FrameKit: {exc}', 'error')
             event.executeFailed = True
             event.executeFailedMessage = f'FrameKit: {exc}'
             futil.handle_error('FrameKit ausführen')
@@ -744,4 +788,4 @@ def command_created(args):
                             (command.inputChanged, changed),
                             (command.validateInputs, validate), (command.destroy, destroy)):
         futil.add_handler(event, callback, local_handlers=handlers)
-    error.text = validation_message()
+    set_status(error, validation_message(), 'error')

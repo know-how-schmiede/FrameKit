@@ -60,7 +60,9 @@ def build_model(values, previous=None):
     support_specs = corner_specs(values)
     if any(spec is not None for spec in support_specs.values()):
         groups.append(dict(id='accessories', name='90 | Füße und Rollen'))
-    groups.append(dict(id='connections', name='91 | Verbindungen', reserved=True))
+    brackets_enabled = values.get('brackets', False)
+    groups.append(dict(id='connections', name='91 | Winkel (vereinfacht)' if brackets_enabled
+                       else '91 | Verbindungen', reserved=not brackets_enabled))
     parts = []
 
     def add(key, kind, group, function, origin, bounds, shape, axis='z', section=None):
@@ -74,7 +76,7 @@ def build_model(values, previous=None):
                     orientation=deepcopy(ORIENTATIONS[axis]), bounds_mm=list(bounds),
                     bounds_origin_mm=list(origin),
                     geometry=shape, profile_ref=None, cut_length_mm=None,
-                    centerline_mm=None, is_placeholder=kind == 'support')
+                    centerline_mm=None, is_placeholder=kind in ('support', 'connection'))
         if kind == 'profile':
             profile, rotation, _ = section
             profiles[profile['id']] = profile
@@ -105,6 +107,8 @@ def build_model(values, previous=None):
         elif kind == 'panel':
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
             detail = f'{length:g}x{width:g}x{thickness:g} mm | {finish}'
+        elif kind == 'connection':
+            detail = 'Dreieckkörper | vereinfacht, ohne Schrauben/Muttern'
         else:
             part['accessory_definition'] = deepcopy(support_specs[key.removeprefix('support:')])
             part['mounting_position_mm'] = [origin[0]+bounds[0]/2, origin[1]+bounds[1]/2, bounds[2]]
@@ -161,6 +165,18 @@ def build_model(values, previous=None):
                 (x-radius, y-radius, 0), (2*radius, 2*radius, spec['height']),
                 dict(type='circle', center_mm=[radius, radius], radius_mm=radius,
                      depth_mm=spec['height']))
+    connection_warnings = []
+    if brackets_enabled:
+        from .connections import generate
+        brackets, connection_warnings = generate(parts, profiles, values.get('brackets_double', False))
+        for bracket in brackets:
+            add(bracket['key'], 'connection', 'connections',
+                f'Winkel {bracket["size"]}x{bracket["size"]} | {bracket["label"]}',
+                bracket['origin'], bracket['bounds'],
+                dict(type='polygon', points_mm=bracket['points'], depth_mm=4))
+            parts[-1]['connection_definition'] = dict(size_mm=bracket['size'],
+                visualization_depth_mm=4, member_keys=bracket['members'],
+                parallel_count=bracket['parallel_count'], fastening_complete=False)
     return dict(schema=SCHEMA_VERSION, units='mm', assembly_id=frame_id,
                 id_registry=registry, configuration=deepcopy(values), groups=groups,
-                profiles=profiles, parts=parts)
+                profiles=profiles, parts=parts, connection_warnings=connection_warnings)

@@ -10,6 +10,9 @@ DEFAULTS = dict(length=800.0, width=500.0, height=750.0, profile=40.0, bottom=Tr
 
 
 def validate(values):
+    for key in ('brackets', 'brackets_double'):
+        if key in values and not isinstance(values[key], bool):
+            raise ValueError('Winkeloptionen müssen Wahrheitswerte sein.')
     for key in ('length', 'width', 'height', 'profile'):
         value = values.get(key)
         if isinstance(value, bool) or not isinstance(value, (int, float)):

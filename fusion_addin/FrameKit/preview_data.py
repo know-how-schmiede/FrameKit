@@ -13,7 +13,7 @@ def display_geometry(model, show_panels=True, show_accessories=True):
     Current notched rectangular panels are star-shaped about their center, so a
     triangle fan retains all four corner cutouts. This is not a general DXF mesher.
     """
-    profiles, panels, accessories = [], [], []
+    profiles, panels, accessories, connections = [], [], [], []
     for part in model['parts']:
         shape = part['geometry']
         if part['kind'] == 'profile':
@@ -24,6 +24,14 @@ def display_geometry(model, show_panels=True, show_accessories=True):
             for index, point in enumerate(outline):
                 for xy in (center, point, outline[(index + 1) % len(outline)]):
                     panels.append(world_point(part, [*xy, shape['depth_mm']]))
+        elif part['kind'] == 'connection':
+            points = shape['points_mm']
+            for z in (0, shape['depth_mm']):
+                for i, point in enumerate(points):
+                    connections.extend(world_point(part, [*xy, z])
+                                       for xy in (point, points[(i+1) % len(points)]))
+            for point in points:
+                connections.extend(world_point(part, [*point, z]) for z in (0, shape['depth_mm']))
         elif part['kind'] == 'support' and show_accessories:
             cx, cy = shape['center_mm']
             radius, height = shape['radius_mm'], shape['depth_mm']
@@ -34,4 +42,4 @@ def display_geometry(model, show_panels=True, show_accessories=True):
                         accessories.append(world_point(part, [*point, z]))
             for xy in ring[::8]:
                 accessories.extend(world_point(part, [*xy, z]) for z in (0, height))
-    return dict(profiles=profiles, panels=panels, accessories=accessories)
+    return dict(profiles=profiles, panels=panels, accessories=accessories, connections=connections)

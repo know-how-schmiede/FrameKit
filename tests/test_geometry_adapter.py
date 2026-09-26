@@ -106,6 +106,19 @@ class Design:
 
 
 class GeometryAdapterTests(unittest.TestCase):
+    def test_brackets_are_triangle_bodies_in_one_independent_visibility_group(self):
+        design = Design()
+        values = dict(demo.DEFAULTS, brackets=True)
+        assembly = self.adapter.create_frame(design, values)
+        group = next(g for g in assembly.component.children
+                     if g.component.attributes['FrameKit', 'groupId'] == 'connections')
+        self.assertEqual(group.component.name, '91 | Winkel (vereinfacht)')
+        self.assertEqual(len(group.component.children), 8)
+        for occurrence in group.component.children:
+            self.assertEqual(len(occurrence.component.sketch_list[0].lines), 3)
+            self.assertEqual(occurrence.component.extrusions[0].distance, 0.4)
+            self.assertEqual(occurrence.component.attributes['FrameKit', 'placeholder'], 'true')
+
     def setUp(self):
         adsk = ModuleType('adsk')
         core, fusion = ModuleType('adsk.core'), ModuleType('adsk.fusion')

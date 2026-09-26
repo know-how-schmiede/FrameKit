@@ -48,7 +48,7 @@ Eine beschädigte Zubehörbibliothek sperrt Schreibaktionen im Dialog, bis die D
 
 **90 lokale Tests erfolgreich**, einschließlich gemischter Rollen, gemeinsamer Aufstandsebene, ungültiger Höhen, Platzbedarf bei verschiedenen Durchmessern, Eigenschaften, Kopien, gespeicherter Eckauswahl, Bibliotheksänderungen, Schreibfehlern und Dialogereignissen. Syntax und Versionsgleichstand sind geprüft.
 
-**0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. Die Prüfung von 0.4.0 im laufenden Fusion steht aus.**
+**0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. Auch 0.4.0 läuft laut Benutzerrückmeldung vom 26.09.2026 ohne Fehler.**
 
 1. Dialog auf dem verwendeten Monitor öffnen: alle Gruppen geschlossen, Ausführen/Abbrechen erreichbar; auch Windows-Skalierung prüfen.
 2. Transportwagen wählen, Vorschau aktivieren und erstellen: zwei Lenkrollen vorne, zwei Bockrollen hinten; Zylinderhöhen 100 mm, Gesamthöhe unverändert.

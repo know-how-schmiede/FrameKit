@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.0**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.2**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 ist implementiert; dessen Fusion-Prüfung steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -38,8 +38,9 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | In Fusion bestätigt |
 | S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | In Fusion bestätigt |
 | S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | In Fusion bestätigt |
-| S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Implementiert |
-| S07 | 0.4.1 | Verbindungssätze und Montageraum | S04, S05, S06 | Geplant |
+| S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | In Fusion bestätigt |
+| Z01 | 0.4.1 | Farbige Hinweise und Vorschau im Ansichtsbereich einpassen | S06 | Implementiert |
+| S07 | 0.4.2 | Vereinfachte Winkelkörper und Montageraum | S04, S05, S06 | Implementiert |
 | S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Geplant |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | Geplant |
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | Geplant |
@@ -103,7 +104,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S06 · 0.4.0 – Bauart und Zubehöranordnung
 
-**Ergebnis:** [Bauart und Zubehöranordnung](bauart_zubehoer.md). 90 lokale Tests erfolgreich; Bauartvorbelegung, Eckauswahl, Zubehör bearbeiten/duplizieren, Eigenschaften und Höhenprüfung umgesetzt. Alle Dialoggruppen starten geschlossen. Fusion-Prüfung von 0.4.0 offen.
+**Ergebnis:** [Bauart und Zubehöranordnung](bauart_zubehoer.md). 90 lokale Tests erfolgreich; Bauartvorbelegung, Eckauswahl, Zubehör bearbeiten/duplizieren, Eigenschaften und Höhenprüfung umgesetzt. Alle Dialoggruppen starten geschlossen. Version 0.4.0 am 26.09.2026 durch den Benutzer als fehlerfrei bestätigt.
 
 **Referenzentscheidung:** Kein Herstellerprodukt benannt; absenkbare Rollen vorerst als frei definierbare Platzhalter mit erforderlichem Referenztyp und Betriebsstellung. Eingestellte Bauhöhe inklusive Befestigung, Verstellbereich nur zur Prüfung; kein automatischer Ausgleich.
 
@@ -114,7 +115,17 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Vorher festlegen:** Referenztyp und Betriebsstellung absenkbarer Rollen; Bedeutung und Grenzen von Höhenverstellungen.
 - **Prüfung:** Gemischte Rollen, gleiche Aufstandsebene, geänderte Bibliothekseinträge und unveränderte bestehende Gestelle prüfen.
 
-### S07 · 0.4.1 – Verbindungen
+### Z01 · 0.4.1 – Dialoghinweise und Vorschau
+
+**Ergebnis:** [Dialoghinweise und Vorschau](dialoghinweise_vorschau.md). 95 lokale Tests erfolgreich; farbige Fehler-/Warnhinweise und einmaliges Einpassen des Gestells beim Einschalten der Vorschau. Fusion-Prüfung offen. Die Verbindungen folgen separat in S07 / 0.4.2.
+
+### S07 · 0.4.2 – Verbindungen
+
+**Ergebnis nach erweitertem Benutzerauftrag:** [Vereinfachte Winkel](winkel.md). 101 lokale Tests erfolgreich. Dreieckkörper 20/30/40, optionale parallele Anordnung bei doppelter gemeinsamer Montagehöhe, Kollisionsprüfung und gemeinsame Gruppe „91 | Winkel (vereinfacht)“. Vereinfachte Körper sind jetzt ausdrücklich beauftragt; reale Schrauben-/Mutternregeln bleiben offen. Fusion-Prüfung von 0.4.2 steht aus.
+
+**Vorgemerkt nach Benutzerangabe vom 26.09.2026:** Dreieckiger Winkel 20 × 20 für Profil 20 × 20, Winkel 30 × 30 für Profil 30 × 30 und Winkel 40 × 40 für Profil 40 × 40. Bei breiteren Profilen, beispielsweise 40 × 80, kommen gegebenenfalls zwei parallel verschraubte Winkel zum Einsatz; daraus noch keine pauschale Doppelwinkelregel ableiten. Laut Benutzer gibt es keine unterschiedlichen Winkelausführungen für verschiedene Nutbreiten. Die Auswahl von Schrauben und Muttern bleibt davon getrennt zu prüfen.
+
+**Noch festzulegen:** genaue Winkelgeometrie (unter anderem Breite, Wandstärke und Bohrungen), Montagepositionen/Abstände, Regel für einen oder zwei Winkel sowie Schrauben-/Mutternmengen. Die genannten Außenmaße allein legen diese Angaben nicht fest. Für die ausdrücklich beauftragten einfachen Körper werden diese Herstellerdetails noch nicht modelliert. Darstellungsdicke 4 mm; keine reale Wandstärke zugesichert.
 
 - Konkrete Montagewinkel/Verbindungssätze mit Profilkompatibilität und Mengenregeln hinterlegen.
 - Verbindungssatz auswählen, vereinfachte Verbindungsteile platzieren und deren Platzbedarf gegenüber Platten, Querträgern und Zubehör prüfen.
@@ -184,8 +195,9 @@ Diese Schritte sind Vorschläge, noch nicht zur Umsetzung beauftragt. Jeder erh�
 Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änderungen anschließend auch in der Versionsübersicht und im jeweiligen Schritt nachführen.
 
 - Gewünschte Änderungen an Reihenfolge oder Versionsnummern:
-- Zusätzliche oder entfallende Funktionen: Beim nächsten beauftragten Umsetzungsschritt die Vorschau beim Öffnen im Vollbildmodus anzeigen (Benutzerwunsch vom 26.09.2026; noch nicht umgesetzt).
-- Für die nächste Version: Fehlermeldungen und fehlerbezogene Hinweise durch eine abweichende Textfarbe hervorheben, beispielsweise bei unterschiedlich hohen Rollen. Einheitlich in allen Dialogbereichen umsetzen, einschließlich Eingabeprüfung, Vorschau, Einstellungen, Zubehör- und Profilbibliothek. Lesbarkeit in hellem und dunklem Fusion-Theme berücksichtigen; Fehler zusätzlich durch verständlichen Text kennzeichnen. Die unterstützte Textformatierung der Fusion-Dialogfelder bei der Umsetzung prüfen (Benutzerwunsch vom 26.09.2026; noch nicht umgesetzt).
+- Vorschaupräzisierung: Nur das Gestell vollständig im Ansichtsbereich anzeigen, kein Fusion-Vollbildmodus. In 0.4.1 umgesetzt; Fusion-Prüfung offen.
+- Farbige Fehler-/Warnhinweise in allen Dialogbereichen: In 0.4.1 umgesetzt; Darstellung in hellem und dunklem Theme noch in Fusion prüfen.
+- Winkelzuordnungen und optionale parallele Winkel als einfache Körper in gemeinsamer ein-/ausblendbarer Gruppe umgesetzt: siehe S07 / 0.4.2.
 - Referenzprofil / DXF-Datei:
 - Verbindungssatz / Rollenreferenz:
 - Bevorzugte Installation und Zielplattformen:

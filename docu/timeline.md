@@ -2,6 +2,30 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.4.2
+
+**Git-Zusammenfassung:** `feat: Vereinfachte Winkelkörper in gemeinsamer Baugruppe (0.4.2)`
+
+- Dreieckkörper 20/30/40 an Rahmeninnenecken und Querträgerenden, optional parallel bei doppelter gemeinsamer Montagehöhe.
+- Gemeinsame ein-/ausblendbare Gruppe „91 | Winkel (vereinfacht)“, stabile IDs und violette Vorschauumrisse.
+- Belegte Montagebereiche und fehlende Größen werden gemeldet; Körper ohne Bohrungen, Schrauben oder Muttern.
+
+**Prüfstand:** 101 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.4.2 offen.
+
+**Details:** [Vereinfachte Winkel](winkel.md)
+
+## 26.09.2026 – 0.4.1
+
+**Git-Zusammenfassung:** `feat: Farbige Dialoghinweise und Vorschau einpassen (0.4.1)`
+
+- Fehler rot, Warnhinweise farblich abgesetzt in Eingabeprüfung, Vorschau, Einstellungen und Bibliotheken; Text wird sicher formatiert.
+- Vorschau beim Einschalten anhand der Gestellabmessungen inklusive Zubehör einpassen; manuelles Zoomen bei späteren Eingabeänderungen beibehalten.
+- 0.4.0 als fehlerfrei bestätigt dokumentiert; Benutzerregeln für dreieckige Winkel für S07 / 0.4.2 vorgemerkt.
+
+**Prüfstand:** 95 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.4.1 offen. Verbindungsteile sind noch nicht umgesetzt.
+
+**Details:** [Dialoghinweise und Vorschau](dialoghinweise_vorschau.md)
+
 ## 26.09.2026 – 0.4.0
 
 **Git-Zusammenfassung:** `feat: Bauart, gemischtes Zubehör und kompakter Dialog (0.4.0)`
@@ -10,7 +34,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Zubehör bearbeiten und duplizieren; Bremse, Verstellbereich, Referenz/Stellung und Montagehinweise als Eigenschaften speichern. Bestehende Auswahlen bleiben unverändert.
 - Alle Ausklappbereiche starten geschlossen, Anfangshöhe des Dialogs auf 640 reduziert. 0.3.1 durch Benutzer bestätigt.
 
-**Prüfstand:** 90 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.4.0 offen. Absenkbare Rollen sind frei definierbare Platzhalter; kein Herstellerprodukt festgelegt.
+**Prüfstand:** 90 lokale Tests und Syntaxprüfung erfolgreich; Version 0.4.0 am 26.09.2026 durch den Benutzer als fehlerfrei bestätigt. Absenkbare Rollen sind frei definierbare Platzhalter; kein Herstellerprodukt festgelegt.
 
 **Details:** [Bauart und Zubehöranordnung](bauart_zubehoer.md)
 

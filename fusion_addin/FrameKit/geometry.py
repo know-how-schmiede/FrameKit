@@ -39,7 +39,8 @@ def _create_part(parent, part, frame_id, profiles=None):
         sketch.sketchCurves.sketchCircles.addByCenterRadius(
             adsk.core.Point3D.create(x / 10, y / 10, 0), shape['radius_mm'] / 10)
     elif shape['type'] == 'polygon':
-        sketch.name = ('Platte ohne Aussparungen' if len(shape['points_mm']) == 4
+        sketch.name = ('Winkel – vereinfachter Dreieckkörper' if part['kind'] == 'connection'
+                       else 'Platte ohne Aussparungen' if len(shape['points_mm']) == 4
                        else 'Bodenplatte mit Eckausklinkungen')
         points = [adsk.core.Point3D.create(x / 10, y / 10, 0) for x, y in shape['points_mm']]
         lines = sketch.sketchCurves.sketchLines

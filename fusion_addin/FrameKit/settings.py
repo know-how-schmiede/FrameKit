@@ -29,7 +29,8 @@ def load(path=None):
         for key in ('shelf_count', 'shelf_heights', 'shelf_thickness', 'accessory',
                     'cross_members', 'top_panel_mount', 'profile_definition'):
             values[key] = deepcopy(stored.get(key, DEFAULTS[key]))
-        for key in ('profile_rotation', 'group_profiles', 'frame_type', 'corner_accessories'):
+        for key in ('profile_rotation', 'group_profiles', 'frame_type', 'corner_accessories',
+                    'brackets', 'brackets_double'):
             if key in stored:
                 values[key] = deepcopy(stored[key])
         validate(values)
