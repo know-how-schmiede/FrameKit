@@ -56,17 +56,31 @@ def stop():
 def command_created(args):
     app = adsk.core.Application.get()
     command = args.command
-    command.setDialogInitialSize(580, 800)
+    command.setDialogInitialSize(580, 640)
     command.okButtonText = 'Ausführen'
     inputs = command.commandInputs
     values, warning = settings.load()
     library, library_warning = settings.load_library()
     profiles, profiles_warning = profile_library.load()
+    def dropdown(parent, identifier, label, choices, selected):
+        control = parent.addDropDownCommandInput(
+            identifier, label, adsk.core.DropDownStyles.TextListDropDownStyle)
+        for index, text in enumerate(choices):
+            control.listItems.add(text, index == selected)
+        return control
+
+    def collapsed_group(parent, identifier, label):
+        group = parent.addGroupCommandInput(identifier, label)
+        group.isExpanded = False
+        return group
+
     frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
     frame_inputs = frame.children
     frame_inputs.addTextBoxCommandInput('intro', '',
         '<b>FrameKit</b><br>Gestell aus Demo-Vollprofilen oder eigenen DXF-Profilen. '
         'Keine Verbinder oder Tragfähigkeitsberechnung.', 3, True)
+    frame_type = dropdown(frame_inputs, 'frame_type', 'Bauart', ['Untergestell', 'Transportwagen'],
+                          int(values.get('frame_type', 'frame') == 'cart'))
     fields = {}
     for key, label in (('length', 'Länge'), ('width', 'Breite'),
                        ('height', 'Gesamthöhe'), ('profile', 'Demo-Profilbreite')):
@@ -76,26 +90,27 @@ def command_created(args):
         'profile_choice', 'Profil für das gesamte Gestell', adsk.core.DropDownStyles.TextListDropDownStyle)
     profile_dimensions = frame_inputs.addTextBoxCommandInput('profile_dimensions', '', '', 2, True)
     bottom = frame_inputs.addBoolValueInput('bottom', 'Unterer Rahmen', True, '', values['bottom'])
-    support_choice = frame_inputs.addDropDownCommandInput(
-        'support_choice', 'Füße / Rollen', adsk.core.DropDownStyles.TextListDropDownStyle)
-    frame_inputs.addTextBoxCommandInput('support_help', '',
-        'Vier gleiche Zylinderplatzhalter unter den Eckpfosten. Gesamthöhe und '
-        'Bodenhöhen gelten ab Aufstandsfläche, inklusive Füßen/Rollen. '
-        'Eigene Varianten unter „Einstellungen verwalten“ anlegen.', 3, True)
-    shelves = frame_inputs.addGroupCommandInput('shelves', 'Bodenplatten und Zwischenböden')
-    shelves.isExpanded = True
+    support_inputs = collapsed_group(frame_inputs, 'support_options', 'Füße / Rollen je Ecke').children
+    support_individual = support_inputs.addBoolValueInput('support_individual', 'Einzeln je Ecke',
+        True, '', 'corner_accessories' in values)
+    support_choice = dropdown(support_inputs, 'support_choice', 'Gemeinsam für alle Ecken', [], 0)
+    corner_choices = {key: dropdown(support_inputs, 'support_'+key.replace(':', '_'), label, [], 0)
+                      for key, label in zip(accessories.CORNERS, accessories.CORNER_LABELS)}
+    support_inputs.addTextBoxCommandInput('support_help', '',
+        'Zylinderplatzhalter unter den Pfosten. Alle vier Bauhöhen müssen gleich sein. '
+        'Bauartwechsel belegt Zubehör neu: Untergestell mit Demo-Füßen; Wagen vorne '
+        'mit zwei Demo-Lenkrollen, hinten mit zwei Demo-Bockrollen. Eigene Varianten in den Einstellungen.', 4, True)
+    def support_visibility():
+        support_choice.isVisible = not support_individual.value
+        for choice in corner_choices.values():
+            choice.isVisible = support_individual.value
+    support_visibility()
+    shelves = collapsed_group(frame_inputs, 'shelves', 'Bodenplatten und Zwischenböden')
     shelf_inputs = shelves.children
     count = shelf_inputs.addIntegerSpinnerCommandInput(
         'shelf_count', 'Anzahl Zwischenböden', 0, demo.MAX_SHELVES, 1, values['shelf_count'])
     thickness = shelf_inputs.addValueInput('shelf_thickness', 'Plattenstärke', 'mm',
         adsk.core.ValueInput.createByString(f'{values["shelf_thickness"]} mm'))
-    def dropdown(parent, identifier, label, choices, selected):
-        control = parent.addDropDownCommandInput(
-            identifier, label, adsk.core.DropDownStyles.TextListDropDownStyle)
-        for index, text in enumerate(choices):
-            control.listItems.add(text, index == selected)
-        return control
-
     common_rotation = dropdown(frame_inputs, 'profile_rotation', 'Gemeinsame Profildrehung',
         ['0°', '90°', '180°', '270°'], values.get('profile_rotation', 0)//90)
     section_fields = {}
@@ -111,7 +126,7 @@ def command_created(args):
         initial_sections[key] = saved
         return choice, rotation
 
-    profile_groups = frame_inputs.addGroupCommandInput('profile_groups', 'Profile je Bauteilgruppe').children
+    profile_groups = collapsed_group(frame_inputs, 'profile_groups', 'Profile je Bauteilgruppe').children
     profile_groups.addTextBoxCommandInput('section_help', '',
         'Übernehmen verwendet das gemeinsame Profil bzw. bei Ebenen das Querträgerprofil. '
         '0°: Pfosten DXF-X entlang Gestell-X, DXF-Y entlang Gestell-Y. '
@@ -137,7 +152,7 @@ def command_created(args):
         field.isVisible = index < count.value
         height_fields.append(field)
     resolved = shelf_inputs.addTextBoxCommandInput('shelf_resolved', '', '', 3, True)
-    cross_group = frame_inputs.addGroupCommandInput('cross_members', 'Querträger je Ebene')
+    cross_group = collapsed_group(frame_inputs, 'cross_members', 'Querträger je Ebene')
     cross_inputs = cross_group.children
     cross_inputs.addTextBoxCommandInput('cross_help', '',
         '0 = keine Träger. Quer: vorne–hinten (Y), Längs: links–rechts (X). '
@@ -163,7 +178,7 @@ def command_created(args):
         for control in controls:
             control.isVisible = number.isVisible
     create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
-    preview_inputs = frame_inputs.addGroupCommandInput('preview_options', 'Vorschau').children
+    preview_inputs = collapsed_group(frame_inputs, 'preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
     show_panels = preview_inputs.addBoolValueInput('preview_panels', 'Bodenflächen anzeigen', True, '', True)
     show_accessories = preview_inputs.addBoolValueInput('preview_accessories', 'Zubehörumrisse anzeigen', True, '', True)
@@ -188,8 +203,7 @@ def command_created(args):
     reset = manage.addBoolValueInput('reset_defaults', 'Werkseinstellungen laden', False, '', False)
     manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
     manage.addTextBoxCommandInput('settings_status', '', html.escape(warning), 2, True)
-    library_group = manage.addGroupCommandInput('support_library', 'Eigene Füße und Rollen')
-    library_group.isExpanded = True
+    library_group = collapsed_group(manage, 'support_library', 'Eigene Füße und Rollen')
     lib_inputs = library_group.children
     library_choice = lib_inputs.addDropDownCommandInput(
         'library_choice', 'Gespeicherte Einträge', adsk.core.DropDownStyles.TextListDropDownStyle)
@@ -204,15 +218,31 @@ def command_created(args):
     for index, kind in enumerate(accessories.KINDS):
         new_kind.listItems.add(kind, index == 0)
     # Text fields keep unfinished library entries from blocking frame creation.
-    new_height = lib_inputs.addStringValueInput('support_height', 'Höhe (mm)', '100')
+    new_height = lib_inputs.addStringValueInput('support_height', 'Eingestellte Bauhöhe (mm)', '100')
     new_diameter = lib_inputs.addStringValueInput('support_diameter', 'Durchmesser (mm)', '75')
+    brake = lib_inputs.addBoolValueInput('support_brake', 'Bremse', True, '', False)
+    adjustable = lib_inputs.addBoolValueInput('support_adjustable', 'Höhenverstellbar', True, '', False)
+    min_height = lib_inputs.addStringValueInput('support_min_height', 'Minimale Bauhöhe (mm)', '100')
+    max_height = lib_inputs.addStringValueInput('support_max_height', 'Maximale Bauhöhe (mm)', '100')
+    mounting = lib_inputs.addStringValueInput('support_mounting', 'Befestigung / Montagehinweis', '')
+    reference = lib_inputs.addStringValueInput('support_reference', 'Referenztyp / Produkt', '')
+    operating_state = lib_inputs.addStringValueInput('support_operating_state', 'Betriebsstellung', '')
+    lib_inputs.addTextBoxCommandInput('support_definition_help', '',
+        'Bauhöhe = eingestellte Höhe in der genannten Betriebsstellung, inklusive Befestigung. '
+        'Bei Höhenverstellung Min/Max angeben; kein automatischer Ausgleich. '
+        'Absenkbare Rollen benötigen Referenztyp und Betriebsstellung. Montage mittig unter dem Pfosten; '
+        'Bremse und Befestigung werden als Eigenschaften gespeichert, nicht detailliert modelliert.', 5, True)
+    load_entry = lib_inputs.addBoolValueInput('load_support', 'Auswahl zum Bearbeiten laden', False, '', False)
+    update_entry = lib_inputs.addBoolValueInput('update_support', 'Geladenen Eintrag aktualisieren', False, '', False)
+    duplicate_entry = lib_inputs.addBoolValueInput('duplicate_support', 'Auswahl duplizieren', False, '', False)
+    editing_support_id = None
+    update_entry.isEnabled = False
     save_entry = lib_inputs.addBoolValueInput('save_support', 'Neuen Eintrag speichern', False, '', False)
     library_status = lib_inputs.addTextBoxCommandInput('library_status', '', html.escape(library_warning), 3, True)
     lib_inputs.addTextBoxCommandInput('library_path', 'Bibliotheksdatei',
         html.escape(str(settings.library_path())), 3, True)
 
-    profile_group = manage.addGroupCommandInput('profile_library', 'Eigene DXF-Profile')
-    profile_group.isExpanded = True
+    profile_group = collapsed_group(manage, 'profile_library', 'Eigene DXF-Profile')
     profile_inputs = profile_group.children
     profile_inputs.addTextBoxCommandInput('profile_help', '',
         'Querschnitt mit rechteckigen Außenmaßen in XY, Mittelpunkt im Ursprung. '
@@ -299,28 +329,36 @@ def command_created(args):
     saved_profile = values.get('profile_definition')
     refresh_profiles(saved_profile['id'] if saved_profile else None, saved=saved_profile)
 
-    def selected_support():
-        selected = support_choice.selectedItem
-        return library[selected.index - 1] if selected and selected.index > 0 else None
+    support_options = []
+    support_controls = {'common': support_choice, **corner_choices}
 
-    def refresh_library(selected_id=None, listed_id=None):
-        support_choice.listItems.clear()
-        support_choice.listItems.add('Keine Füße / Rollen', True)
+    def selected_support(key='common'):
+        selected = support_controls[key].selectedItem
+        return support_options[selected.index-1] if selected and selected.index > 0 else None
+
+    def refresh_library(listed_id=None, selections=None):
+        nonlocal support_options
+        if selections is None:
+            selections = {key: selected_support(key) for key in support_controls}
+        support_options = list(library)
+        for spec in selections.values():
+            if spec is not None and spec not in support_options:
+                support_options.append(deepcopy(spec))
+        for key, choice in support_controls.items():
+            choice.listItems.clear()
+            choice.listItems.add('Keine Füße / Rollen', True)
+            for spec in support_options:
+                suffix = ' (gespeicherter Stand)' if spec not in library else ''
+                choice.listItems.add(accessories.label(spec)+suffix, spec == selections.get(key))
         library_choice.listItems.clear()
         for index, spec in enumerate(library):
-            support_choice.listItems.add(accessories.label(spec), spec['id'] == selected_id)
             library_choice.listItems.add(accessories.label(spec),
                 spec['id'] == listed_id if listed_id else index == 0)
         if not library:
             library_choice.listItems.add('Keine gespeicherten Einträge', True)
-        delete_entry.isEnabled = bool(library)
+        delete_entry.isEnabled = load_entry.isEnabled = duplicate_entry.isEnabled = bool(library)
 
-    saved_support = values.get('accessory')
-    saved_id = saved_support['id'] if saved_support else None
-    refresh_library(saved_id)
-    if saved_id and not any(spec['id'] == saved_id for spec in library):
-        library_status.text = (library_warning + '\n' if library_warning else '') + (
-            'Der gespeicherte Platzhalter ist nicht mehr verfügbar. Auswahl auf „Keine“ gesetzt.')
+    refresh_library(selections={'common': values.get('accessory'), **accessories.corner_specs(values)})
 
     info = inputs.addTabCommandInput('info_tab', 'info').children
     def info_text(identifier, text, rows):
@@ -383,7 +421,11 @@ def command_created(args):
             result['group_profiles'] = groups
         result['bottom'] = bottom.value
         selected = selected_support()
-        result['accessory'] = selected.copy() if selected else None
+        result['accessory'] = deepcopy(selected)
+        result['frame_type'] = 'cart' if frame_type.selectedItem.index else 'frame'
+        if support_individual.value:
+            result['corner_accessories'] = {key: deepcopy(selected_support(key)) for key in corner_choices}
+            result['accessory'] = None
         result['shelf_count'] = count.value
         result['top_panel_mount'] = 'on_top' if mount.selectedItem.index else 'notched'
         result['cross_members'] = {
@@ -452,7 +494,7 @@ def command_created(args):
         raise ValueError(f'{field.name}: gültige Länge eingeben (z. B. 100 mm).')
 
     def changed(event):
-        nonlocal updating, library, profiles, pending_profile
+        nonlocal updating, library, profiles, pending_profile, editing_support_id
         if updating:
             return
         preview.clear()
@@ -525,27 +567,81 @@ def command_created(args):
         save_profile.isEnabled = pending_profile is not None and profile_confirm.value
         if event.input.id == profile_choice.id:
             update_profile_display()
-        if event.input.id in (save_entry.id, delete_entry.id) and event.input.value:
+        if event.input.id == frame_type.id:
             updating = True
             try:
-                selected = selected_support()
-                selected_id = selected['id'] if selected else None
-                if event.input.id == save_entry.id:
+                kind = 'cart' if frame_type.selectedItem.index else 'frame'
+                arrangement = accessories.arrangement(kind)
+                support_individual.value = kind == 'cart'
+                refresh_library(selections={'common': arrangement['front:left'], **arrangement})
+                if kind == 'cart':
+                    bottom.value = True
+                support_visibility()
+            finally:
+                updating = False
+        if event.input.id == support_individual.id:
+            if support_individual.value:
+                common = support_choice.selectedItem.index
+                for choice in corner_choices.values():
+                    choice.listItems.item(common).isSelected = True
+            support_visibility()
+        actions = (save_entry.id, delete_entry.id, load_entry.id, update_entry.id, duplicate_entry.id)
+        if event.input.id in actions and event.input.value:
+            updating = True
+            try:
+                if library_warning:
+                    raise ValueError('Bibliothek konnte nicht geladen werden. Datei reparieren und Dialog erneut öffnen.')
+                listed = library[library_choice.selectedItem.index] if library else None
+                if event.input.id == load_entry.id and listed:
+                    editing_support_id = listed['id']
+                    new_name.value = listed['name']
+                    new_kind.listItems.item(accessories.KINDS.index(listed['kind'])).isSelected = True
+                    new_height.value = str(listed['height'])
+                    new_diameter.value = str(listed['diameter'])
+                    brake.value = listed.get('brake', False)
+                    adjustable.value = listed.get('adjustable', False)
+                    min_height.value = str(listed.get('min_height', listed['height']))
+                    max_height.value = str(listed.get('max_height', listed['height']))
+                    mounting.value = listed.get('mounting', '')
+                    reference.value = listed.get('reference', '')
+                    operating_state.value = listed.get('operating_state', '')
+                    update_entry.isEnabled = True
+                    library_status.text = 'Zum Bearbeiten geladen: '+listed['name']
+                elif event.input.id in (save_entry.id, update_entry.id):
                     spec = accessories.new_spec(new_name.value, new_kind.selectedItem.name,
-                        library_number(new_height), library_number(new_diameter))
+                        library_number(new_height), library_number(new_diameter),
+                        definition_version=2, brake=brake.value, adjustable=adjustable.value,
+                        mounting=mounting.value.strip(), reference=reference.value.strip(),
+                        operating_state=operating_state.value.strip(),
+                        **(dict(min_height=library_number(min_height), max_height=library_number(max_height))
+                           if adjustable.value else {}))
+                    if event.input.id == update_entry.id:
+                        if not any(entry['id'] == editing_support_id for entry in library):
+                            raise ValueError('Zuerst einen vorhandenen Eintrag zum Bearbeiten laden.')
+                        spec['id'] = editing_support_id
+                        revised = [spec if entry['id'] == editing_support_id else entry for entry in library]
+                    else:
+                        revised = library + [spec]
+                    settings.save_library(revised)
+                    library = revised
+                    refresh_library(listed_id=spec['id'])
+                    library_status.text = 'Gespeichert: '+accessories.label(spec)+'; Auswahl im Gestell bleibt unverändert.'
+                elif event.input.id == duplicate_entry.id and listed:
+                    spec = accessories.duplicate(listed, library)
                     revised = library + [spec]
                     settings.save_library(revised)
                     library = revised
-                    refresh_library(selected_id, spec['id'])
-                    library_status.text = f'Gespeichert: {accessories.label(spec)}'
-                    new_name.value = ''
-                elif library_choice.selectedItem and library:
-                    removed = library[library_choice.selectedItem.index]
-                    revised = [spec for spec in library if spec['id'] != removed['id']]
+                    refresh_library(listed_id=spec['id'])
+                    library_status.text = 'Dupliziert: '+spec['name']
+                elif event.input.id == delete_entry.id and listed:
+                    revised = [spec for spec in library if spec['id'] != listed['id']]
                     settings.save_library(revised)
                     library = revised
-                    refresh_library(selected_id)
-                    library_status.text = f'Gelöscht: {removed["name"]}'
+                    refresh_library()
+                    if editing_support_id == listed['id']:
+                        editing_support_id = None
+                        update_entry.isEnabled = False
+                    library_status.text = 'Gelöscht: '+listed['name']+'; gespeicherte Gestellauswahl bleibt erhalten.'
             except (ValueError, OSError) as exc:
                 library_status.text = f'Nicht gespeichert: {exc}'
             finally:
@@ -576,7 +672,11 @@ def command_created(args):
             for number, direction in cross_fields.values():
                 number.listItems.item(0).isSelected = True
                 direction.listItems.item(0).isSelected = True
-            support_choice.listItems.item(0).isSelected = True
+            frame_type.listItems.item(0).isSelected = True
+            support_individual.value = False
+            for choice in support_controls.values():
+                choice.listItems.item(0).isSelected = True
+            support_visibility()
             for key, field in fields.items():
                 field.expression = f'{demo.DEFAULTS[key]} mm'
             bottom.value = demo.DEFAULTS['bottom']

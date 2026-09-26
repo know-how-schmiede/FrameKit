@@ -5,10 +5,93 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from fusion_addin.FrameKit import accessories, demo, settings
+from fusion_addin.FrameKit import accessories, demo, settings, model
 
 
 class AccessoryTests(unittest.TestCase):
+    def test_mixed_casters_share_ground_plane_and_preserve_corner_metadata(self):
+        corners = accessories.arrangement('cart')
+        corners['front:left'].update(brake=True, mounting='Vierlochplatte', reference='Test only')
+        corners['back:right']['diameter'] = 85
+        values = dict(demo.DEFAULTS, frame_type='cart', corner_accessories=corners,
+                      shelf_count=2, shelf_heights=[None, None])
+        data = model.build_model(values)
+        supports = [p for p in data['parts'] if p['kind'] == 'support']
+        self.assertEqual(len(supports), 4)
+        self.assertEqual([p['accessory_definition']['kind'] for p in supports],
+                         ['Lenkrolle', 'Bockrolle', 'Lenkrolle', 'Bockrolle'])
+        for part in supports:
+            corner = part['key'].removeprefix('support:')
+            self.assertEqual(part['accessory_definition'], corners[corner])
+            self.assertEqual(part['position_mm'][2], 0)
+            self.assertEqual(part['mounting_position_mm'][2], 100)
+            post = next(p for p in data['parts'] if p['key'] == 'post:'+corner)
+            self.assertEqual(part['mounting_position_mm'], post['centerline_mm'][0])
+        original = deepcopy(data)
+        corners['front:left']['height'] = 150
+        self.assertEqual(data, original)
+
+    def test_unequal_heights_missing_corner_and_mixed_none_rejected(self):
+        for change in (None, dict(accessories.PRESETS[1], height=101)):
+            corners = accessories.arrangement('cart')
+            corners['front:left'] = change
+            with self.assertRaisesRegex(ValueError, 'Bauhöhe'):
+                model.build_model(dict(demo.DEFAULTS, corner_accessories=corners))
+        for corners in ({}, [], {'front:left': accessories.PRESETS[0]}):
+            with self.assertRaisesRegex(ValueError, 'vier Ecken'):
+                model.build_model(dict(demo.DEFAULTS, corner_accessories=corners))
+        values = dict(demo.DEFAULTS, corner_accessories={k: None for k in accessories.CORNERS})
+        self.assertEqual(demo.supports(values), [])
+
+    def test_adjustable_and_retractable_semantics(self):
+        spec = accessories.new_spec('Verstellfuß', 'Fuß', 50, 60,
+            definition_version=2, adjustable=True, min_height=40, max_height=60)
+        values = dict(demo.DEFAULTS, accessory=spec)
+        self.assertEqual(demo.base_height(values), 50)
+        for height in (39, 61):
+            with self.assertRaisesRegex(ValueError, 'Verstellbereich'):
+                demo.validate(dict(values, accessory=dict(spec, height=height)))
+        for properties in ({}, {'reference': 'Benutzertyp'}):
+            with self.assertRaisesRegex(ValueError, 'Referenztyp'):
+                accessories.new_spec('Absenkbar', 'Absenkbare Rolle', 100, 75,
+                                     definition_version=2, **properties)
+        valid = accessories.new_spec('Absenkbar', 'Absenkbare Rolle', 100, 75,
+            definition_version=2, reference='Benutzertyp', operating_state='Auf Stellfuß', brake=True)
+        self.assertEqual(demo.base_height(dict(demo.DEFAULTS, accessory=valid)), 100)
+        for properties in ({'brake': 'ja'}, {'adjustable': 1}, {'mounting': []},
+                           {'adjustable': True, 'min_height': float('nan'), 'max_height': 120}):
+            with self.assertRaises(ValueError):
+                accessories.validate_spec(dict(valid, **properties))
+
+    def test_duplicate_update_and_saved_corner_snapshots(self):
+        corners = accessories.arrangement('cart')
+        entries = deepcopy(accessories.PRESETS)
+        copy = accessories.duplicate(entries[1], entries)
+        entries.append(copy)
+        copy2 = accessories.duplicate(entries[1], entries)
+        self.assertNotEqual(copy['id'], copy2['id'])
+        self.assertNotEqual(copy['name'], copy2['name'])
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder)/'settings.json'
+            lib = Path(folder)/'accessories.json'
+            values = dict(demo.DEFAULTS, frame_type='cart', corner_accessories=corners)
+            settings.save(values, path)
+            before = model.build_model(values)
+            entries[1]['height'] = 200
+            settings.save_library(entries, lib)
+            restored, warning = settings.load(path)
+            self.assertEqual((restored, warning), (values, ''))
+            self.assertEqual(model.build_model(restored, before), before)
+
+    def test_mixed_diameters_use_pairwise_clearance(self):
+        corners = accessories.arrangement('cart')
+        # Different diameters may fit even if one exceeds the common-size bound.
+        corners['front:left']['diameter'] = 700
+        self.assertEqual(len(demo.supports(dict(demo.DEFAULTS, corner_accessories=corners))), 4)
+        corners['back:left']['diameter'] = 300
+        with self.assertRaisesRegex(ValueError, 'überlappen'):
+            demo.validate(dict(demo.DEFAULTS, corner_accessories=corners))
+
     def test_create_save_reload_delete_and_empty_library(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / 'accessories.json'

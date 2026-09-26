@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.4.0
+
+**Git-Zusammenfassung:** `feat: Bauart, gemischtes Zubehör und kompakter Dialog (0.4.0)`
+
+- Untergestell/Transportwagen vorbelegen; Füße und Rollen gemeinsam oder einzeln je Ecke auswählen, gleiche Bauhöhen prüfen.
+- Zubehör bearbeiten und duplizieren; Bremse, Verstellbereich, Referenz/Stellung und Montagehinweise als Eigenschaften speichern. Bestehende Auswahlen bleiben unverändert.
+- Alle Ausklappbereiche starten geschlossen, Anfangshöhe des Dialogs auf 640 reduziert. 0.3.1 durch Benutzer bestätigt.
+
+**Prüfstand:** 90 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.4.0 offen. Absenkbare Rollen sind frei definierbare Platzhalter; kein Herstellerprodukt festgelegt.
+
+**Details:** [Bauart und Zubehöranordnung](bauart_zubehoer.md)
+
 ## 26.09.2026 – 0.3.1
 
 **Git-Zusammenfassung:** `feat: Profile je Bauteilgruppe und rechteckige Querschnitte (0.3.1)`
@@ -10,7 +22,7 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 - Maßabhängige Zuschnitte, Aussparungen, bündige Auflagen und freie Bodenabstände.
 - Screenshot-Satz 0.3.0 in beiden READMEs eingebunden; Benutzerprüfung für 0.2.0, 0.2.1 und 0.3.0 festgehalten.
 
-**Prüfstand:** 82 lokale Tests und Syntaxprüfung erfolgreich; Fusion-Prüfung von 0.3.1 offen. Der Benutzer hat 0.2.0, 0.2.1 und 0.3.0 am 26.09.2026 als getestet und funktionsfähig bestätigt.
+**Prüfstand:** 82 lokale Tests und Syntaxprüfung erfolgreich; Version 0.3.1 am 26.09.2026 durch den Benutzer als funktionsfähig bestätigt. Der Benutzer hat 0.2.0, 0.2.1 und 0.3.0 am 26.09.2026 als getestet und funktionsfähig bestätigt.
 
 **Details:** [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md)
 

@@ -23,7 +23,7 @@ Bauteildaten enthalten Profilreferenz, Profildrehung, Transformation, Zuschnittl
 
 **Lokal:** 82 Tests erfolgreich, darunter synthetische Hohlprofile 40 × 80, 20 × 40 und 30 × 60 mm. Geprüft sind gedrehte Außenmaße, Schnittflächen, Aussparungen, kollisionsfreie Profilkörper, gleiche freie Felder, bündige Auflagen, variable Ebenenhöhen, gespeicherte Auswahl, ID-Stabilität und Dialogereignisse. Synthetische Testprofile sind keine Herstellerprofile.
 
-**Fusion:** Die Versionen 0.2.0, 0.2.1 und 0.3.0 funktionieren laut Benutzerrückmeldung vom 26.09.2026. Für **0.3.1** steht die Prüfung im laufenden Fusion noch aus:
+**Fusion:** Die Versionen 0.2.0, 0.2.1 und 0.3.0 funktionieren laut Benutzerrückmeldung vom 26.09.2026. Auch **0.3.1** funktioniert laut Benutzerrückmeldung vom 26.09.2026. Prüffälle zur Nachvollziehbarkeit:
 
 1. Zwei oder mehr unterschiedliche quadratische/rechteckige DXF-Profile importieren und Pfosten, Rahmen sowie Querträgern zuweisen.
 2. Pfosten und Träger um 90° drehen, zusätzlich bei asymmetrischen Nuten 180°/270° vergleichen. Außenmaße und Lage der Konturen messen.

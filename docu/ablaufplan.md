@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.3.1**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.0**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. S05 / 0.3.1 ist implementiert; dessen Fusion-Prüfung steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 ist implementiert; dessen Fusion-Prüfung steht aus. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -37,8 +37,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S02 | 0.2.0 | Mittellinien-Vorschau und dauerhafte Layoutskizze | S01 | In Fusion bestätigt |
 | S03 | 0.2.1 | Querträger je Ebene und Deckplattenmontage | S01, S02 | In Fusion bestätigt |
 | S04 | 0.3.0 | Profilbibliothek, DXF-Import und echte Nutprofile | S01, S02 | In Fusion bestätigt |
-| S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | Implementiert |
-| S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Geplant |
+| S05 | 0.3.1 | Unterschiedliche Profile und Ausrichtungen | S03, S04 | In Fusion bestätigt |
+| S06 | 0.4.0 | Bauart, gemischte Füße/Rollen und Zubehörverwaltung | S01, S02 | Implementiert |
 | S07 | 0.4.1 | Verbindungssätze und Montageraum | S04, S05, S06 | Geplant |
 | S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Geplant |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | Geplant |
@@ -93,7 +93,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S05 · 0.3.1 – Profile je Bauteilgruppe
 
-**Ergebnis:** [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). 82 lokale Tests erfolgreich; getrennte Profilwahl, rechteckige Querschnitte, Vierteldrehungen und Ebenenübernahme umgesetzt. Fusion-Prüfung von 0.3.1 offen.
+**Ergebnis:** [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). 82 lokale Tests erfolgreich; getrennte Profilwahl, rechteckige Querschnitte, Vierteldrehungen und Ebenenübernahme umgesetzt. Version 0.3.1 am 26.09.2026 durch den Benutzer als funktionsfähig bestätigt.
 
 - Gemeinsames Profil als Standard sowie getrennte Profilwahl für Pfosten, Rahmen und Querträger anbieten.
 - Nichtquadratische Querschnitte und deren Orientierung in Länge, Breite, Höhenberechnung und Zuschnitten berücksichtigen.
@@ -102,6 +102,10 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Mindestens zwei unterschiedliche Querschnitte kombinieren; Außenmaße, Aussparungen und bündige Auflagen prüfen.
 
 ### S06 · 0.4.0 – Bauart und Zubehöranordnung
+
+**Ergebnis:** [Bauart und Zubehöranordnung](bauart_zubehoer.md). 90 lokale Tests erfolgreich; Bauartvorbelegung, Eckauswahl, Zubehör bearbeiten/duplizieren, Eigenschaften und Höhenprüfung umgesetzt. Alle Dialoggruppen starten geschlossen. Fusion-Prüfung von 0.4.0 offen.
+
+**Referenzentscheidung:** Kein Herstellerprodukt benannt; absenkbare Rollen vorerst als frei definierbare Platzhalter mit erforderlichem Referenztyp und Betriebsstellung. Eingestellte Bauhöhe inklusive Befestigung, Verstellbereich nur zur Prüfung; kein automatischer Ausgleich.
 
 - Bauart **Untergestell / Transportwagen** mit passenden vorbelegten Einstellungen ergänzen.
 - Zubehör einzeln pro Ecke oder gemeinsam auswählen, insbesondere zwei Lenkrollen und zwei Bockrollen. Bibliothekseinträge zusätzlich bearbeiten und duplizieren können.
@@ -180,7 +184,8 @@ Diese Schritte sind Vorschläge, noch nicht zur Umsetzung beauftragt. Jeder erh�
 Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änderungen anschließend auch in der Versionsübersicht und im jeweiligen Schritt nachführen.
 
 - Gewünschte Änderungen an Reihenfolge oder Versionsnummern:
-- Zusätzliche oder entfallende Funktionen:
+- Zusätzliche oder entfallende Funktionen: Beim nächsten beauftragten Umsetzungsschritt die Vorschau beim Öffnen im Vollbildmodus anzeigen (Benutzerwunsch vom 26.09.2026; noch nicht umgesetzt).
+- Für die nächste Version: Fehlermeldungen und fehlerbezogene Hinweise durch eine abweichende Textfarbe hervorheben, beispielsweise bei unterschiedlich hohen Rollen. Einheitlich in allen Dialogbereichen umsetzen, einschließlich Eingabeprüfung, Vorschau, Einstellungen, Zubehör- und Profilbibliothek. Lesbarkeit in hellem und dunklem Fusion-Theme berücksichtigen; Fehler zusätzlich durch verständlichen Text kennzeichnen. Die unterstützte Textformatierung der Fusion-Dialogfelder bei der Umsetzung prüfen (Benutzerwunsch vom 26.09.2026; noch nicht umgesetzt).
 - Referenzprofil / DXF-Datei:
 - Verbindungssatz / Rollenreferenz:
 - Bevorzugte Installation und Zielplattformen:

@@ -1,6 +1,6 @@
 """Fusion-independent demo layout; dimensions in millimeters."""
 import math
-from .accessories import validate_spec
+from .accessories import corner_specs, support_height
 from .sections import resolve, validate_selections, level_depth
 
 MAX_SHELVES = 20
@@ -31,11 +31,19 @@ def validate(values):
         raise ValueError('Länge und Breite müssen größer als zwei Profilbreiten sein.')
     if fw > min(px, py):
         raise ValueError('Rahmenbreite darf die Pfostenmaße nicht überschreiten; Profile oder Drehung ändern.')
-    spec = values.get('accessory')
-    if spec is not None:
-        validate_spec(spec)
-        if spec['diameter'] > min(values['length']-px, values['width']-py):
-            raise ValueError('Durchmesser zu groß: Fuß-/Rollenplatzhalter würden sich überlappen.')
+    if values.get('frame_type', 'frame') not in ('frame', 'cart'):
+        raise ValueError('Bauart muss Untergestell oder Transportwagen sein.')
+    support_height(values)
+    supports = corner_specs(values)
+    centers = {f'{depth}:{side}': (x, y)
+               for side, x in (('left', px/2), ('right', values['length']-px/2))
+               for depth, y in (('front', py/2), ('back', values['width']-py/2))}
+    active = [(key, spec) for key, spec in supports.items() if spec is not None]
+    for index, (key, spec) in enumerate(active):
+        for other_key, other in active[index+1:]:
+            distance = math.dist(centers[key], centers[other_key])
+            if distance < (spec['diameter']+other['diameter'])/2 - 1e-7:
+                raise ValueError('Durchmesser zu groß: Fuß-/Rollenplatzhalter würden sich überlappen.')
     if values.get('top_panel_mount', 'notched') not in ('notched', 'on_top'):
         raise ValueError('Ungültige Montageart der Deckplatte.')
     settings = values.get('cross_members', {})
@@ -71,8 +79,7 @@ def frame_levels(values):
 
 
 def base_height(values):
-    spec = values.get('accessory')
-    return spec['height'] if spec is not None else 0
+    return support_height(values)
 
 
 def shelf_heights(values):

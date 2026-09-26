@@ -398,3 +398,70 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertIn('nicht in Bibliothek', self.controls['section_frame'].selectedItem.name)
         self.assertEqual(self.controls['rotation_frame'].selectedItem.index, 3)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
+
+    def test_collapsed_groups_and_cart_preset_with_individual_validation(self):
+        for key in ('support_options', 'shelves', 'profile_groups', 'cross_members',
+                    'preview_options', 'support_library', 'profile_library'):
+            self.assertFalse(self.controls[key].isExpanded)
+        self.command.setDialogInitialSize.assert_called_with(580, 640)
+        self.select('frame_type', 1)
+        self.assertTrue(self.controls['support_individual'].value)
+        self.assertFalse(self.controls['support_choice'].isVisible)
+        self.show()
+        self.fire('execute')
+        _, values, data = self.create_frame.call_args.args
+        self.assertEqual(values['frame_type'], 'cart')
+        self.assertEqual(values['corner_accessories']['back:right']['kind'], 'Bockrolle')
+        self.assertEqual(sum(p['kind'] == 'support' for p in data['parts']), 4)
+        self.select('support_front_left', 1)  # 40 mm foot vs 100 mm casters
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertIn('Bauhöhe', self.controls['validation'].text)
+        self.assertEqual(self.graphics.groups, [])
+        self.select('frame_type', 0)
+        self.assertFalse(self.controls['support_individual'].value)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        self.change('reset_defaults', True)
+        self.assertEqual(self.controls['support_choice'].selectedItem.index, 0)
+
+    def test_accessory_edit_duplicate_and_delete_preserve_selected_snapshot(self):
+        with patch.object(self.entry.settings, 'save_library') as save:
+            self.select('support_choice', 2)
+            self.select('library_choice', 1)
+            self.change('load_support', True)
+            self.change('support_name', 'Neue Rolle')
+            self.change('support_height', '120')
+            self.change('support_brake', True)
+            self.change('support_mounting', 'Vierlochplatte')
+            self.change('update_support', True)
+            revised = deepcopy(save.call_args.args[0])
+            self.assertEqual(revised[1]['id'], accessories.PRESETS[1]['id'])
+            self.assertEqual(revised[1]['height'], 120)
+            self.assertTrue(revised[1]['brake'])
+            self.assertIn('gespeicherter Stand', self.controls['support_choice'].selectedItem.name)
+            self.fire('execute')
+            _, values, first = self.create_frame.call_args.args
+            self.assertEqual(values['accessory']['height'], 100)
+            self.select('support_choice', 2)  # opt into the updated library entry
+            self.fire('execute')
+            _, values, second = self.create_frame.call_args.args
+            self.assertEqual(values['accessory']['height'], 120)
+            self.assertEqual(next(p for p in first['parts'] if p['kind'] == 'support')['bounds_mm'][2], 100)
+            self.change('duplicate_support', True)
+            self.assertEqual(len(save.call_args.args[0]), 4)
+            self.assertNotEqual(save.call_args.args[0][-1]['id'], revised[1]['id'])
+            self.change('delete_support', True)
+            self.assertEqual(len(save.call_args.args[0]), 3)
+            self.select('library_choice', 1)
+            self.change('delete_support', True)
+            self.assertTrue(self.fire('validateInputs').areInputsValid)
+            self.assertIn('gespeicherter Stand', self.controls['support_choice'].selectedItem.name)
+
+    def test_failed_accessory_write_keeps_library_and_selection(self):
+        self.select('support_choice', 1)
+        self.change('load_support', True)
+        self.change('support_name', 'Changed')
+        with patch.object(self.entry.settings, 'save_library', side_effect=OSError('disk full')):
+            self.change('update_support', True)
+        self.assertIn('disk full', self.controls['library_status'].text)
+        self.assertIn('Demo-Fuß', self.controls['support_choice'].selectedItem.name)
+        self.assertIn('Demo-Fuß', self.controls['library_choice'].selectedItem.name)

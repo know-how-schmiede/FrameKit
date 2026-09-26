@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from .demo import validate, base_height, shelf_heights, panel_outline
 from .sections import resolve, level_depth
+from .accessories import corner_specs
 
 SCHEMA_VERSION = 1
 ORIENTATIONS = {
@@ -56,7 +57,8 @@ def build_model(values, previous=None):
         key = f'shelf:{index:02d}'
         groups.append(dict(id=key, name=f'{index+3:02d} | Boden {index:02d}'))
         levels.append((key, f'Boden {index:02d}', top))
-    if values.get('accessory') is not None:
+    support_specs = corner_specs(values)
+    if any(spec is not None for spec in support_specs.values()):
         groups.append(dict(id='accessories', name='90 | Füße und Rollen'))
     groups.append(dict(id='connections', name='91 | Verbindungen', reserved=True))
     parts = []
@@ -104,7 +106,8 @@ def build_model(values, previous=None):
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
             detail = f'{length:g}x{width:g}x{thickness:g} mm | {finish}'
         else:
-            part['accessory_definition'] = deepcopy(values['accessory'])
+            part['accessory_definition'] = deepcopy(support_specs[key.removeprefix('support:')])
+            part['mounting_position_mm'] = [origin[0]+bounds[0]/2, origin[1]+bounds[1]/2, bounds[2]]
             detail = f'Ø={bounds[0]:g} mm | H={bounds[2]:g} mm'
         part['display_name'] = f'{part_id} | {function} | {detail}'
         parts.append(part)
@@ -147,16 +150,17 @@ def build_model(values, previous=None):
         add(f'{group}:panel', 'panel', group, f'{label} Platte', (0, 0, top-thickness),
             (length, width, thickness), dict(type='polygon',
                 points_mm=[list(point) for point in outline], depth_mm=thickness))
-    spec = values.get('accessory')
-    if spec is not None:
-        radius = spec['diameter']/2
-        for x, side, side_key in ((px/2, 'links', 'left'), (length-px/2, 'rechts', 'right')):
-            for y, depth, depth_key in ((py/2, 'vorne', 'front'), (width-py/2, 'hinten', 'back')):
-                add(f'support:{depth_key}:{side_key}', 'support', 'accessories',
-                    f'{spec["kind"]} {depth} {side} | {spec["name"]} | Platzhalter',
-                    (x-radius, y-radius, 0), (2*radius, 2*radius, spec['height']),
-                    dict(type='circle', center_mm=[radius, radius], radius_mm=radius,
-                         depth_mm=spec['height']))
+    for x, side, side_key in ((px/2, 'links', 'left'), (length-px/2, 'rechts', 'right')):
+        for y, depth, depth_key in ((py/2, 'vorne', 'front'), (width-py/2, 'hinten', 'back')):
+            spec = support_specs[f'{depth_key}:{side_key}']
+            if spec is None:
+                continue
+            radius = spec['diameter']/2
+            add(f'support:{depth_key}:{side_key}', 'support', 'accessories',
+                f'{spec["kind"]} {depth} {side} | {spec["name"]} | Platzhalter',
+                (x-radius, y-radius, 0), (2*radius, 2*radius, spec['height']),
+                dict(type='circle', center_mm=[radius, radius], radius_mm=radius,
+                     depth_mm=spec['height']))
     return dict(schema=SCHEMA_VERSION, units='mm', assembly_id=frame_id,
                 id_registry=registry, configuration=deepcopy(values), groups=groups,
                 profiles=profiles, parts=parts)

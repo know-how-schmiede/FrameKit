@@ -1,4 +1,4 @@
-# FrameKit 0.3.1 – Integrationsdemo
+# FrameKit 0.4.0 – Integrationsdemo
 
 Die Demo prüft die Einbindung als natives Autodesk-Fusion-Add-in. Sie erzeugt ein einfaches Gestell mit vier Pfosten, oberem und optional unterem Rahmen aus Demo-Vollprofilen oder importierten DXF-Profilquerschnitten. Ohne Zwischenböden entstehen acht beziehungsweise zwölf Profilkomponenten sowie eine obere und gegebenenfalls eine untere Bodenplatte. Jeder Zwischenboden ergänzt vier Rahmenprofile und eine Platte als eigene Komponenten. Optional werden vier Fuß-/Rollenplatzhalter erzeugt. Quadratische und rechteckige Nutquerschnitte werden über die [DXF-Profilbibliothek](profilbibliothek_dxf.md) importiert. Detailliertes Zubehör, Projektbearbeitung und CSV-Export folgen später.
 
@@ -16,6 +16,8 @@ Nach erfolgreicher Gestellerstellung wird die Ansicht automatisch mit **Zoom auf
 
 ## Dialog
 
+Alle Ausklappbereiche starten geschlossen. Das Dialogfenster öffnet sich mit 580 × 640; einzelne Gruppen bei Bedarf öffnen.
+
 - **Frame erstellen:** Außenlänge, Außenbreite, Höhe in Millimetern einstellen sowie ein DXF-Profil oder eine Demo-Profilbreite auswählen; unteren Rahmen optional deaktivieren. **Ausführen** erstellt eine neue Baugruppe. Mehrfaches Ausführen erzeugt unabhängige Baugruppen.
 - **Einstellungen verwalten:** Aktuelle Abmessungen und Fuß-/Rollenauswahl als Standardwerte speichern oder Werkseinstellungen in den Dialog laden. Zum ausschließlichen Speichern im ersten Reiter **Gestell erstellen** deaktivieren. Standardwerte werden erst mit **Ausführen** gespeichert. Die Profil- und Platzhalterbibliotheken werden über eigene Schaltflächen sofort gespeichert; diese Änderungen bleiben auch nach **Abbrechen** erhalten.
 - **info:** Aufbau nach der PrintThread-Wizard-Vorlage: Name und Version aus `version.py`, FrameKit-Logo, Kurzbeschreibung sowie Links zu Homepage, Quellcode, Releases, Issues und YouTube. Autor und Lizenz schließen den Bereich ab.
@@ -28,7 +30,7 @@ Im ersten Reiter **Vorschau anzeigen** einschalten. Bodenflächen und Zubehörum
 
 ## Icons und Version
 
-Aktueller Stand: **0.3.1**. Getrennte Profile und Drehungen: [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
+Aktueller Stand: **0.4.0**. Bauart und Zubehör je Ecke: [Anleitung und Prüfschritte](bauart_zubehoer.md). Getrennte Profile und Drehungen: [Profile je Bauteilgruppe](profile_je_bauteilgruppe.md). DXF-Profile: siehe [Profilbibliothek und DXF-Import](profilbibliothek_dxf.md). Querträger und Deckplattenmontage: siehe [Anleitung und Prüfschritte](quertraeger_deckplatte.md). Die Bauteile werden in Unterbaugruppen mit stabiler ID-Zuordnung und separaten Eigenschaften erzeugt. In parametrischen Dokumenten sind ihre Erzeugungsschritte in der Zeitleiste gruppiert. Details und Prüfschritte stehen unter [Bauteildaten und Baugruppenstruktur](bauteildaten.md).
 
 Die vorhandenen `CreateFrame`- und `ProfileLibrary`-SVGs werden im Add-in mitgeliefert: `16x16.svg` für kleine Bedienelemente, `32x32.svg` für große sowie jeweils `-dark_blue`-Varianten. Die Vektorgrafiken skalieren auch bei hoher Bildschirmauflösung. Das Add-in-Symbol verwendet ebenfalls das FrameKit-Rahmensymbol.
 
@@ -53,7 +55,7 @@ Die Version beginnt bei **0.1.0** und wird nur auf ausdrückliche Aufforderung e
 - Erzeugung rückgängig machen; bestehende fremde Komponenten müssen unverändert bleiben.
 - Add-in stoppen: Befehl verschwindet. Erneuter Start: Befehl erscheint einmal und funktioniert wieder.
 
-Lokale Tests: `python -m unittest discover -s tests -v`. 82 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Die Versionen 0.2.0, 0.2.1 und 0.3.0 wurden am 26.09.2026 vom Benutzer getestet und als funktionsfähig bestätigt. Die getrennte Profilwahl und rechteckigen Querschnitte aus 0.3.1 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
+Lokale Tests: `python -m unittest discover -s tests -v`. 90 Tests prüfen Berechnungen und Dateien, Gestellmodell, ID-Stabilität, Profilorientierung, Vorschauflächen und Layout sowie Geometrie-, Grafik- und Dialogereignisse mit einem vereinfachten API-Ersatz. Sie ersetzen keinen Integrationstest im laufenden Fusion. Der Benutzer hat am 25.09.2026 bestätigt, dass Version 0.1.4 funktioniert. Die Versionen 0.2.0, 0.2.1 und 0.3.0 wurden am 26.09.2026 vom Benutzer getestet und als funktionsfähig bestätigt. Auch 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. Die Funktionen aus 0.4.0 sind noch in Fusion zu prüfen; die vollständige Abnahme ist im [Ablaufplan](ablaufplan.md) vorgesehen.
 
 ## Zwischenböden
 
@@ -70,20 +72,13 @@ Gespeichert werden die vorgegebenen Höhen einschließlich leerer Werte. Automat
 
 ## Füße, Rollen und eigene Platzhalter
 
-Unter **Frame erstellen → Füße / Rollen** stehen „Keine Füße / Rollen“ und alle gespeicherten Bibliothekseinträge zur Auswahl. Ohne vorhandene Bibliotheksdatei werden ein Demo-Fuß (Höhe 40 mm, Durchmesser 50 mm) und eine Demo-Lenkrolle (100 / 75 mm) angeboten. Die gewählte Variante gilt für alle vier Eckpfosten.
+Unter **Frame erstellen → Füße / Rollen je Ecke** gemeinsam oder einzeln auswählen. **Bauart** belegt beim Wechsel vier Demo-Füße beziehungsweise zwei Demo-Lenkrollen vorne und zwei Demo-Bockrollen hinten vor. Vorhandene Standardwerte bleiben beim Öffnen erhalten.
 
-Die Darstellung erfolgt unabhängig von der Art als **aufrechter Zylinder**, eindeutig als Platzhalter benannt. Höhe und Durchmesser beschreiben den Platzbedarf, keine detaillierte Rad- oder Montagegeometrie. Die Zylinder stehen mittig unter den Pfosten auf Z = 0. Die Gesamthöhe bleibt einschließlich Zubehör und oberer Platte erhalten; die Pfosten verkürzen sich um die Zubehörhöhe. Manuelle Bodenhöhen bleiben auf die Aufstandsfläche bezogen. Überstände der Platzhalter zählen nicht zu Länge und Breite des Profilrahmens.
+Die Darstellung bleibt ein Zylinderplatzhalter, mittig unter dem Pfosten auf Z = 0. Alle vier Bauhöhen müssen gleich sein. Zubehör und Platte zählen zur Gesamthöhe; Zubehörüberstände zählen nicht zu Länge und Breite. Bei Höhenverstellung gilt die eingestellte Bauhöhe innerhalb des angegebenen Bereichs. Absenkbare Rollen benötigen beim Anlegen/Aktualisieren Referenztyp und Betriebsstellung.
 
-Unter **Einstellungen verwalten → Eigene Füße und Rollen**:
+Unter **Einstellungen verwalten → Eigene Füße und Rollen** Einträge anlegen, zum Bearbeiten laden, aktualisieren, duplizieren oder löschen. Bremse, Höhenverstellung und Montagehinweise werden als Eigenschaften gespeichert. Bibliotheksänderungen wirken sofort; Abbrechen macht sie nicht rückgängig. Aktuelle Auswahlen, Standardwerte und bestehende Baugruppen behalten ihre gespeicherten Definitionen. Abweichende oder gelöschte Einträge erscheinen als „gespeicherter Stand“; geänderte Bibliothekseinträge ausdrücklich neu auswählen.
 
-1. Einen eindeutigen Namen und eine Art wählen: Fuß, Lenkrolle, Bockrolle, absenkbare Rolle oder Sonstiges.
-2. Höhe und Durchmesser eingeben. Zahlen ohne Einheit sind Millimeter; in einem geöffneten Dokument sind auch Einheiten wie `10 cm` möglich.
-3. **Neuen Eintrag speichern** anklicken. Der Eintrag wird sofort dauerhaft gespeichert und erscheint mit Art und Maßen in beiden Auswahllisten.
-4. Zum Entfernen unter **Gespeicherte Einträge** auswählen und **Ausgewählten Eintrag löschen** anklicken. Löschen wird sofort gespeichert. War der Eintrag für das Gestell gewählt, wechselt diese Auswahl auf „Keine“.
-
-Die Bibliothek liegt in `accessories.json` neben der Datei `settings.json`. Ihre Speichern-/Löschen-Schaltflächen arbeiten unabhängig von **Ausführen** und der Option **Als Standardwerte speichern**. **Abbrechen** nimmt Bibliotheksänderungen nicht zurück. Werkseinstellungen löschen die Bibliothek nicht. Auch eine vollständig geleerte Bibliothek bleibt nach erneutem Öffnen leer.
-
-Die ausgewählte Definition wird beim Speichern der Standardwerte und in erzeugten Baugruppen mit ihren Maßen hinterlegt. Bereits erzeugte Geometrie ändert sich beim Löschen eines Eintrags nicht. Verweist eine gespeicherte Auswahl auf einen inzwischen gelöschten Eintrag, wird beim Öffnen „Keine“ gewählt und ein Hinweis angezeigt. Frühere Einstellungsdateien erhalten automatisch die Auswahl „Keine“.
+Details zu Bedienung, Grenzen und Fusion-Prüffällen: [Bauart und Zubehöranordnung](bauart_zubehoer.md).
 
 API-Grundlagen: [Autodesk: UI-Anpassung und Icon-Ressourcen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/UserInterface_UM.htm), [Dialogreiter](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/CommandInputs_addTabCommandInput.htm).
 

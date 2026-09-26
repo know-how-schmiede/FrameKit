@@ -1,2 +1,2 @@
 """Increase only on request. Keep FrameKit.manifest in sync."""
-__version__ = '0.3.1'
+__version__ = '0.4.0'
