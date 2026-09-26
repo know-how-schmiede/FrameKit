@@ -6,6 +6,8 @@ Screenshots werden **pro tatsächlich abgebildeter Add-in-Version** in einem eig
 
 | Version | Ordner | Enthaltene Ansichten |
 | --- | --- | --- |
+| 0.9.0 | [0.9.0](0.9.0/) | Werkzeugleiste, Gestellauswahl zum Bearbeiten, CSV-Export, CSV-Import und Stückliste in LibreOffice Calc |
+| 0.4.4 | [0.4.4](0.4.4/) | Gestell mit STEP-Winkeln, Browserstruktur und Winkeloptionen |
 | 0.3.0 | [0.3.0](0.3.0/) | Gestell, Browserstruktur, Vorschau, Erstellungsdialog, Bibliotheken, historischer POINT-Importhinweis |
 | 0.1.5 | [0.1.5](0.1.5/) | Gestell mit Dialog, Erstellungsdialog, Einstellungen, Browserstruktur, Info |
 

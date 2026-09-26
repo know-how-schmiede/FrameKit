@@ -42,6 +42,35 @@ Korrektur in **0.5.4**: Der Bearbeitungsdialog erzeugt jetzt sämtliche Eingabef
 
 ## Screenshots
 
+### Version 0.9.0
+
+Die Aufnahmen zeigen die drei FrameKit-Befehle, die Gestellauswahl zum Bearbeiten und den CSV-Export bis zur geöffneten Stückliste in LibreOffice Calc.
+
+**FrameKit-Befehle in der Fusion-Werkzeugleiste**
+
+![FrameKit 0.9.0 – Markierte Befehle für Gestell erstellen, Gestell bearbeiten und CSV-Listen exportieren](images/screenshots/0.9.0/FrameKit_V0-9-0_-00.png)
+
+<details>
+<summary>Bearbeitung, CSV-Export und Stückliste aus Version 0.9.0</summary>
+
+**Vorhandenes Gestell zum Bearbeiten auswählen und laden**
+
+![FrameKit 0.9.0 – Bearbeitungsdialog mit Gestellauswahl und Schaltfläche Gestell laden](images/screenshots/0.9.0/FrameKit_V0-9-0_-04.png)
+
+**CSV-Listen exportieren**
+
+![FrameKit 0.9.0 – Exportdialog mit Gestellauswahl, deutschem CSV-Format und ausgewählter Zuschnittliste](images/screenshots/0.9.0/FrameKit_V0-9-0_-03.png)
+
+**Stücklisten-CSV in LibreOffice Calc importieren**
+
+![FrameKit 0.9.0 – Textimport der Stückliste mit UTF-8 und erkanntem Semikolon als Trennzeichen](images/screenshots/0.9.0/FrameKit_V0-9-0_-02.png)
+
+**Geöffnete Stückliste mit Profilen, Platten und Winkeln**
+
+![FrameKit 0.9.0 – Stückliste in LibreOffice Calc mit Längen, Mengen, Bauteil-IDs und Hinweis zur Vollständigkeit](images/screenshots/0.9.0/FrameKit_V0-9-0_-01.png)
+
+</details>
+
 ### Version 0.4.4
 
 Gestell mit farblich hervorgehobenen Profilen und STEP-Winkeln, Bodenplatte und zylindrischen Zubehörplatzhaltern neben dem kompakten Erstellungsdialog. Die Dialogwerte zeigen einen eigenen Eingabestand und müssen nicht dem sichtbaren Gestell entsprechen.

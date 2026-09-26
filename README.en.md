@@ -42,6 +42,35 @@ Fix in **0.5.4**: all edit-dialog inputs are created when the command opens. Loa
 
 ## Screenshots
 
+### Version 0.9.0
+
+These screenshots show the three FrameKit commands, frame selection for editing, and CSV export through to the bill of materials opened in LibreOffice Calc.
+
+**FrameKit commands in the Fusion toolbar**
+
+![FrameKit 0.9.0 – Highlighted commands for creating a frame, editing a frame, and exporting CSV lists](images/screenshots/0.9.0/FrameKit_V0-9-0_-00.png)
+
+<details>
+<summary>Editing, CSV export, and bill of materials from version 0.9.0</summary>
+
+**Select and load an existing frame for editing**
+
+![FrameKit 0.9.0 – Editing dialog with frame selection and Load frame button](images/screenshots/0.9.0/FrameKit_V0-9-0_-04.png)
+
+**Export CSV lists**
+
+![FrameKit 0.9.0 – Export dialog with frame selection, German CSV format, and the cut list selected](images/screenshots/0.9.0/FrameKit_V0-9-0_-03.png)
+
+**Import the bill of materials CSV into LibreOffice Calc**
+
+![FrameKit 0.9.0 – Bill of materials text import with UTF-8 and an automatically detected semicolon delimiter](images/screenshots/0.9.0/FrameKit_V0-9-0_-02.png)
+
+**Opened bill of materials with profiles, panels, and brackets**
+
+![FrameKit 0.9.0 – Bill of materials in LibreOffice Calc with lengths, quantities, part IDs, and a completeness notice](images/screenshots/0.9.0/FrameKit_V0-9-0_-01.png)
+
+</details>
+
 ### Version 0.4.4
 
 Frame with color-coded profiles and STEP brackets, a bottom panel, and cylindrical accessory placeholders alongside the compact creation dialog. The dialog shows a separate input state and does not necessarily match the visible frame.
