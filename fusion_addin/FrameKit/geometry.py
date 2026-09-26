@@ -143,7 +143,7 @@ def _create_layout(component, model):
     return sketch
 
 
-def create_frame(design, values, calculated_model=None):
+def create_frame(design, values, calculated_model=None, placement=None):
     model = calculated_model if calculated_model is not None else build_model(values)
     if model['configuration'] != values:
         raise ValueError('Vorschau und Eingaben stimmen nicht überein.')
@@ -152,7 +152,8 @@ def create_frame(design, values, calculated_model=None):
     parametric = design.designType == adsk.fusion.DesignTypes.ParametricDesignType
     if parametric:
         design.timeline.moveToEnd()
-    assembly = design.rootComponent.occurrences.addNewComponent(adsk.core.Matrix3D.create())
+    assembly = design.rootComponent.occurrences.addNewComponent(
+        placement if placement is not None else adsk.core.Matrix3D.create())
     assembly.component.name = f'FrameKit {__version__} | {frame_id[:8]}'
     timeline_groups = []
     try:

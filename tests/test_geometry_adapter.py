@@ -1,4 +1,5 @@
 """Exercise Fusion adapter contracts with a small API double, not a CAD kernel."""
+from copy import deepcopy
 import importlib.util
 import json
 from pathlib import Path
@@ -11,6 +12,21 @@ from fusion_addin.FrameKit import accessories, demo, model, bracket_library
 
 
 class Matrix:
+    def __init__(self):
+        self.origin = (0, 0, 0)
+        self.axes = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
+
+    def copy(self):
+        return deepcopy(self)
+
+    def getCell(self, row, col):
+        if row == 3:
+            return int(col == 3)
+        return self.origin[row] if col == 3 else self.axes[col][row]
+
+    def asArray(self):
+        return [self.getCell(i, j) for i in range(4) for j in range(4)]
+
     def setWithCoordinateSystem(self, origin, *axes):
         self.origin, self.axes = origin, axes
         return True
@@ -20,18 +36,42 @@ class Attributes(dict):
     def add(self, group, name, value):
         self[(group, name)] = value
 
+    def itemByName(self, group, name):
+        return NS(value=self[group, name]) if (group, name) in self else None
+
+
+class Occurrences:
+    def __init__(self, component):
+        self.component = component
+        self.addNewComponent = component.add_component
+        self.addExistingComponent = component.add_existing
+
+    def __iter__(self):
+        return iter(self.component.children)
+
 
 class Component:
     def __init__(self, design):
         self.design, self.children, self.sketch_list, self.extrusions = design, [], [], []
         self.name = ''
         self.attributes = Attributes()
-        self.occurrences = NS(addNewComponent=self.add_component, addExistingComponent=self.add_existing)
+        self.occurrences = Occurrences(self)
         self.bRepBodies = NS(add=self.add_body)
         self.imported = []
         self.xYConstructionPlane = object()
         self.sketches = NS(add=self.add_sketch)
-        self.features = NS(extrudeFeatures=NS(addSimple=self.extrude), baseFeatures=NS(add=self.base_feature))
+        self.features = NS(extrudeFeatures=NS(addSimple=self.extrude), baseFeatures=NS(add=self.base_feature),
+                           removeFeatures=NS(add=self.remove_occurrence))
+
+    @property
+    def allOccurrences(self):
+        return [o for child in self.children for o in [child, *child.component.allOccurrences]]
+
+    def remove_occurrence(self, occurrence):
+        index = self.children.index(occurrence)
+        self.children.remove(occurrence)
+        self.design.removed = (self, index, occurrence)
+        return NS(timelineObject=self.design.tick())
 
     def base_feature(self):
         return NS(timelineObject=self.design.tick(), startEdit=lambda: True, finishEdit=lambda: True)
@@ -48,11 +88,13 @@ class Component:
     def add_component(self, transform):
         component = Component(self.design)
         occurrence = NS(component=component, transform=transform, timelineObject=self.design.tick(), isValid=True,
-                        attributes=Attributes())
+                        attributes=Attributes(), transform2=transform, isLightBulbOn=True,
+                        isReferencedComponent=False, name='FrameKit test')
 
         def delete():
             occurrence.isValid = False
             self.children.remove(occurrence)
+            return True
 
         occurrence.deleteMe = delete
         self.children.append(occurrence)

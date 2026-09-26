@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.4.4**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.5.0**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert (126 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -43,7 +43,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S07 | 0.4.2 | Vereinfachte Winkelkörper und Montageraum | S04, S05, S06 | Implementiert |
 | S07a | 0.4.3 | Gelieferte STEP-Winkel, gemeinsame Komponenten und Montageflächen | S07 | In Fusion bestätigt |
 | Z02 | 0.4.4 | Cursorversatz bei Zahlen-/Texteingabe korrigieren | S07a | In Fusion bestätigt |
-| S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Geplant |
+| S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Implementiert |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | Geplant |
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | Geplant |
 | S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Geplant |
@@ -136,6 +136,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Platzierung und Mengen für Pfosten, Rahmen und Querträger anhand eines Referenzgestells nachvollziehen.
 
 ### S08 · 0.5.0 – Gestell bearbeiten
+
+**Ergebnis:** [Gestell bearbeiten](gestell_bearbeiten.md). Eigener Auswahl-/Ladebefehl, gespeicherte Profil- und Zubehörstände, Vorschau in Baugruppenlage und Neuaufbau mit ID-Erhaltung. Fremde Unterkomponenten sowie verknüpfte/mehrfach verwendete Gestelle werden zum Schutz abgelehnt. 126 lokale Tests erfolgreich; native Fusion-Prüfung von Austausch, Abbrechen und Rückgängig offen.
 
 - Vorhandene FrameKit-Baugruppe auswählen und gespeicherte Konfiguration einschließlich Bibliotheksreferenzen in den Dialog laden.
 - Änderungen zunächst in der Vorschau prüfen, anschließend kontrolliert neu aufbauen. Bestehende IDs soweit fachlich möglich erhalten.

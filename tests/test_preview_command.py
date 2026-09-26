@@ -10,7 +10,7 @@ from types import ModuleType, SimpleNamespace as NS
 import unittest
 from unittest.mock import Mock, patch
 
-from fusion_addin.FrameKit import accessories, demo, profile_library
+from fusion_addin.FrameKit import accessories, demo, profile_library, model, editing
 from test_preview import Graphics
 
 
@@ -131,7 +131,13 @@ class PreviewCommandTests(unittest.TestCase):
         utilities.handle_error = Mock()
 
         def add_handler(event, callback, local_handlers):
-            event.callback = callback
+            if not hasattr(event, 'callbacks'):
+                event.callbacks = []
+                def dispatch(args):
+                    for handler in list(event.callbacks):
+                        handler(args)
+                event.callback = dispatch
+            event.callbacks.append(callback)
             local_handlers.append(callback)
 
         utilities.add_handler = add_handler
@@ -415,6 +421,109 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertEqual(self.controls['rotation_frame'].selectedItem.index, 3)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
 
+    def open_edit(self, values=None, chooser=False):
+        from test_geometry_adapter import Matrix
+        self.fire('destroy')
+        values = deepcopy(values if values is not None else demo.DEFAULTS)
+        values.setdefault('brackets', False)
+        values.setdefault('brackets_double', False)
+        occurrence = NS(name='FrameKit saved', isLightBulbOn=True, isValid=True)
+        transform = Matrix()
+        transform.origin = (100, 0, 0)
+        context = dict(occurrence=occurrence, values=values, model=model.build_model(values),
+                       design=self.design, transform=transform)
+        self.controls = {}
+        self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(),
+                          **{name: NS() for name in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy')})
+        if not chooser:
+            self.entry.command_created(NS(command=self.command), context)
+        return context
+
+    def test_edit_selection_loads_target_and_requires_load_before_execute(self):
+        context = self.open_edit(dict(demo.DEFAULTS, length=1300), chooser=True)
+        other = NS(name='Other frame')
+        with patch.object(editing, 'frames', return_value=[other, context['occurrence']]), \
+                patch.object(editing, 'load', return_value=context) as load:
+            self.entry.edit_created(NS(command=self.command))
+            self.assertFalse(self.fire('validateInputs').areInputsValid)
+            self.select('edit_target', 1)
+            self.change('edit_load', True)
+            load.assert_called_once_with(self.design, context['occurrence'])
+        self.assertFalse(self.controls['edit_selection'].isVisible)
+        self.assertEqual(self.controls['length'].value, 130)
+        self.assertEqual(self.command.okButtonText, 'Neu aufbauen')
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+
+    def test_edit_selection_reports_missing_frames_and_invalid_data(self):
+        context = self.open_edit(chooser=True)
+        with patch.object(editing, 'frames', return_value=[]):
+            self.entry.edit_created(NS(command=self.command))
+        self.assertFalse(self.controls['edit_load'].isEnabled)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        context = self.open_edit(chooser=True)
+        with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
+                patch.object(editing, 'load', side_effect=ValueError('Nicht unterstützte Konfigurationsversion.')):
+            self.entry.edit_created(NS(command=self.command))
+            self.change('edit_load', True)
+        self.assertIn('Konfigurationsversion', self.controls['edit_status'].text)
+        self.assertTrue(self.controls['edit_selection'].isVisible)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertNotIn('length', self.controls)
+
+    def test_edit_preview_failure_restores_visibility_and_does_not_replace(self):
+        context = self.open_edit()
+        self.graphics.fail_kind = 'mesh'
+        with patch.object(editing, 'check_current'), patch.object(editing, 'replace') as rebuild:
+            self.change('show_preview', True)
+            self.fire('executePreview')
+            self.assertTrue(context['occurrence'].isLightBulbOn)
+            self.assertEqual(self.graphics.groups, [])
+            self.assertIn('Vorschau nicht verfügbar', self.controls['preview_status'].text)
+            rebuild.assert_not_called()
+
+    def test_edit_preview_and_cancel_restore_original_without_building(self):
+        context = self.open_edit()
+        with patch.object(editing, 'check_current'), patch.object(editing, 'replace') as rebuild:
+            self.show()
+            self.assertFalse(context['occurrence'].isLightBulbOn)
+            self.assertGreaterEqual(min(self.graphics.groups[0].entities[0].points[::3]), 100)
+            self.change('length', 100)
+            self.assertTrue(context['occurrence'].isLightBulbOn)
+            self.fire('executePreview')
+            self.assertFalse(context['occurrence'].isLightBulbOn)
+            self.fire('destroy')
+            self.assertTrue(context['occurrence'].isLightBulbOn)
+            self.assertEqual(self.graphics.groups, [])
+            rebuild.assert_not_called()
+        self.create_frame.assert_not_called()
+
+    def test_edit_execute_uses_previous_ids_and_signals_transaction_failure(self):
+        context = self.open_edit()
+        with patch.object(editing, 'replace') as rebuild:
+            self.change('length', 100)
+            self.fire('execute')
+            received, values, calculated = rebuild.call_args.args
+            self.assertIs(received, context)
+            self.assertEqual(values['length'], 1000)
+            self.assertEqual(calculated['assembly_id'], context['model']['assembly_id'])
+            self.assertEqual(calculated['id_registry'], context['model']['id_registry'])
+            rebuild.side_effect = RuntimeError('Rebuild failed')
+            failure = self.fire('execute')
+            self.assertTrue(failure.executeFailed)
+            self.assertIn('Rebuild failed', failure.executeFailedMessage)
+        self.create_frame.assert_not_called()
+
+    def test_edit_uses_saved_dxf_after_library_and_file_are_gone(self):
+        from test_sections import rectangle
+        with tempfile.TemporaryDirectory() as folder:
+            definition = rectangle(folder, 30, 30)
+        context = self.open_edit(dict(demo.DEFAULTS, profile=30, profile_definition=definition))
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+        with patch.object(editing, 'replace') as rebuild:
+            self.fire('execute')
+            self.assertEqual(rebuild.call_args.args[1]['profile_definition'], definition)
+            self.assertEqual(rebuild.call_args.args[2]['profiles'], context['model']['profiles'])
+
     def test_typing_does_not_rewrite_editors_or_layout_and_validation_is_read_only(self):
         original = Control.__setattr__
         writes = []
@@ -545,6 +654,9 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertIn('#B71C1C', self.controls['profile_status'].formattedText)
 
     def test_loading_warnings_are_formatted_and_user_names_are_escaped(self):
+        self.fire('destroy')
+        for event in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy'):
+            setattr(self.command, event, NS())
         with patch.object(self.entry.settings, 'load', return_value=(deepcopy(demo.DEFAULTS), 'Warnung <x>')):
             self.entry.command_created(NS(command=self.command))
         self.assertIn('#854700', self.controls['settings_status'].formattedText)

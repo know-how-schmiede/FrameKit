@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.5.0
+
+**Git-Zusammenfassung:** `feat: Vorhandene FrameKit-Gestelle bearbeiten und neu aufbauen (S08)`
+
+- Eigener Befehl zum Auswählen und Laden gespeicherter Gestelle; Migration früherer Demo-Konfigurationen und Erhaltung eingebetteter Profil-/Zubehörstände.
+- Vorschau berücksichtigt Position/Drehung und stellt beim Abbrechen die Sichtbarkeit wieder her. Neuaufbau erhält Gestell-/Bauteil-IDs und ersetzt den alten Stand erst nach erfolgreicher Erstellung.
+- Fremde Unterkomponenten und gemeinsam verwendete/verknüpfte Gestelle geschützt; Fehler melden den Abbruch der Fusion-Befehlstransaktion.
+
+**Prüfstand:** 126 lokale Tests erfolgreich. Native Fusion-Prüfung, insbesondere Rückgängig/Wiederholen und Wiederherstellung nach Fehlern, offen.
+
+**Details:** [Gestell bearbeiten](gestell_bearbeiten.md)
+
 ## 26.09.2026 – 0.4.4
 
 **Benutzerbestätigung vom 26.09.2026:** Eingabefehler in 0.4.4 beseitigt; Z02 in Fusion bestätigt.

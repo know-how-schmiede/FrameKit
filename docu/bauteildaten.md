@@ -1,6 +1,6 @@
 # Bauteildaten und Baugruppenstruktur – ab 0.1.5
 
-Dieses Dokument beschreibt **S01** aus dem [Ablaufplan](ablaufplan.md). Seit S02 / 0.2.0 verwenden auch [Vorschau und Layout](vorschau_layout.md) diese Bauteildaten. Seit S04 / 0.3.0 werden echte DXF-Profilquerschnitte unterstützt; die Bearbeitung vorhandener Gestelle folgt in S08.
+Dieses Dokument beschreibt **S01** aus dem [Ablaufplan](ablaufplan.md). Seit S02 / 0.2.0 verwenden auch [Vorschau und Layout](vorschau_layout.md) diese Bauteildaten. Seit S04 / 0.3.0 werden echte DXF-Profilquerschnitte unterstützt; seit S08 / 0.5.0 können vorhandene Gestelle [bearbeitet und neu aufgebaut](gestell_bearbeiten.md) werden.
 
 ## Berechnung und Geometrie
 
@@ -27,7 +27,7 @@ Jedes Bauteil enthält ID, eindeutige Gesamtkennung, Rolle, Funktion, Gruppe, La
 - Sprachunabhängige Schlüssel wie `post:front:left`, `top:beam:front` oder `shelf:01:panel` bezeichnen die Funktion im Gestell. IDs hängen weder vom Anzeigenamen noch von Maßen oder Bibliotheksnamen ab.
 - `build_model(values, previous=last_model)` behält die Gestellkennung und bestehende ID-Zuordnungen bei einer Neuberechnung. Neue Rollen erhalten neue Nummern; vorübergehend entfallene Rollen bleiben in der Zuordnung reserviert.
 - Bodenrollen werden von unten nach oben nummeriert. Eine Änderung der Anzahl ergänzt oder entfernt obere Ebenen. Individuelles Löschen oder Einfügen einer mittleren Ebene ist noch keine unterstützte Bearbeitungsfunktion.
-- Der vorhandene Befehl erstellt weiterhin eine **neue** Baugruppe. Das erneute Laden und Bearbeiten einer ausgewählten Baugruppe folgt in **S08 / 0.5.0**. Die ID-Erhaltung bei Neuberechnung ist dafür vorbereitet und lokal getestet.
+- Der vorhandene Befehl erstellt weiterhin eine **neue** Baugruppe. Der zusätzliche Befehl **Gestell bearbeiten** lädt seit **S08 / 0.5.0** eine ausgewählte Hauptbaugruppe und erhält die IDs beim Neuaufbau.
 
 ## Fusion-Browser und Eigenschaften
 

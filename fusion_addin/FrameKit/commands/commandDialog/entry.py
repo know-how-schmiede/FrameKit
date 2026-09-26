@@ -4,7 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import accessories, config, demo, settings, profile_library
+from ... import accessories, config, demo, settings, profile_library, editing
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
@@ -14,6 +14,7 @@ from ...version import __version__
 from ...lib import fusionAddInUtils as futil
 
 CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_CreateFrame'
+EDIT_CMD_ID = CMD_ID + '_Edit'
 WORKSPACE_ID = 'FusionSolidEnvironment'
 PANEL_ID = 'SolidCreatePanel'
 RESOURCES = Path(__file__).resolve().parents[2] / 'resources'
@@ -29,13 +30,15 @@ def start():
     if panel is None:
         raise RuntimeError('Fusion-Bereich Volumenkörper / Erstellen nicht gefunden.')
     stop()
-    definition = ui.commandDefinitions.addButtonDefinition(
-        CMD_ID, f'FrameKit {__version__}', 'Ein Gestell aus Demo- oder DXF-Profilen erstellen.',
-        str(RESOURCES / 'CreateFrame'))
-    futil.add_handler(definition.commandCreated, command_created, local_handlers=_handlers)
-    control = panel.controls.addCommand(definition)
-    control.isPromotedByDefault = True
-    control.isPromoted = True
+    for identifier, title, description, callback in (
+            (CMD_ID, f'FrameKit {__version__}', 'Ein neues Gestell erstellen.', command_created),
+            (EDIT_CMD_ID, 'FrameKit: Gestell bearbeiten', 'Gespeichertes Gestell laden und neu aufbauen.', edit_created)):
+        definition = ui.commandDefinitions.addButtonDefinition(
+            identifier, title, description, str(RESOURCES / 'CreateFrame'))
+        futil.add_handler(definition.commandCreated, callback, local_handlers=_handlers)
+        control = panel.controls.addCommand(definition)
+        control.isPromotedByDefault = True
+        control.isPromoted = True
 
 
 def stop():
@@ -45,23 +48,81 @@ def stop():
     ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
     panel = workspace.toolbarPanels.itemById(PANEL_ID) if workspace else None
-    control = panel.controls.itemById(CMD_ID) if panel else None
-    if control:
-        control.deleteMe()
-    definition = ui.commandDefinitions.itemById(CMD_ID)
-    if definition:
-        definition.deleteMe()
+    for identifier in (CMD_ID, EDIT_CMD_ID):
+        control = panel.controls.itemById(identifier) if panel else None
+        if control:
+            control.deleteMe()
+        definition = ui.commandDefinitions.itemById(identifier)
+        if definition:
+            definition.deleteMe()
     _handlers.clear()
     _dialog_handlers.clear()
 
 
-def command_created(args):
+def edit_created(args):
+    app = adsk.core.Application.get()
+    command = args.command
+    command.setDialogInitialSize(580, 320)
+    command.okButtonText = 'Neu aufbauen'
+    group = command.commandInputs.addGroupCommandInput('edit_selection', 'Gestell auswählen')
+    group.isExpanded = True
+    inputs = group.children
+    choices = inputs.addDropDownCommandInput('edit_target', 'Vorhandenes Gestell',
+                                             adsk.core.DropDownStyles.TextListDropDownStyle)
+    load_button = inputs.addBoolValueInput('edit_load', 'Gestell laden', False, '', False)
+    status = inputs.addTextBoxCommandInput('edit_status', '', '', 4, True)
+    design = adsk.fusion.Design.cast(app.activeProduct)
+    candidates = editing.frames(design) if design else []
+    for index, occurrence in enumerate(candidates):
+        choices.listItems.add(f'{index+1}: {occurrence.name}', index == 0)
+    if not candidates:
+        choices.listItems.add('Keine FrameKit-Hauptbaugruppe vorhanden', True)
+        load_button.isEnabled = False
+        set_status(status, 'Ein Dokument mit einem gespeicherten FrameKit-Gestell öffnen.', 'warning')
+    else:
+        set_status(status, 'Gestell auswählen und laden. Erst „Neu aufbauen“ ersetzt die erzeugten Bauteile.')
+    handlers = []
+    _dialog_handlers.append(handlers)
+    loaded = False
+
+    def select_changed(event):
+        nonlocal loaded
+        if loaded or event.input.id != load_button.id or not load_button.value:
+            return
+        try:
+            context = editing.load(design, candidates[choices.selectedItem.index])
+            loaded = True  # Guard against events while the edit controls are built.
+            group.isVisible = False
+            command_created(args, context)
+        except Exception as exc:
+            loaded = False
+            group.isVisible = True
+            set_status(status, str(exc), 'error')
+        finally:
+            load_button.value = False
+
+    def validate_selection(event):
+        if not loaded:
+            event.areInputsValid = False
+
+    def destroy_selection(event):
+        if handlers in _dialog_handlers:
+            _dialog_handlers.remove(handlers)
+        handlers.clear()
+
+    for event, callback in ((command.inputChanged, select_changed),
+                            (command.validateInputs, validate_selection),
+                            (command.destroy, destroy_selection)):
+        futil.add_handler(event, callback, local_handlers=handlers)
+
+
+def command_created(args, edit_context=None):
     app = adsk.core.Application.get()
     command = args.command
     command.setDialogInitialSize(580, 640)
-    command.okButtonText = 'Ausführen'
+    command.okButtonText = 'Neu aufbauen' if edit_context else 'Ausführen'
     inputs = command.commandInputs
-    values, warning = settings.load()
+    values, warning = (deepcopy(edit_context['values']), '') if edit_context else settings.load()
     library, library_warning = settings.load_library()
     profiles, profiles_warning = profile_library.load()
     def dropdown(parent, identifier, label, choices, selected):
@@ -78,6 +139,11 @@ def command_created(args):
 
     frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
     frame_inputs = frame.children
+    if edit_context:
+        frame_inputs.addTextBoxCommandInput('edit_notice', '',
+            'Bearbeiten: ' + html.escape(edit_context['occurrence'].name) + '<br>'
+            'Manuelle Änderungen an erzeugten Bauteilen werden ersetzt. Externe Flächenreferenzen '
+            'können ungültig werden. Abbrechen erhält das bisherige Gestell.', 4, True)
     frame_inputs.addTextBoxCommandInput('intro', '',
         '<b>FrameKit</b><br>Gestell aus Demo-Vollprofilen oder eigenen DXF-Profilen. '
         'STEP-Winkel optional; keine Tragfähigkeitsberechnung.', 3, True)
@@ -187,7 +253,9 @@ def command_created(args):
         'Montagehöhe optional zwei parallele Winkel. Gemeinsam unter „91 | Winkel“ '
         'ein-/ausblendbar. Vorschau: Montagehüllen in Originalgröße.', 3, True)
     bracket_status = frame_inputs.addTextBoxCommandInput('bracket_status', '', '', 3, True)
-    create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell erstellen', True, '', True)
+    create = frame_inputs.addBoolValueInput('create_geometry', 'Gestell neu aufbauen' if edit_context else 'Gestell erstellen', True, '', True)
+    if edit_context:
+        create.isEnabled = False
     preview_inputs = collapsed_group(frame_inputs, 'preview_options', 'Vorschau').children
     show_preview = preview_inputs.addBoolValueInput('show_preview', 'Vorschau anzeigen', True, '', False)
     show_panels = preview_inputs.addBoolValueInput('preview_panels', 'Bodenflächen anzeigen', True, '', True)
@@ -298,9 +366,11 @@ def command_created(args):
         selectable_profiles = list(profiles)
         for selection in previous_sections.values():
             spec = selection.get('definition') if selection else None
-            if spec and not any(p['id'] == spec['id'] for p in selectable_profiles):
+            if spec:
+                selectable_profiles = [p for p in selectable_profiles if p['id'] != spec['id']]
                 selectable_profiles.append(spec)
-        if saved and not any(spec['id'] == saved['id'] for spec in selectable_profiles):
+        if saved:
+            selectable_profiles = [p for p in selectable_profiles if p['id'] != saved['id']]
             selectable_profiles.append(saved)
         profile_choice.listItems.clear()
         profile_choice.listItems.add('Demo-Vollprofil (einstellbare Breite)', True)
@@ -406,7 +476,25 @@ def command_created(args):
     _dialog_handlers.append(handlers)
     preview = Preview()
     _previews.append(preview)
-    calculated_model = None
+    calculated_model = deepcopy(edit_context['model']) if edit_context else None
+    edit_committed = False
+    original_visibility = edit_context['occurrence'].isLightBulbOn if edit_context else None
+
+    def clear_preview():
+        preview.clear()
+        if edit_context and not edit_committed and edit_context['occurrence'].isValid:
+            set_if_changed(edit_context['occurrence'], 'isLightBulbOn', original_visibility)
+
+    def display_model(current):
+        calculated = current_model(current)
+        return editing.preview_model(calculated, edit_context['transform']) if edit_context else calculated
+
+    def verify_profile(definition):
+        if edit_context and any(definition == saved for saved in edit_context['model']['profiles'].values()):
+            return  # Validated embedded contour; the external DXF may no longer exist.
+        if not any(spec['id'] == definition['id'] for spec in profiles):
+            raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
+        profile_library.verify_source(definition)
     preview_fit_pending = True
 
     def current_model(current):
@@ -424,9 +512,7 @@ def command_created(args):
                   if key != 'profile' or definition is None}
         result['profile_definition'] = deepcopy(definition)
         if definition is not None:
-            if not any(spec['id'] == definition['id'] for spec in profiles):
-                raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
-            profile_library.verify_source(definition)
+            verify_profile(definition)
             result['profile'] = definition['width_mm']
         if common_rotation.selectedItem.index:
             result['profile_rotation'] = common_rotation.selectedItem.index*90
@@ -456,9 +542,7 @@ def command_created(args):
         for selection in used:
             definition = selection.get('definition') if selection else None
             if definition:
-                if not any(spec['id'] == definition['id'] for spec in profiles):
-                    raise ValueError('Gespeichertes Profil fehlt in der Bibliothek. Neu importieren oder anderes Profil wählen.')
-                profile_library.verify_source(definition)
+                verify_profile(definition)
         if not thickness.isValidExpression:
             raise ValueError('Bitte eine gültige Plattenstärke eingeben.')
         result['shelf_thickness'] = thickness.value * 10
@@ -538,7 +622,7 @@ def command_created(args):
             return
         if event.input.id in (show_preview.id, create.id):
             preview_fit_pending = True
-        preview.clear()
+        clear_preview()
         set_status(preview_status)
         if event.input.id == profile_unit.id:
             pending_profile = None
@@ -745,37 +829,50 @@ def command_created(args):
         # Graphics are not a completed command result: OK must always run execute.
         event.isValidResult = False
         try:
-            preview.clear()
+            clear_preview()
             if not create.value or not show_preview.value:
                 return
             current = read_values()
             design = adsk.fusion.Design.cast(app.activeProduct)
             if not design:
                 return
-            preview.show(design, current_model(current), show_panels.value, show_accessories.value)
+            if edit_context:
+                if design != edit_context['design']:
+                    raise ValueError('Das aktive Dokument hat sich geändert. Dialog erneut öffnen.')
+                editing.check_current(edit_context)
+                edit_context['occurrence'].isLightBulbOn = False
+            preview.show(design, display_model(current), show_panels.value, show_accessories.value)
             set_status(preview_status)
             if preview_fit_pending:
                 try:
-                    fit_preview(app.activeViewport, current_model(current))
+                    fit_preview(app.activeViewport, display_model(current))
                     preview_fit_pending = False
                 except Exception as exc:
                     set_status(preview_status, f'Vorschau sichtbar, Einpassen fehlgeschlagen: {exc}', 'warning')
             app.activeViewport.refresh()
         except Exception as exc:
-            preview.clear()
+            clear_preview()
             set_status(preview_status, f'Vorschau nicht verfügbar: {exc}', 'error')
             futil.handle_error('FrameKit-Vorschau', show_message_box=False)
 
     def execute(event):
+        nonlocal edit_committed
         try:
-            preview.clear()
+            clear_preview()
             current = read_values()
             if create.value:
                 design = adsk.fusion.Design.cast(app.activeProduct)
                 if not design:
                     raise ValueError('Bitte ein Fusion-Konstruktionsdokument öffnen.')
-                create_frame(design, current, current_model(current))
-                app.activeViewport.fit()
+                if edit_context:
+                    if design != edit_context['design']:
+                        raise ValueError('Das aktive Dokument hat sich geändert. Dialog erneut öffnen.')
+                    editing.replace(edit_context, current, current_model(current))
+                    edit_committed = True
+                    fit_preview(app.activeViewport, display_model(current))
+                else:
+                    create_frame(design, current, current_model(current))
+                    app.activeViewport.fit()
             if persist.value:
                 try:
                     settings.save(current)
@@ -784,13 +881,14 @@ def command_created(args):
                     set_status(settings_status, f'Standardwerte nicht gespeichert: {exc}', 'error')
                     raise
         except Exception as exc:
+            edit_committed = False
             set_status(error, f'FrameKit: {exc}', 'error')
             event.executeFailed = True
             event.executeFailedMessage = f'FrameKit: {exc}'
             futil.handle_error('FrameKit ausführen')
 
     def destroy(event):
-        preview.clear()
+        clear_preview()
         if preview in _previews:
             _previews.remove(preview)
         if handlers in _dialog_handlers:

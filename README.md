@@ -8,7 +8,7 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.4.4**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.5.0**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
 Neu in **0.3.0**: lokale DXF-Profilbibliothek mit Importprüfung, Maßbestätigung, Auswahl und Löschen. Quadratische Querschnitte mit Mittelpunkt im Ursprung werden einschließlich Nuten und Hohlräumen extrudiert. Unterstützte DXF-Elemente, Speicherort und Fusion-Prüfschritte: [Profilbibliothek und DXF-Import](docu/profilbibliothek_dxf.md). Querträger und wählbare Deckplattenmontage aus 0.2.1 bleiben enthalten.
 
@@ -21,6 +21,8 @@ Neu in **0.4.1**: farbige Fehler und Warnhinweise in allen Dialogbereichen. Beim
 Neu in **0.4.3**: Die bereitgestellten STEP-Winkel 20/30/40 mm ersetzen die Dreieckplatzhalter. Pro Größe wird eine Komponente mehrfach platziert, mit Auflage an den Profilaußenflächen und gemeinsamer Sichtbarkeitsgruppe **91 | Winkel**. Die Vorschau zeigt Montagehüllen in Originalgröße. Zubehörfehler erscheinen zusätzlich direkt unter der Fuß-/Rollenauswahl. [Winkel und Prüfschritte](docu/winkel.md); am 26.09.2026 vom Benutzer als funktionsfähig in Fusion bestätigt.
 
 Neu in **0.4.4**: Dialogaktualisierung gegen Cursorversatz beim Tippen korrigiert (gemeldet: `600` erscheint als `006`). Unveränderte Feldzustände und Hinweise werden nicht erneut geschrieben; die Eingabeprüfung verändert keine Dialogfelder. 110 lokale Tests erfolgreich; der Benutzer hat am 26.09.2026 bestätigt, dass der Eingabefehler in Fusion behoben ist.
+
+Neu in **0.5.0 (S08)**: **FrameKit: Gestell bearbeiten** lädt eine vorhandene Hauptbaugruppe mit ihren gespeicherten Einstellungen. Vorschau, kontrollierter Neuaufbau und Erhaltung bestehender Bauteil-IDs sind umgesetzt. Manuelle Änderungen an generierten Teilen werden ersetzt; fremde Unterkomponenten blockieren den Neuaufbau. [Bedienung und Prüfschritte](docu/gestell_bearbeiten.md). 126 lokale Tests erfolgreich; Fusion-Prüfung einschließlich Rückgängig noch offen.
 
 ## Screenshots
 

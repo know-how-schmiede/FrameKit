@@ -22,7 +22,7 @@ def build_model(values, previous=None):
     """Recalculate; pass the last model to retain assembly and part identities.
 
     Shelf keys use the bottom-to-top level index. Removing a middle shelf is not
-    yet a supported edit operation (S08); increasing/decreasing count acts at top.
+    a supported edit operation; increasing/decreasing count acts at top.
     """
     validate(values)
     if previous is not None:
