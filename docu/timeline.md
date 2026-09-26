@@ -2,6 +2,30 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.5.2
+
+**Git-Zusammenfassung:** `fix: Vorschau explizit anfordern und gegen Anzeigeereignisse schützen (0.5.2)`
+
+- Benutzer bestätigt den korrigierten Dialog aus 0.5.1; Vorschau bleibt trotz aktivierter Option unsichtbar. Im aktuellen lokalen Fusion-Protokoll kein Vorschau-Traceback gefunden.
+- Native Vorschauanforderung beim Einschalten und nach gültigen Eingabeänderungen; fehlgeschlagene Anforderung wird als Fehler angezeigt.
+- Reine Anzeigeereignisse und verschachtelte Rückrufe löschen keine gültige Vorschaugrafik mehr.
+
+**Prüfstand:** 131 lokale Tests erfolgreich. Neue Tests simulieren ausbleibende automatische Vorschauereignisse, Anzeigeereignisse, verschachtelte Rückrufe und eine abgelehnte Vorschauanforderung. Fusion-Bestätigung noch offen.
+
+**Details:** [Gestell bearbeiten](gestell_bearbeiten.md)
+
+## 26.09.2026 – 0.5.1
+
+**Git-Zusammenfassung:** `fix: Bearbeitungsdialog beim Laden sichtbar halten (0.5.1)`
+
+- Reiter einmalig beim Öffnen anlegen; die Gestellauswahl liegt im ersten Reiter. Keine nachträgliche Umstellung vom Gruppendialog auf Reiter.
+- Dauerhafte Command-Referenz statt erneutem Zugriff auf alte CommandCreated-Ereignisargumente. Auswahl erst nach vollständigem Laden ausblenden.
+- Fehler beim Aufbau bleiben sichtbar und sperren den Neuaufbau, auch wenn bereits Dialoghandler registriert wurden.
+
+**Prüfstand:** 128 lokale Tests erfolgreich, einschließlich abgelaufener Ereignisargumente, Wiederverwendung vorhandener Reiter und Fehler nach teilweisem Dialogaufbau. Der leere Dialog wurde in Fusion gemeldet; Bestätigung der Korrektur noch offen.
+
+**Details:** [Gestell bearbeiten](gestell_bearbeiten.md)
+
 ## 26.09.2026 – 0.5.0
 
 **Git-Zusammenfassung:** `feat: Vorhandene FrameKit-Gestelle bearbeiten und neu aufbauen (S08)`

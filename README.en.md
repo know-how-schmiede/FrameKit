@@ -8,7 +8,7 @@ FrameKit is a planned add-in for Autodesk Fusion that creates a bolted support f
 
 ## Project status
 
-The integration demo (**0.5.0**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
+The integration demo (**0.5.2**) is available in [`fusion_addin/FrameKit`](fusion_addin/FrameKit). It provides three dialog tabs, saved defaults, and a frame made from demo solid profiles or imported DXF sections with optional shelves, followed by an automatic fit of all visible geometry in the viewport. Feet and casters can be selected as cylindrical placeholders; custom entries can be saved and deleted. Each frame carries a panel; the top panel can also sit above the posts without corner cutouts. Shelf count, individual heights, and panel thickness are configurable; blank heights are spaced automatically. See the [demo installation and test guide](docu/demo_installation.md) (German) for setup and current verification status. The features below describe the planned full scope.
 
 New in **0.3.0**: a local DXF profile library with import validation, dimension confirmation, selection and deletion. Square sections centered at the origin retain their grooves and cavities when extruded. See [Profile library and DXF import](docu/profilbibliothek_dxf.md) (German) for supported entities, storage and Fusion verification. Cross members and top panel mounting from 0.2.1 remain available.
 
@@ -23,6 +23,10 @@ New in **0.4.3**: supplied 20/30/40 mm STEP brackets replace the triangular plac
 New in **0.4.4**: corrected dialog refresh behavior to address caret movement while typing (reported: `600` appears as `006`). Unchanged field states and messages are no longer rewritten; input validation does not modify dialog controls. 110 local tests pass; the user confirmed on 2026-09-26 that the input bug is fixed in Fusion.
 
 New in **0.5.0 (S08)**: **FrameKit: Gestell bearbeiten** loads an existing root assembly and its saved settings. Preview, controlled rebuilding, and preservation of existing part IDs are implemented. Manual edits to generated parts are replaced; foreign child components block rebuilding. See [Usage and verification](docu/gestell_bearbeiten.md) (German). 126 local tests pass; Fusion verification, including Undo, is pending.
+
+Fix in **0.5.1**: the edit dialog creates its tabs when the command opens and reuses them when loading a frame. Frame selection stays visible until all editor controls are ready; construction errors are shown and block rebuilding. 128 local tests pass; the user confirmed the dialog fix in Fusion, then reported a missing preview.
+
+Fix in **0.5.2**: explicitly request the Fusion preview when enabled and after valid input changes. Display-only and nested preview events no longer clear the graphics. The user confirmed the 0.5.1 dialog fix; the preview fix still requires verification in Fusion. 131 local tests pass.
 
 ## Screenshots
 

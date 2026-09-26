@@ -1,4 +1,4 @@
-# Vorhandenes Gestell bearbeiten – S08 / 0.5.0
+# Vorhandenes Gestell bearbeiten – S08 / 0.5.2
 
 Unter **Volumenkörper → Erstellen → FrameKit: Gestell bearbeiten** kann eine gespeicherte FrameKit-Hauptbaugruppe im aktiven Dokument ausgewählt werden. Der bisherige FrameKit-Befehl erstellt weiterhin neue, unabhängige Gestelle.
 
@@ -29,7 +29,7 @@ API-Grundlagen: [Transaktion bei executeFailed abbrechen](https://help.autodesk.
 
 ## Prüfstand
 
-**126 lokale Tests erfolgreich.** Neue Prüfungen umfassen Konfigurationsmigration, Schemafehler, eingebettete DXF-Daten, ID-Erhaltung, Auswahl mehrerer Gestelle, verschobene/gedrehte Vorschau, Abbrechen, Sichtbarkeitswiederherstellung, fehlgeschlagenen Aufbau und Schutz fremder Komponenten. Fusion-API-Ereignisse und Geometrieadapter werden dabei durch Testobjekte ersetzt.
+**131 lokale Tests erfolgreich.** Neue Prüfungen umfassen Konfigurationsmigration, Schemafehler, eingebettete DXF-Daten, ID-Erhaltung, Auswahl mehrerer Gestelle, verschobene/gedrehte Vorschau, Abbrechen, Sichtbarkeitswiederherstellung, fehlgeschlagenen Aufbau und Schutz fremder Komponenten. Fusion-API-Ereignisse und Geometrieadapter werden dabei durch Testobjekte ersetzt.
 
 **Die praktische Prüfung in Fusion ist offen**, insbesondere:
 
@@ -42,3 +42,11 @@ API-Grundlagen: [Transaktion bei executeFailed abbrechen](https://help.autodesk.
 7. Profile/Bibliothek entfernen, gespeichertes Gestell öffnen und mit eingebetteten Konturen bearbeiten; unbekannte Altstände und fremde Unterkomponenten auf verständliche Fehlermeldungen prüfen.
 
 [Ablaufplan](ablaufplan.md) · [Installation](demo_installation.md)
+
+## Dialogkorrektur 0.5.1
+
+Der in Fusion gemeldete leere Bearbeitungsdialog wird durch einen durchgängigen Reiteraufbau adressiert. Alle drei Reiter werden beim Öffnen angelegt; die Auswahl befindet sich im ersten Reiter. Beim Laden werden die vorhandenen Reiter befüllt, ohne alte CommandCreated-Ereignisargumente erneut zu verwenden. Die Auswahl wird erst nach erfolgreichem Aufbau ausgeblendet. Fehler bleiben sichtbar und verhindern den Neuaufbau. Nach dem Update das Add-in neu starten und besonders **Gestell bearbeiten → Gestell laden** prüfen; Der Benutzer hat den Dialogaufbau inzwischen bestätigt.
+
+## Vorschaukorrektur 0.5.2
+
+Trotz aktivierter Vorschau wurde keine Grafik angezeigt. FrameKit fordert die Vorschau nun beim Einschalten und nach gültigen Eingabeänderungen ausdrücklich mit [Command.doExecutePreview](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_Command_doExecutePreview.htm) an. Status-, Gruppen- und Reiterereignisse sowie verschachtelte Rückrufe während des Renderns entfernen die Grafik nicht. Eine abgelehnte native Vorschauanforderung wird im Vorschauabschnitt gemeldet. Nach Neustart mit einem geladenen Gestell Einschalten, Maßänderung, Ausschalten und Abbrechen prüfen. Die Bestätigung dieser Korrektur in Fusion steht noch aus.

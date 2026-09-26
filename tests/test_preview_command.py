@@ -76,7 +76,7 @@ class Inputs:
         return result
 
     def addTabCommandInput(self, identifier, name, *args):
-        return self.add(identifier, name, children=Inputs(self.registry))
+        return self.add(identifier, name, children=Inputs(self.registry), activate=Mock(return_value=True))
 
     addGroupCommandInput = addTabCommandInput
 
@@ -173,7 +173,7 @@ class PreviewCommandTests(unittest.TestCase):
         self.save_defaults = save.start()
         self.addCleanup(save.stop)
         self.controls = {}
-        self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(),
+        self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(), doExecutePreview=Mock(return_value=True),
                           **{name: NS() for name in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy')})
         self.entry.command_created(NS(command=self.command))
 
@@ -433,7 +433,7 @@ class PreviewCommandTests(unittest.TestCase):
         context = dict(occurrence=occurrence, values=values, model=model.build_model(values),
                        design=self.design, transform=transform)
         self.controls = {}
-        self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(),
+        self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(), doExecutePreview=Mock(return_value=True),
                           **{name: NS() for name in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy')})
         if not chooser:
             self.entry.command_created(NS(command=self.command), context)
@@ -453,6 +453,57 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertEqual(self.controls['length'].value, 130)
         self.assertEqual(self.command.okButtonText, 'Neu aufbauen')
         self.assertTrue(self.fire('validateInputs').areInputsValid)
+
+    def test_edit_load_reuses_tabs_without_accessing_expired_created_event(self):
+        context = self.open_edit(chooser=True)
+        class CreatedEvent:
+            expired = False
+            @property
+            def command(event):
+                if event.expired:
+                    raise RuntimeError('CommandCreatedEventArgs is no longer valid')
+                return self.command
+        args = CreatedEvent()
+        with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
+                patch.object(editing, 'load', return_value=context), \
+                patch.object(self.command.commandInputs, 'addGroupCommandInput',
+                             side_effect=AssertionError('Only tabs at the root')):
+            self.entry.edit_created(args)
+            tabs = {key: self.controls[key] for key in ('frame_tab', 'settings_tab', 'info_tab')}
+            self.assertTrue(tabs['frame_tab'].isVisible)
+            self.assertFalse(tabs['settings_tab'].isVisible)
+            self.assertFalse(tabs['info_tab'].isVisible)
+            args.expired = True
+            with patch.object(self.command.commandInputs, 'addTabCommandInput',
+                              side_effect=AssertionError('Do not create tabs during inputChanged')):
+                self.change('edit_load', True)
+        for key, tab in tabs.items():
+            self.assertIs(self.controls[key], tab)
+            self.assertTrue(tab.isVisible)
+        self.assertFalse(self.controls['edit_selection'].isVisible)
+        self.assertIn('length', self.controls)
+        self.assertTrue(self.fire('validateInputs').areInputsValid)
+
+    def test_failed_editor_construction_keeps_selection_and_error_visible(self):
+        context = self.open_edit(chooser=True)
+        original_build = self.entry.build_dialog
+        def fail_build(*args, **kwargs):
+            original_build(*args, **kwargs)
+            self.assertTrue(self.controls['edit_selection'].isVisible)
+            raise RuntimeError('Native control failed')
+        with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
+                patch.object(editing, 'load', return_value=context):
+            self.entry.edit_created(NS(command=self.command))
+            with patch.object(self.entry, 'build_dialog', side_effect=fail_build):
+                self.change('edit_load', True)
+        self.assertTrue(self.controls['edit_selection'].isVisible)
+        self.assertFalse(self.controls['edit_load'].isEnabled)
+        self.assertIn('Native control failed', self.controls['edit_status'].text)
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        with patch.object(editing, 'replace') as rebuild:
+            self.assertTrue(self.fire('execute').executeFailed)
+            rebuild.assert_not_called()
+        self.create_frame.assert_not_called()
 
     def test_edit_selection_reports_missing_frames_and_invalid_data(self):
         context = self.open_edit(chooser=True)
@@ -480,6 +531,50 @@ class PreviewCommandTests(unittest.TestCase):
             self.assertEqual(self.graphics.groups, [])
             self.assertIn('Vorschau nicht verfügbar', self.controls['preview_status'].text)
             rebuild.assert_not_called()
+
+    def test_edit_requests_native_preview_without_waiting_for_automatic_event(self):
+        context = self.open_edit()
+        def native_preview():
+            self.fire('executePreview')
+            return True
+        self.command.doExecutePreview.side_effect = native_preview
+        with patch.object(editing, 'check_current'):
+            self.change('show_preview', True)
+            self.command.doExecutePreview.assert_called_once()
+            self.assertEqual(len(self.graphics.groups), 1)
+            self.assertFalse(context['occurrence'].isLightBulbOn)
+            points = list(self.graphics.groups[0].entities[0].points)
+            self.change('length', 100)
+            self.assertEqual(self.command.doExecutePreview.call_count, 2)
+            self.assertNotEqual(self.graphics.groups[0].entities[0].points, points)
+            self.change('show_preview', False)
+            self.assertEqual(self.graphics.groups, [])
+            self.assertTrue(context['occurrence'].isLightBulbOn)
+
+    def test_preview_survives_output_and_reentrant_events(self):
+        self.show()
+        original = self.graphics.groups[0]
+        for key, kind in (('preview_status', 'TextBoxCommandInput'),
+                          ('preview_options', 'GroupCommandInput'), ('frame_tab', 'TabCommandInput')):
+            control = self.controls[key]
+            control.objectType = 'adsk::core::'+kind
+            self.fire('inputChanged', input=control)
+            self.assertIs(self.graphics.groups[0], original)
+        # An automatic preview may trigger callbacks while changing visibility,
+        # setting status text or updating the camera. They must not clear it.
+        def refresh_events():
+            self.fire('inputChanged', input=self.controls['length'])
+            self.fire('executePreview')
+        self.app.activeViewport.refresh.side_effect = refresh_events
+        self.fire('executePreview')
+        self.assertEqual(len(self.graphics.groups), 1)
+        self.assertEqual(self.app.activeViewport.refresh.call_count, 2)
+
+    def test_failed_native_preview_request_has_visible_error(self):
+        self.command.doExecutePreview.return_value = False
+        self.change('show_preview', True)
+        self.assertIn('nicht gestartet', self.controls['preview_status'].text)
+        self.assertEqual(self.graphics.groups, [])
 
     def test_edit_preview_and_cancel_restore_original_without_building(self):
         context = self.open_edit()

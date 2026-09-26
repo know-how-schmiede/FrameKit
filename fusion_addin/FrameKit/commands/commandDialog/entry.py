@@ -59,12 +59,25 @@ def stop():
     _dialog_handlers.clear()
 
 
+def create_tabs(command):
+    """Create the top-level tab layout once, during commandCreated."""
+    inputs = command.commandInputs
+    return {
+        'frame': inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame')),
+        'settings': inputs.addTabCommandInput('settings_tab', 'Einstellungen verwalten', str(RESOURCES / 'ProfileLibrary')),
+        'info': inputs.addTabCommandInput('info_tab', 'info'),
+    }
+
+
 def edit_created(args):
     app = adsk.core.Application.get()
     command = args.command
-    command.setDialogInitialSize(580, 320)
+    command.setDialogInitialSize(580, 640)
     command.okButtonText = 'Neu aufbauen'
-    group = command.commandInputs.addGroupCommandInput('edit_selection', 'Gestell auswählen')
+    tabs = create_tabs(command)
+    tabs['settings'].isVisible = tabs['info'].isVisible = False
+    tabs['frame'].activate()
+    group = tabs['frame'].children.addGroupCommandInput('edit_selection', 'Gestell auswählen')
     group.isExpanded = True
     inputs = group.children
     choices = inputs.addDropDownCommandInput('edit_target', 'Vorhandenes Gestell',
@@ -89,15 +102,25 @@ def edit_created(args):
         nonlocal loaded
         if loaded or event.input.id != load_button.id or not load_button.value:
             return
+        context = None
         try:
             context = editing.load(design, candidates[choices.selectedItem.index])
-            loaded = True  # Guard against events while the edit controls are built.
+            loaded = True  # Guard re-entrant inputChanged events during construction.
+            # Use the retained Command, never event arguments from a completed event.
+            # Keep the selector visible until all editor controls exist.
+            build_dialog(command, context, tabs, ready=lambda: loaded)
+            tabs['settings'].isVisible = tabs['info'].isVisible = True
+            tabs['frame'].activate()
             group.isVisible = False
-            command_created(args, context)
         except Exception as exc:
             loaded = False
             group.isVisible = True
-            set_status(status, str(exc), 'error')
+            if context is not None:
+                load_button.isEnabled = False  # Do not build duplicate inputs on retry.
+                set_status(status, f'Dialog konnte nicht aufgebaut werden: {exc}. '
+                           'Abbrechen und den Bearbeitungsbefehl erneut öffnen.', 'error')
+            else:
+                set_status(status, str(exc), 'error')
         finally:
             load_button.value = False
 
@@ -117,11 +140,14 @@ def edit_created(args):
 
 
 def command_created(args, edit_context=None):
+    build_dialog(args.command, edit_context)
+
+
+def build_dialog(command, edit_context=None, tabs=None, ready=None):
     app = adsk.core.Application.get()
-    command = args.command
     command.setDialogInitialSize(580, 640)
     command.okButtonText = 'Neu aufbauen' if edit_context else 'Ausführen'
-    inputs = command.commandInputs
+    tabs = create_tabs(command) if tabs is None else tabs
     values, warning = (deepcopy(edit_context['values']), '') if edit_context else settings.load()
     library, library_warning = settings.load_library()
     profiles, profiles_warning = profile_library.load()
@@ -137,7 +163,7 @@ def command_created(args, edit_context=None):
         group.isExpanded = False
         return group
 
-    frame = inputs.addTabCommandInput('frame_tab', 'Frame erstellen', str(RESOURCES / 'CreateFrame'))
+    frame = tabs['frame']
     frame_inputs = frame.children
     if edit_context:
         frame_inputs.addTextBoxCommandInput('edit_notice', '',
@@ -270,8 +296,7 @@ def command_created(args, edit_context=None):
     preview_status = preview_inputs.addTextBoxCommandInput('preview_status', '', '', 2, True)
     error = frame_inputs.addTextBoxCommandInput('validation', '', '', 2, True)
 
-    manage = inputs.addTabCommandInput('settings_tab', 'Einstellungen verwalten',
-                                       str(RESOURCES / 'ProfileLibrary')).children
+    manage = tabs['settings'].children
     manage.addTextBoxCommandInput('settings_help', '',
         'Die Werte aus „Frame erstellen“ können als persönliche Standardwerte gespeichert werden. '
         'Zum reinen Speichern „Gestell erstellen“ abwählen. '
@@ -443,7 +468,7 @@ def command_created(args, edit_context=None):
 
     refresh_library(selections={'common': values.get('accessory'), **accessories.corner_specs(values)})
 
-    info = inputs.addTabCommandInput('info_tab', 'info').children
+    info = tabs['info'].children
     def info_text(identifier, text, rows):
         control = info.addTextBoxCommandInput(identifier, '', text, rows, True)
         control.isFullWidth = True
@@ -587,7 +612,7 @@ def command_created(args, edit_context=None):
     def validate(event):
         # Fusion can validate between keystrokes. Do not rebuild native controls
         # or write status text here; inputChanged updates the display separately.
-        event.areInputsValid = not bool(validation_message(update_display=False))
+        event.areInputsValid = (ready is None or ready()) and not bool(validation_message(update_display=False))
 
     updating = False
 
@@ -604,14 +629,24 @@ def command_created(args, edit_context=None):
         raise ValueError(f'{field.name}: gültige Länge eingeben (z. B. 100 mm).')
 
     handling_change = False
+    rendering_preview = False
 
     def changed(event):
         nonlocal handling_change
-        if handling_change or updating:
+        if handling_change or rendering_preview or updating or (ready is not None and not ready()):
+            return
+        # Fusion may report output text, group expansion and tab changes too.
+        # Those events must not remove an otherwise valid preview.
+        if event.input.id in ('edit_load', 'edit_target') or getattr(event.input, 'objectType', '').endswith(
+                ('TextBoxCommandInput', 'GroupCommandInput', 'TabCommandInput')):
             return
         handling_change = True
         try:
             changed_impl(event)
+            if create.value and show_preview.value and not validation_message(update_display=False):
+                if not command.doExecutePreview():
+                    set_status(preview_status, 'Vorschau konnte nicht gestartet werden. '
+                               'Vorschau aus- und wieder einschalten.', 'error')
         finally:
             handling_change = False
 
@@ -825,12 +860,23 @@ def command_created(args, edit_context=None):
             set_if_changed(control, 'isEnabled', create.value and show_preview.value)
 
     def execute_preview(event):
+        nonlocal rendering_preview
+        event.isValidResult = False
+        if rendering_preview:
+            return
+        rendering_preview = True
+        try:
+            render_preview(event)
+        finally:
+            rendering_preview = False
+
+    def render_preview(event):
         nonlocal preview_fit_pending
         # Graphics are not a completed command result: OK must always run execute.
         event.isValidResult = False
         try:
             clear_preview()
-            if not create.value or not show_preview.value:
+            if (ready is not None and not ready()) or not create.value or not show_preview.value:
                 return
             current = read_values()
             design = adsk.fusion.Design.cast(app.activeProduct)
@@ -858,6 +904,8 @@ def command_created(args, edit_context=None):
     def execute(event):
         nonlocal edit_committed
         try:
+            if ready is not None and not ready():
+                raise ValueError('Bearbeitungsdialog ist nicht vollständig geladen. Abbrechen und erneut öffnen.')
             clear_preview()
             current = read_values()
             if create.value:
