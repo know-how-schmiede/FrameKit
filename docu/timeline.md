@@ -2,6 +2,16 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.8.0
+
+**Git-Zusammenfassung:** `feat: Benannte Vorlagen und Datensicherung (S11)`
+
+- Vorlagen im Einstellungsreiter speichern, laden, umbenennen und löschen; persönliche Standardwerte bleiben separat erhalten.
+- JSON-Sicherung mit Bibliotheken und DXF-Dateien; Importvorschau mit Überspringen/Kopieren/Ersetzen, Validierung und Wiederherstellung bei Schreibfehlern.
+- **Prüfstand:** 160 lokale Tests erfolgreich; Vorlagen am 26.09.2026 vom Benutzer in Fusion als funktionsfähig bestätigt. Prüfung der Datensicherung offen.
+
+**Details:** [Vorlagen und Datensicherung](vorlagen_datensicherung.md)
+
 ## 26.09.2026 – 0.7.2 / S10
 
 **Benutzerbestätigung:** Export erfolgreich; Fusion stürzt beim Start nicht mehr ab. Version 0.7.2 in diesen Punkten in Fusion bestätigt.

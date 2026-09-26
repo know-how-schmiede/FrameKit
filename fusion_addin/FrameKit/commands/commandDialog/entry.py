@@ -4,7 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import accessories, config, demo, settings, profile_library, editing, cut_list, bill_of_materials, csv_export
+from ... import templates, accessories, config, demo, settings, profile_library, editing, cut_list, bill_of_materials, csv_export
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
@@ -423,6 +423,37 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None, bind_events=
     manage.addTextBoxCommandInput('settings_path', 'Datei', html.escape(str(settings.settings_path())), 3, True)
     settings_status = manage.addTextBoxCommandInput('settings_status', '', '', 2, True)
     set_status(settings_status, warning, 'warning')
+    template_group = collapsed_group(manage, 'templates_group', 'Vorlagen und Datensicherung').children
+    template_list = dropdown(template_group, 'template_list', 'Vorlage', ['Keine Vorlage'], 0)
+    template_name = template_group.addStringValueInput('template_name', 'Name', '')
+    for identifier, label in [('template_save', 'Aktuelle Werte als neue Vorlage speichern'),
+                              ('template_load', 'Vorlage laden'), ('template_rename', 'Vorlage umbenennen'),
+                              ('template_delete', 'Vorlage löschen'), ('backup_export', 'Sicherung exportieren'),
+                              ('backup_choose', 'Sicherung zum Import prüfen'), ('backup_apply', 'Geprüften Import ausführen')]:
+        template_group.addBoolValueInput(identifier, label, False, '', False)
+    conflict_mode = dropdown(template_group, 'backup_mode', 'Bei gleichen Namen / IDs',
+                             ['Überspringen', 'Als Kopie übernehmen', 'Ersetzen'], 0)
+    backup_status = template_group.addTextBoxCommandInput('backup_status', '',
+        'Vorlagen und Bibliotheken werden sofort gespeichert. Import erst nach Prüfung und „Geprüften Import ausführen“. '
+        'Persönliche Standardwerte bleiben erhalten.', 6, True)
+    template_entries = []
+    pending_backup = None
+    template_profiles = []
+
+    def refresh_templates():
+        nonlocal template_entries
+        template_entries = templates.load()
+        template_list.listItems.clear()
+        for index, item in enumerate(template_entries):
+            template_list.listItems.add(item['name'], index == 0)
+        if not template_entries:
+            template_list.listItems.add('Keine Vorlage', True)
+
+    try:
+        refresh_templates()
+    except (ValueError, OSError, KeyError, TypeError) as exc:
+        set_status(backup_status, str(exc), 'error')
+
     library_group = collapsed_group(manage, 'support_library', 'Eigene Füße und Rollen')
     lib_inputs = library_group.children
     library_choice = lib_inputs.addDropDownCommandInput(
@@ -633,6 +664,8 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None, bind_events=
         return editing.preview_model(calculated, edit_context['transform']) if edit_context else calculated
 
     def verify_profile(definition):
+        if definition in template_profiles:
+            return
         if edit_context and any(definition == saved for saved in edit_context['model']['profiles'].values()):
             return  # Validated embedded contour; the external DXF may no longer exist.
         if not any(spec['id'] == definition['id'] for spec in profiles):
@@ -775,13 +808,81 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None, bind_events=
 
     def changed_impl(event):
         nonlocal updating, library, profiles, pending_profile, editing_support_id
-        nonlocal preview_fit_pending
+        nonlocal preview_fit_pending, pending_backup
         if updating:
             return
         if event.input.id in (show_preview.id, create.id):
             preview_fit_pending = True
         clear_preview(restore_original=False)
         set_status(preview_status)
+        if event.input.id == conflict_mode.id:
+            pending_backup = None
+            set_status(backup_status, 'Konfliktregel geändert: Sicherung erneut prüfen.', 'warning')
+        if event.input.id.startswith(('template_', 'backup_')) and event.input.id not in ('template_name', 'template_list', 'backup_mode', 'backup_status') and event.input.value:
+            updating = True
+            try:
+                action = event.input.id
+                if action.startswith('template_'):
+                    entries = templates.load()
+                    index = template_list.selectedItem.index
+                    selected = template_entries[index] if template_entries else None
+                    if action == 'template_save':
+                        from uuid import uuid4
+                        entries.append(dict(id=uuid4().hex, name=template_name.value.strip(), values=read_values()))
+                    else:
+                        if selected is None:
+                            raise ValueError('Bitte eine Vorlage auswählen.')
+                        selected = next(e for e in entries if e['id'] == selected['id'])
+                        if action == 'template_load':
+                            load_context({'values': selected['values']}, template_only=True)
+                        elif action == 'template_rename':
+                            selected['name'] = template_name.value.strip()
+                        elif action == 'template_delete':
+                            entries.remove(selected)
+                    if action != 'template_load':
+                        templates.save(entries)
+                    refresh_templates()
+                    set_status(backup_status, 'Vorlagenaktion ausgeführt.')
+                elif action in ('backup_export', 'backup_choose'):
+                    dialog = app.userInterface.createFileDialog()
+                    dialog.title = 'FrameKit-Datensicherung'
+                    dialog.filter = 'FrameKit-Sicherung (*.json)'
+                    dialog.isMultiSelectEnabled = False
+                    result = dialog.showSave() if action == 'backup_export' else dialog.showOpen()
+                    pending_backup = None
+                    if result == adsk.core.DialogResults.DialogOK:
+                        if action == 'backup_export':
+                            templates.export_file(dialog.filename)
+                            set_status(backup_status, 'Sicherung exportiert.')
+                        else:
+                            incoming = templates.read_backup(dialog.filename)
+                            mode = ('skip', 'copy', 'replace')[conflict_mode.selectedItem.index]
+                            planned, report = templates.plan_import(incoming, mode)
+                            pending_backup = (planned, templates.snapshot())
+                            set_status(backup_status, report+'\nZum übernehmen „Geprüften Import ausführen“ wählen.')
+                elif action == 'backup_apply':
+                    if pending_backup is None:
+                        raise ValueError('Zuerst eine Sicherung prüfen.')
+                    if templates.snapshot() != pending_backup[1]:
+                        pending_backup = None
+                        raise ValueError('Benutzerdaten wurden geändert. Sicherung erneut prüfen.')
+                    current_profile = selected_profile()
+                    support_selections = {'common': selected_support(),
+                                          **{key: selected_support(key) for key in corner_choices}}
+                    templates.apply_import(pending_backup[0])
+                    pending_backup = None
+                    library, _ = settings.load_library()
+                    profiles, _ = profile_library.load()
+                    refresh_templates()
+                    refresh_library(selections=support_selections)
+                    refresh_profiles(current_profile['id'] if current_profile else None, saved=current_profile)
+                    set_status(backup_status, 'Import abgeschlossen. Persönliche Standardwerte bleiben erhalten.')
+            except (ValueError, OSError, KeyError, TypeError, StopIteration) as exc:
+                set_status(backup_status, str(exc), 'error')
+            finally:
+                event.input.value = False
+                updating = False
+            return
         if event.input.id == profile_unit.id:
             pending_profile = None
             profile_confirm.value = False
@@ -1067,20 +1168,24 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None, bind_events=
             _dialog_handlers.remove(handlers)
         handlers.clear()
 
-    def load_context(context):
+    def load_context(context, template_only=False):
         nonlocal edit_context, values, calculated_model, original_visibility
-        nonlocal preview_fit_pending, selectable_profiles, initial_sections, updating
+        nonlocal preview_fit_pending, selectable_profiles, initial_sections, updating, template_profiles
         updating = True
         try:
             clear_preview()
-            edit_context = context
             values = deepcopy(context['values'])
-            calculated_model = deepcopy(context['model'])
-            original_visibility = context['occurrence'].isLightBulbOn
+            if not template_only:
+                edit_context = context
+                calculated_model = deepcopy(context['model'])
+                original_visibility = context['occurrence'].isLightBulbOn
+                set_status(edit_notice, 'Bearbeiten: '+context['occurrence'].name+'\n'
+                           'Manuelle Änderungen an erzeugten Bauteilen werden ersetzt. '
+                           'Externe Flächenreferenzen können ungültig werden. Abbrechen erhält das bisherige Gestell.')
+            else:
+                template_profiles = list(build_model(values)['profiles'].values())
+                calculated_model = deepcopy(edit_context['model']) if edit_context else None
             preview_fit_pending = True
-            set_status(edit_notice, 'Bearbeiten: '+context['occurrence'].name+'\n'
-                       'Manuelle Änderungen an erzeugten Bauteilen werden ersetzt. '
-                       'Externe Flächenreferenzen können ungültig werden. Abbrechen erhält das bisherige Gestell.')
             for key, field in fields.items():
                 field.value = values[key]/10
             thickness.value = values['shelf_thickness']/10

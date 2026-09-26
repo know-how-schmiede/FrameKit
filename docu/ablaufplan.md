@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.7.2**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.8.0**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Der korrigierte Dialog und die Vorschau von 0.5.4 wurden inzwischen vom Benutzer bestätigt; die anschließende Historienbereinigung einschließlich Undo/Redo ist noch zu prüfen. S09 / 0.7.0: Zuschnittliste vom Benutzer als funktionsfähig bestätigt. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Der korrigierte Dialog und die Vorschau von 0.5.4 wurden inzwischen vom Benutzer bestätigt; die anschließende Historienbereinigung einschließlich Undo/Redo ist noch zu prüfen. S09 / 0.7.0: Zuschnittliste vom Benutzer als funktionsfähig bestätigt. S11 / 0.8.0: Vorlagen laut Benutzerrückmeldung vom 26.09.2026 funktionsfähig; Prüfung der Datensicherung offen. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -48,7 +48,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | Z04 | 0.5.4 | Editorfelder vorab erzeugen und Vorschau live aktualisieren | Z03 | Implementiert; Fusion-Prüfung offen |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | In Fusion bestätigt |
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | In Fusion bestätigt |
-| S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Geplant |
+| S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Vorlagen in Fusion bestätigt; Datensicherung offen |
 | S12 | 0.9.0 | Installierbares Paket und durchgängiger Abnahmetest | S01–S11 | Geplant |
 | S13 | 1.0.0 | Freigabe des geprüften Grundumfangs | S12 | Geplant |
 
@@ -168,6 +168,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Mengen am Referenzgestell nachzählen und nach Änderungen erneut vergleichen. Fehlende Montagevorgaben dürfen nicht als vollständige Stückliste erscheinen.
 
 ### S11 · 0.8.0 – Vorlagen und Sicherung
+
+**Ergebnis:** [Vorlagen und Datensicherung](vorlagen_datensicherung.md). Benannte Vorlagen und geprüfter JSON-Import/-Export einschließlich DXF-Dateien implementiert. 160 lokale Tests erfolgreich; Vorlagen am 26.09.2026 vom Benutzer in Fusion als funktionsfähig bestätigt. Prüfung der Datensicherung offen.
 
 - Mehrere benannte Gestellvorlagen speichern, laden, umbenennen und löschen; die vorhandenen persönlichen Standardwerte beibehalten.
 - Vorlagen und eigene Bibliotheken exportieren/importieren, einschließlich benötigter Profildateien.

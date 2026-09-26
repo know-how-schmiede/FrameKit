@@ -197,6 +197,11 @@ class PreviewCommandTests(unittest.TestCase):
         self.controls = {}
         self.command = NS(commandInputs=Inputs(self.controls), setDialogInitialSize=Mock(), doExecutePreview=Mock(return_value=True),
                           **{name: NS() for name in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy')})
+        template_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(template_temp.cleanup)
+        template_root = patch.object(self.entry.templates, 'root', return_value=Path(template_temp.name))
+        template_root.start()
+        self.addCleanup(template_root.stop)
         self.entry.command_created(NS(command=self.command))
 
     def open_export(self, candidates):
@@ -277,6 +282,39 @@ class PreviewCommandTests(unittest.TestCase):
         event = self.fire('executePreview')
         self.assertFalse(event.isValidResult)
         self.assertEqual(len(self.graphics.groups), 1)
+
+    def test_backup_review_cancel_and_apply(self):
+        self.change('template_name', 'Original')
+        self.change('template_save', True)
+        path = self.entry.templates.root() / 'backup.json'
+        self.entry.templates.export_file(path)
+        self.change('template_delete', True)
+        self.entry.adsk.core.DialogResults = NS(DialogOK=1)
+        dialog = NS(showOpen=Mock(return_value=0), filename=str(path))
+        self.entry.adsk.core.Application.get().userInterface = NS(createFileDialog=lambda: dialog)
+        self.change('backup_choose', True)
+        self.change('backup_apply', True)
+        self.assertEqual(self.entry.templates.load(), [])
+        dialog.showOpen.return_value = 1
+        self.change('backup_choose', True)
+        self.assertEqual(self.entry.templates.load(), [])
+        self.assertIn('Original', self.controls['backup_status'].text)
+        self.change('backup_apply', True)
+        self.assertEqual(self.entry.templates.load()[0]['name'], 'Original')
+
+    def test_named_template_save_load_rename_delete(self):
+        self.change('template_name', 'Werkbank')
+        self.change('template_save', True)
+        saved = self.entry.templates.load()[0]['values']
+        self.change('length', 150)
+        self.change('template_load', True)
+        self.assertEqual(self.controls['length'].value * 10, saved['length'])
+        self.change('template_name', 'Montagetisch')
+        self.change('template_rename', True)
+        self.assertEqual(self.entry.templates.load()[0]['name'], 'Montagetisch')
+        self.change('template_delete', True)
+        self.assertEqual(self.entry.templates.load(), [])
+        self.save_defaults.assert_not_called()
 
     def test_changes_invalid_inputs_and_cancel_remove_temporary_graphics(self):
         self.show()
