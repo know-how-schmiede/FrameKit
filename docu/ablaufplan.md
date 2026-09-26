@@ -1,8 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.5.4**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.7.0**
 
-**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Weitere Schritte nur auf Benutzerauftrag starten.**
+**Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Der korrigierte Dialog und die Vorschau von 0.5.4 wurden inzwischen vom Benutzer bestätigt; die anschließende Historienbereinigung einschließlich Undo/Redo ist noch zu prüfen. S09 / 0.7.0: Zuschnittliste vom Benutzer als funktionsfähig bestätigt. Weitere Schritte nur auf Benutzerauftrag starten.**
 
 ## Verwendung dieses Plans
 
@@ -46,7 +46,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S08 | 0.5.0 | Vorhandenes Gestell bearbeiten und neu aufbauen | S01–S07 | Implementiert |
 | Z03 | 0.5.1 | Leeren Bearbeitungsdialog beim Laden korrigieren | S08 | In Fusion bestätigt |
 | Z04 | 0.5.4 | Editorfelder vorab erzeugen und Vorschau live aktualisieren | Z03 | Implementiert; Fusion-Prüfung offen |
-| S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | Geplant |
+| S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | In Fusion bestätigt |
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | Geplant |
 | S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Geplant |
 | S12 | 0.9.0 | Installierbares Paket und durchgängiger Abnahmetest | S01–S11 | Geplant |
@@ -149,6 +149,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 
 ### S09 · 0.7.0 – Zuschnittliste
 
+**Ergebnis:** [CSV-Export und Prüfschritte](zuschnittliste.md). Zuschnittliste vom Benutzer als funktionsfähig bestätigt. Bearbeiten-Icon mit zusätzlichem Stift umgesetzt.
+
 - CSV-Export für das ausgewählte Gestell anbieten. Gleiche Profildefinitionen, Längen und Endbearbeitungen zusammenfassen.
 - Hersteller, Serie, Artikelnummer, Bezeichnung, Länge in Millimetern, Menge und Bauteil-IDs aus Eigenschaften exportieren, nicht aus Anzeigenamen ableiten.
 - **Optionen:** Zielpfad und verständliche CSV-Einstellungen für die vorgesehene Tabellenverarbeitung.
@@ -200,7 +202,7 @@ Diese Schritte sind Vorschläge, noch nicht zur Umsetzung beauftragt. Jeder erh�
 
 Hier können Änderungen vor der Umsetzung eingetragen werden. Verbindliche Änderungen anschließend auch in der Versionsübersicht und im jeweiligen Schritt nachführen.
 
-- Für den nächsten Umsetzungsschritt vorgemerkt: Das Icon für „Gestell bearbeiten“ behält das bestehende Grundicon und erhält zusätzlich ein Bearbeiten-Symbol (z. B. einen Stift), damit es von „Gestell erstellen“ unterscheidbar ist. Noch nicht umgesetzt.
+- Für den nächsten Umsetzungsschritt vorgemerkt: Das Icon für „Gestell bearbeiten“ behält das bestehende Grundicon und erhält zusätzlich ein Bearbeiten-Symbol (z. B. einen Stift), damit es von „Gestell erstellen“ unterscheidbar ist. In S09 / 0.7.0 umgesetzt (Stift, beide Größen und Farbvarianten).
 - Gewünschte Änderungen an Reihenfolge oder Versionsnummern:
 - Für den nächsten Umsetzungsschritt (Benutzerhinweis mit Screenshot von 0.4.2): Den statischen Hinweis „Zylinderplatzhalter unter den Pfosten …“ direkt unter der Auswahl in „Füße / Rollen je Ecke“ entfernen (`support_help`). An genau dieser Stelle stattdessen die zugehörige farbige Fehlermeldung anzeigen, beispielsweise bei unterschiedlichen Bauhöhen. Nach Korrektur die Meldung entfernen; den Zubehörfehler nicht ausschließlich am unteren Dialogende anzeigen. In 0.4.3 umgesetzt: statischer Text entfernt, rote Zubehörmeldung direkt unter der Auswahl; nach Korrektur ausgeblendet.
 - Vorschaupräzisierung: Nur das Gestell vollständig im Ansichtsbereich anzeigen, kein Fusion-Vollbildmodus. In 0.4.1 umgesetzt; Fusion-Prüfung offen.

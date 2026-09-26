@@ -199,6 +199,48 @@ class PreviewCommandTests(unittest.TestCase):
                           **{name: NS() for name in ('execute', 'executePreview', 'inputChanged', 'validateInputs', 'destroy')})
         self.entry.command_created(NS(command=self.command))
 
+    def open_export(self, candidates):
+        if hasattr(self.command.destroy, 'callback'):
+            self.fire('destroy')
+        self.controls = {}
+        self.command = NS(commandInputs=Inputs(self.controls),
+                          **{name: NS() for name in ('execute', 'validateInputs', 'destroy')})
+        with patch.object(editing, 'frames', return_value=candidates):
+            self.entry.export_created(NS(command=self.command))
+
+    def test_export_selected_frame_and_format(self):
+        context = self.open_edit(chooser=True)
+        self.open_export([NS(name='Anderes Gestell'), context['occurrence']])
+        self.controls['export_frame'].listItems.item(1).isSelected = True
+        self.controls['export_format'].listItems.item(1).isSelected = True
+        self.entry.adsk.core.DialogResults = NS(DialogOK=1)
+        dialog = NS(showSave=Mock(return_value=1), filename='output.csv')
+        self.entry.adsk.core.Application.get().userInterface = NS(createFileDialog=lambda: dialog)
+        with patch.object(editing, 'load', return_value=context) as load, \
+                patch.object(editing, 'check_current'), \
+                patch.object(self.entry.cut_list, 'write_csv') as write:
+            self.assertTrue(self.fire('validateInputs').areInputsValid)
+            self.fire('execute')
+            load.assert_called_once_with(context['design'], context['occurrence'])
+            write.assert_called_once_with('output.csv', context['model'], True)
+        self.create_frame.assert_not_called()
+
+    def test_export_save_cancel_writes_nothing(self):
+        context = self.open_edit(chooser=True)
+        self.open_export([context['occurrence']])
+        self.entry.adsk.core.DialogResults = NS(DialogOK=1)
+        dialog = NS(showSave=Mock(return_value=0))
+        self.entry.adsk.core.Application.get().userInterface = NS(createFileDialog=lambda: dialog)
+        with patch.object(editing, 'load', return_value=context), \
+                patch.object(self.entry.cut_list, 'write_csv') as write:
+            self.fire('execute')
+            write.assert_not_called()
+
+    def test_export_empty_document_is_disabled(self):
+        self.open_export([])
+        self.assertFalse(self.fire('validateInputs').areInputsValid)
+        self.assertTrue(self.fire('execute').executeFailed)
+
     def fire(self, name, **values):
         event = NS(**values)
         getattr(self.command, name).callback(event)

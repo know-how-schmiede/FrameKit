@@ -4,7 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import accessories, config, demo, settings, profile_library, editing
+from ... import accessories, config, demo, settings, profile_library, editing, cut_list
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
@@ -15,6 +15,7 @@ from ...lib import fusionAddInUtils as futil
 
 CMD_ID = f'{config.COMPANY_NAME}_{config.ADDIN_NAME}_CreateFrame'
 EDIT_CMD_ID = CMD_ID + '_Edit'
+EXPORT_CMD_ID = CMD_ID + '_CutList'
 WORKSPACE_ID = 'FusionSolidEnvironment'
 PANEL_ID = 'SolidCreatePanel'
 RESOURCES = Path(__file__).resolve().parents[2] / 'resources'
@@ -32,9 +33,11 @@ def start():
     stop()
     for identifier, title, description, callback in (
             (CMD_ID, f'FrameKit {__version__}', 'Ein neues Gestell erstellen.', command_created),
-            (EDIT_CMD_ID, 'FrameKit: Gestell bearbeiten', 'Gespeichertes Gestell laden und neu aufbauen.', edit_created)):
+            (EDIT_CMD_ID, 'FrameKit: Gestell bearbeiten', 'Gespeichertes Gestell laden und neu aufbauen.', edit_created),
+            (EXPORT_CMD_ID, 'FrameKit: Zuschnittliste exportieren', 'Profilzuschnitte als CSV speichern.', export_created)):
+        resource = {EDIT_CMD_ID: 'EditFrame', EXPORT_CMD_ID: 'ExportCSV'}.get(identifier, 'CreateFrame')
         definition = ui.commandDefinitions.addButtonDefinition(
-            identifier, title, description, str(RESOURCES / 'CreateFrame'))
+            identifier, title, description, str(RESOURCES / resource))
         futil.add_handler(definition.commandCreated, callback, local_handlers=_handlers)
         control = panel.controls.addCommand(definition)
         control.isPromotedByDefault = True
@@ -48,7 +51,7 @@ def stop():
     ui = adsk.core.Application.get().userInterface
     workspace = ui.workspaces.itemById(WORKSPACE_ID)
     panel = workspace.toolbarPanels.itemById(PANEL_ID) if workspace else None
-    for identifier in (CMD_ID, EDIT_CMD_ID):
+    for identifier in (CMD_ID, EDIT_CMD_ID, EXPORT_CMD_ID):
         control = panel.controls.itemById(identifier) if panel else None
         if control:
             control.deleteMe()
@@ -67,6 +70,65 @@ def create_tabs(command):
         'settings': inputs.addTabCommandInput('settings_tab', 'Einstellungen verwalten', str(RESOURCES / 'ProfileLibrary')),
         'info': inputs.addTabCommandInput('info_tab', 'info'),
     }
+
+
+def export_created(args):
+    app = adsk.core.Application.get()
+    command = args.command
+    command.okButtonText = 'CSV speichern'
+    inputs = command.commandInputs
+    choices = inputs.addDropDownCommandInput('export_frame', 'Gestell',
+        adsk.core.DropDownStyles.TextListDropDownStyle)
+    design = adsk.fusion.Design.cast(app.activeProduct)
+    candidates = editing.frames(design) if design else []
+    for index, occurrence in enumerate(candidates):
+        choices.listItems.add(f'{index+1}: {occurrence.name}', index == 0)
+    formats = inputs.addDropDownCommandInput('export_format', 'CSV-Format',
+        adsk.core.DropDownStyles.TextListDropDownStyle)
+    for index, label in enumerate(cut_list.FORMATS):
+        formats.listItems.add(label, index == 0)
+    inputs.addTextBoxCommandInput('export_help', '',
+        'Profilzuschnitte des gespeicherten Gestells in mm. Gleiche Definitionen, Längen '
+        'und Endbearbeitungen werden zusammengefasst. UTF-8 mit BOM für Excel/LibreOffice. '
+        'Zielpfad im anschließenden Speicherdialog wählen. Manuelle Geometrieänderungen '
+        'werden nicht ausgewertet.', 5, True)
+    status = inputs.addTextBoxCommandInput('export_status', '', '', 2, True)
+    set_status(status, '' if candidates else 'Kein gespeichertes FrameKit-Gestell vorhanden.', 'warning')
+    handlers = []
+    _dialog_handlers.append(handlers)
+
+    def validate(event):
+        event.areInputsValid = bool(candidates and choices.selectedItem is not None)
+
+    def execute(event):
+        try:
+            if app.activeProduct != design or not candidates or choices.selectedItem is None:
+                raise ValueError('Ein Dokument mit gespeichertem FrameKit-Gestell auswählen.')
+            context = editing.load(design, candidates[choices.selectedItem.index])
+            calculated = context['model']
+            cut_list.rows(calculated)  # Validate before offering a destination.
+            dialog = app.userInterface.createFileDialog()
+            dialog.title = 'FrameKit: Zuschnittliste speichern'
+            dialog.filter = 'CSV-Dateien (*.csv)'
+            dialog.isMultiSelectEnabled = False
+            if dialog.showSave() != adsk.core.DialogResults.DialogOK:
+                return
+            editing.check_current(context)
+            cut_list.write_csv(dialog.filename, calculated, formats.selectedItem.index == 1)
+        except Exception as exc:
+            event.executeFailed = True
+            event.executeFailedMessage = f'Zuschnittliste nicht gespeichert: {exc}'
+            set_status(status, event.executeFailedMessage, 'error')
+            futil.handle_error('FrameKit-Zuschnittliste')
+
+    def destroy(event):
+        if handlers in _dialog_handlers:
+            _dialog_handlers.remove(handlers)
+        handlers.clear()
+
+    for event, callback in ((command.execute, execute), (command.validateInputs, validate),
+                            (command.destroy, destroy)):
+        futil.add_handler(event, callback, local_handlers=handlers)
 
 
 def edit_created(args):

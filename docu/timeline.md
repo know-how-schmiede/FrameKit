@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.7.0 / S09
+
+**Benutzerbestätigung nach den CSV-Korrekturen:** Zuschnittliste funktioniert. Version bleibt 0.7.0.
+
+**Git-Zusammenfassung:** `feat: Zuschnittliste als CSV und eigenes Bearbeiten-Icon`
+
+- Eigener Exportbefehl mit Gestellauswahl, zwei CSV-Formaten und Speicherdialog.
+- Zusammenfassung nach Profildefinition, Länge und Endbearbeitung; Hersteller, Serie, Artikelnummer, Bezeichnung, Profil-ID, Menge und Bauteil-/Gestell-IDs aus gespeicherten Eigenschaften.
+- UTF-8 mit BOM, CSV-Maskierung und atomarer Dateiaustausch. Abbrechen schreibt nichts.
+- Grundicon für Gestell bearbeiten um Stift ergänzt; Version gemäß S09 auf 0.7.0 erhöht.
+- **Prüfstand:** 142 lokale Tests erfolgreich. Native Fusion-Abnahme offen; siehe [Zuschnittliste](zuschnittliste.md).
+
 ## 26.09.2026 – 0.5.4
 
 **Git-Zusammenfassung:** `fix: Editierfelder vorab erzeugen und Vorschau-Sichtbarkeit trennen (0.5.4)`

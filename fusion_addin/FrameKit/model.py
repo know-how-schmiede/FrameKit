@@ -83,6 +83,7 @@ def build_model(values, previous=None):
             part['profile_ref'] = profile['id']
             part['section_rotation_deg'] = rotation
             part['cut_length_mm'] = shape['depth_mm']
+            part['end_treatment'] = 'Beidseitig rechtwinklig; keine weitere Bearbeitung'
             # In horizontal beams local section width is horizontal, height vertical.
             axes = (ORIENTATIONS[axis] if axis != 'y'
                     else [[1, 0, 0], [0, 0, -1], [0, 1, 0]])
