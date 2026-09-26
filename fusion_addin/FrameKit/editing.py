@@ -99,19 +99,15 @@ def check_current(context):
 
 def replace(context, values, calculated):
     """Must run in a Fusion execute transaction; the caller aborts on any error."""
-    import adsk.fusion
     from .geometry import create_frame
     check_current(context)
     design, old = context['design'], context['occurrence']
     new = create_frame(design, values, calculated, placement=context['transform'])
     new.isLightBulbOn = old.isLightBulbOn
     # Last operation: retain the old occurrence until the new frame is complete.
-    # Remove (not history deletion) preserves the parametric timeline and Undo.
-    if design.designType == adsk.fusion.DesignTypes.ParametricDesignType:
-        removed = design.rootComponent.features.removeFeatures.add(old)
-        if removed is None:
-            raise RuntimeError('Altes Gestell konnte nicht ersetzt werden.')
-    elif not old.deleteMe():
+    # Delete the owned occurrence and its component history instead of appending
+    # a Remove feature. The execute transaction still provides command-level Undo.
+    if not old.deleteMe():
         raise RuntimeError('Altes Gestell konnte nicht ersetzt werden.')
     return new
 

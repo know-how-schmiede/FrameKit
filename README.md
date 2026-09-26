@@ -8,7 +8,7 @@ FrameKit ist ein geplantes Add-in für Autodesk Fusion, das aus Dialogeingaben e
 
 ## Projektstatus
 
-Die Integrationsdemo (**0.5.2**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
+Die Integrationsdemo (**0.5.4**) liegt unter [`fusion_addin/FrameKit`](fusion_addin/FrameKit) vor. Sie bietet drei Dialogreiter, speicherbare Standardwerte und die Erstellung eines Gestells aus Demo-Vollprofilen oder eigenen DXF-Profilen mit optionalen Zwischenböden und anschließendem „Zoom auf alles“. Füße und Rollen sind als Zylinderplatzhalter auswählbar; eigene Varianten lassen sich speichern und löschen. Jeder Rahmen erhält eine Platte; die Deckplatte kann wahlweise ohne Aussparungen auf den Profilen montiert werden. Bodenanzahl, Einzelhöhen und Plattenstärke sind einstellbar; leere Höhen werden gleichmäßig verteilt. Zum Laden und Testen sowie zum aktuellen Prüfstand siehe [Demo-Anleitung](docu/demo_installation.md). Die folgenden Funktionen beschreiben den geplanten vollständigen Umfang.
 
 Neu in **0.3.0**: lokale DXF-Profilbibliothek mit Importprüfung, Maßbestätigung, Auswahl und Löschen. Quadratische Querschnitte mit Mittelpunkt im Ursprung werden einschließlich Nuten und Hohlräumen extrudiert. Unterstützte DXF-Elemente, Speicherort und Fusion-Prüfschritte: [Profilbibliothek und DXF-Import](docu/profilbibliothek_dxf.md). Querträger und wählbare Deckplattenmontage aus 0.2.1 bleiben enthalten.
 
@@ -27,6 +27,10 @@ Neu in **0.5.0 (S08)**: **FrameKit: Gestell bearbeiten** lädt eine vorhandene H
 Korrektur in **0.5.1**: Der Bearbeitungsdialog legt seine Reiter bereits beim Öffnen an und verwendet sie beim Laden weiter. Die Gestellauswahl bleibt bis zum vollständigen Aufbau der Eingabefelder sichtbar; Aufbaufehler werden angezeigt und sperren den Neuaufbau. 128 lokale Tests erfolgreich; Dialogaufbau vom Benutzer in Fusion bestätigt. Anschließend wurde eine fehlende Vorschau gemeldet.
 
 Korrektur in **0.5.2**: Vorschau beim Einschalten und bei gültigen Eingabeänderungen ausdrücklich über Fusion anfordern. Reine Anzeigeereignisse und verschachtelte Vorschauereignisse löschen die Grafik nicht mehr. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt; die Vorschaukorrektur muss noch in Fusion geprüft werden. 131 lokale Tests erfolgreich.
+
+Korrektur in **0.5.3**: Alle Ereignishandler des Bearbeitungsbefehls werden beim Öffnen registriert. Nach „Gestell laden“ leiten sie Eingaben, Vorschau, Validierung und Ausführen an den Editor weiter. 0.5.2 hatte die fehlende Vorschau beim Benutzer nicht behoben. 132 lokale Tests erfolgreich; Fusion-Bestätigung der neuen Korrektur offen.
+
+Korrektur in **0.5.4**: Der Bearbeitungsdialog erzeugt jetzt sämtliche Eingabefelder beim Öffnen. „Gestell laden“ befüllt die vorhandenen Felder; während der Vorschau bleibt das Original ausgeblendet. 0.5.3 zeigte beim Benutzer weiterhin nur eine statische, vom Original verdeckte Vorschau. 133 lokale Tests erfolgreich; Fusion-Bestätigung offen.
 
 ## Screenshots
 

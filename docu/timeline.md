@@ -2,6 +2,32 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.5.4
+
+**Git-Zusammenfassung:** `fix: Editierfelder vorab erzeugen und Vorschau-Sichtbarkeit trennen (0.5.4)`
+
+- Benutzer bestätigt den korrigierten Dialog und die Vorschau als funktionsfähig. Weitere Änderung innerhalb von 0.5.4: Neuaufbau löscht das ersetzte Gestell samt Komponentenhistorie über `Occurrence.deleteMe`, statt die alte Konstruktion mit einem Remove-Feature zu behalten. Bestehende ältere Remove-Historie wird nicht automatisch bereinigt. Native Prüfung dieser Bereinigung und von Undo/Redo noch offen.
+- Benutzer beobachtet in 0.5.3 eine statische Vorschau, die erst nach manuellem Ausblenden des Originals sichtbar wird; Maße aktualisieren sich nicht.
+- Nachkorrektur innerhalb von 0.5.4: Fusion brach den Dialogaufbau mit `RuntimeError: 3 : the group cannot be folded` ab. Die zusätzliche äußere Editorgruppe wurde entfernt. Aufklappbereiche liegen direkt im Reiter; bestehende Felder werden bis zum erfolgreichen Laden einzeln ausgeblendet. Der UI-Test bildet den Fehler bei verschachtelten Gruppen jetzt ab.
+- Alle Editorfelder entstehen nun in commandCreated. Beim Laden werden ausschließlich bestehende Felder mit Konfiguration, Profilen, Zubehör und Ebenen befüllt; keine Eingabefelder werden in inputChanged erzeugt.
+- Das Original wird vor der expliziten Vorschauanforderung ausgeblendet. Löschen/Erneuern der Grafik stellt seine Sichtbarkeit nicht mehr zwischenzeitlich wieder her; Ausschalten, ungültige Eingaben, Fehler und Abbrechen stellen sie wieder her.
+
+**Prüfstand:** 133 lokale Tests erfolgreich. Neuer Test verbietet jede nachträgliche Felderzeugung, lädt eine Konfiguration mit DXF/Gruppenprofil/Zubehör/Ebene und prüft die Vorschau-Geometrie nach drei Maßänderungen. Praktische Bestätigung in Fusion weiterhin offen.
+
+**Details:** [Gestell bearbeiten](gestell_bearbeiten.md)
+
+## 26.09.2026 – 0.5.3
+
+**Git-Zusammenfassung:** `fix: Bearbeitungsereignisse beim Öffnen registrieren (0.5.3)`
+
+- Benutzer meldet weiterhin fehlende Vorschau in 0.5.2; Screenshot zeigt angehakte Vorschau bei weiterhin deaktivierten Unteroptionen.
+- Keine nachträgliche native Handlerregistrierung innerhalb von inputChanged: feste Handler werden bei commandCreated gebunden und delegieren nach dem Laden an den Editor.
+- Auswahl, Vorschau, Validierung, Ausführen und Aufräumen verwenden denselben Ereignisweg.
+
+**Prüfstand:** 132 lokale Tests erfolgreich. Neuer Integrationstest verbietet spätere Handlerregistrierung und prüft Laden, Aktivierung der Vorschauoptionen, Grafik, Maßänderung, Neuaufbau und Aufräumen. Tatsächliche Fusion-Prüfung weiterhin erforderlich.
+
+**Details:** [Gestell bearbeiten](gestell_bearbeiten.md)
+
 ## 26.09.2026 – 0.5.2
 
 **Git-Zusammenfassung:** `fix: Vorschau explizit anfordern und gegen Anzeigeereignisse schützen (0.5.2)`

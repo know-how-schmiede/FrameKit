@@ -52,6 +52,16 @@ class Items:
 
 class Control(NS):
     @property
+    def isExpanded(self):
+        return getattr(self, '_expanded', True)
+
+    @isExpanded.setter
+    def isExpanded(self, value):
+        if getattr(self, 'nested_group', False):
+            raise RuntimeError('3 : the group cannot be folded')
+        self._expanded = value
+
+    @property
     def formattedText(self):
         return getattr(self, '_formatted', '')
 
@@ -66,19 +76,31 @@ class Control(NS):
 
 
 class Inputs:
-    def __init__(self, registry):
+    def __init__(self, registry, in_group=False):
         self.registry = registry
+        self.in_group = in_group
+        self.controls = []
+
+    @property
+    def count(self):
+        return len(self.controls)
+
+    def item(self, index):
+        return self.controls[index]
 
     def add(self, identifier, name, **values):
         result = Control(id=identifier, name=name, isVisible=True, isEnabled=True,
                          isValidExpression=True, **values)
         self.registry[identifier] = result
+        self.controls.append(result)
         return result
 
     def addTabCommandInput(self, identifier, name, *args):
         return self.add(identifier, name, children=Inputs(self.registry), activate=Mock(return_value=True))
 
-    addGroupCommandInput = addTabCommandInput
+    def addGroupCommandInput(self, identifier, name):
+        return self.add(identifier, name, children=Inputs(self.registry, in_group=True),
+                        nested_group=self.in_group)
 
     def addBoolValueInput(self, identifier, name, check, resource, value):
         return self.add(identifier, name, value=value)
@@ -484,19 +506,16 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertIn('length', self.controls)
         self.assertTrue(self.fire('validateInputs').areInputsValid)
 
-    def test_failed_editor_construction_keeps_selection_and_error_visible(self):
+    def test_failed_editor_population_keeps_selection_and_error_visible(self):
         context = self.open_edit(chooser=True)
-        original_build = self.entry.build_dialog
-        def fail_build(*args, **kwargs):
-            original_build(*args, **kwargs)
-            self.assertTrue(self.controls['edit_selection'].isVisible)
-            raise RuntimeError('Native control failed')
         with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
                 patch.object(editing, 'load', return_value=context):
             self.entry.edit_created(NS(command=self.command))
-            with patch.object(self.entry, 'build_dialog', side_effect=fail_build):
+            with patch.object(self.controls['profile_choice'].listItems, 'clear',
+                              side_effect=RuntimeError('Native control failed')):
                 self.change('edit_load', True)
         self.assertTrue(self.controls['edit_selection'].isVisible)
+        self.assertFalse(self.controls['length'].isVisible)
         self.assertFalse(self.controls['edit_load'].isEnabled)
         self.assertIn('Native control failed', self.controls['edit_status'].text)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
@@ -504,6 +523,83 @@ class PreviewCommandTests(unittest.TestCase):
             self.assertTrue(self.fire('execute').executeFailed)
             rebuild.assert_not_called()
         self.create_frame.assert_not_called()
+
+    def test_loading_populates_existing_controls_and_preview_updates_repeatedly(self):
+        from test_sections import rectangle
+        with tempfile.TemporaryDirectory() as folder:
+            definition = rectangle(folder, 30, 30)
+        values = dict(demo.DEFAULTS, length=1200, width=600, profile=30,
+                      profile_definition=definition, shelf_count=1, shelf_heights=[350],
+                      accessory=accessories.PRESETS[0], profile_rotation=90,
+                      group_profiles={'posts': {'definition': definition, 'rotation': 180}},
+                      cross_members={'top': {'count': 2, 'direction': 'quer'}},
+                      brackets=True, brackets_double=True)
+        context = self.open_edit(values, chooser=True)
+        with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
+                patch.object(editing, 'load', return_value=context), \
+                patch.object(editing, 'check_current'), patch.object(editing, 'replace') as rebuild:
+            self.entry.edit_created(NS(command=self.command))
+            ids = {key: id(control) for key, control in self.controls.items()}
+            self.assertIn('length', ids)
+            self.assertNotIn('edit_fields', ids)
+            for key in ('support_options', 'shelves', 'profile_groups', 'cross_members',
+                        'bracket_options', 'preview_options'):
+                self.assertFalse(self.controls[key].nested_group)
+                self.assertFalse(self.controls[key].isExpanded)
+                self.assertFalse(self.controls[key].isVisible)
+            self.assertFalse(self.controls['length'].isVisible)
+            def native_preview():
+                # The original must be hidden before entering the preview transaction.
+                self.assertFalse(context['occurrence'].isLightBulbOn)
+                self.fire('executePreview')
+                return True
+            self.command.doExecutePreview.side_effect = native_preview
+            with patch.object(Inputs, 'add', side_effect=AssertionError('Late control creation')):
+                self.change('edit_load', True)
+                self.assertEqual(ids, {key: id(control) for key, control in self.controls.items()})
+                self.assertTrue(self.controls['length'].isVisible)
+                self.assertTrue(self.controls['preview_options'].isVisible)
+                self.assertFalse(self.controls['profile'].isVisible)
+                self.change('show_preview', True)
+                for length in (900, 300, 750):
+                    self.change('length', length/10)
+                    self.assertFalse(context['occurrence'].isLightBulbOn)
+                    points = self.graphics.groups[0].entities[0].points
+                    self.assertAlmostEqual(max(points[::3])-min(points[::3]), (length-30)/10)
+                self.fire('execute')
+            edited = rebuild.call_args.args[1]
+            self.assertEqual(edited['shelf_heights'], [350])
+            self.assertEqual(edited['group_profiles'], values['group_profiles'])
+            self.assertEqual(edited['profile_rotation'], 90)
+            self.assertEqual(edited['accessory'], values['accessory'])
+            self.assertEqual(edited['cross_members']['top']['count'], 2)
+            self.assertTrue(edited['brackets_double'])
+
+    def test_editor_routes_through_handlers_registered_before_loading(self):
+        context = self.open_edit(chooser=True)
+        with patch.object(editing, 'frames', return_value=[context['occurrence']]), \
+                patch.object(editing, 'load', return_value=context), \
+                patch.object(editing, 'check_current'), patch.object(editing, 'replace') as rebuild:
+            self.entry.edit_created(NS(command=self.command))
+            def native_preview():
+                self.fire('executePreview')
+                return True
+            self.command.doExecutePreview.side_effect = native_preview
+            with patch.object(self.entry.futil, 'add_handler',
+                              side_effect=AssertionError('Late event binding is not allowed')):
+                self.change('edit_load', True)
+                self.assertTrue(self.fire('validateInputs').areInputsValid)
+                self.change('show_preview', True)
+                self.assertTrue(self.controls['preview_panels'].isEnabled)
+                self.assertTrue(self.controls['preview_accessories'].isEnabled)
+                self.assertEqual(len(self.graphics.groups), 1)
+                self.assertFalse(context['occurrence'].isLightBulbOn)
+                self.change('length', 100)
+                self.fire('execute')
+                rebuild.assert_called_once()
+                self.assertEqual(rebuild.call_args.args[1]['length'], 1000)
+                self.fire('destroy')
+                self.assertEqual(self.graphics.groups, [])
 
     def test_edit_selection_reports_missing_frames_and_invalid_data(self):
         context = self.open_edit(chooser=True)
@@ -519,7 +615,7 @@ class PreviewCommandTests(unittest.TestCase):
         self.assertIn('Konfigurationsversion', self.controls['edit_status'].text)
         self.assertTrue(self.controls['edit_selection'].isVisible)
         self.assertFalse(self.fire('validateInputs').areInputsValid)
-        self.assertNotIn('length', self.controls)
+        self.assertFalse(self.controls['length'].isVisible)
 
     def test_edit_preview_failure_restores_visibility_and_does_not_replace(self):
         context = self.open_edit()
@@ -583,7 +679,7 @@ class PreviewCommandTests(unittest.TestCase):
             self.assertFalse(context['occurrence'].isLightBulbOn)
             self.assertGreaterEqual(min(self.graphics.groups[0].entities[0].points[::3]), 100)
             self.change('length', 100)
-            self.assertTrue(context['occurrence'].isLightBulbOn)
+            self.assertFalse(context['occurrence'].isLightBulbOn)
             self.fire('executePreview')
             self.assertFalse(context['occurrence'].isLightBulbOn)
             self.fire('destroy')

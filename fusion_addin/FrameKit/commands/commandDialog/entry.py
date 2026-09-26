@@ -97,26 +97,35 @@ def edit_created(args):
     handlers = []
     _dialog_handlers.append(handlers)
     loaded = False
+    editor = {}
 
     def select_changed(event):
-        nonlocal loaded
-        if loaded or event.input.id != load_button.id or not load_button.value:
+        nonlocal loaded, editor
+        if loaded:
+            if editor:
+                editor['inputChanged'](event)
+            return
+        if event.input.id != load_button.id or not load_button.value:
             return
         context = None
         try:
             context = editing.load(design, candidates[choices.selectedItem.index])
-            loaded = True  # Guard re-entrant inputChanged events during construction.
+            for control, visible in editor_controls:
+                control.isVisible = visible
+            loaded = True  # Guard re-entrant inputChanged events while populating fields.
             # Use the retained Command, never event arguments from a completed event.
-            # Keep the selector visible until all editor controls exist.
-            build_dialog(command, context, tabs, ready=lambda: loaded)
+            # Keep the selector visible until the saved values have been loaded.
+            editor['load'](context)
             tabs['settings'].isVisible = tabs['info'].isVisible = True
             tabs['frame'].activate()
             group.isVisible = False
         except Exception as exc:
             loaded = False
+            for control, _ in editor_controls:
+                control.isVisible = False
             group.isVisible = True
             if context is not None:
-                load_button.isEnabled = False  # Do not build duplicate inputs on retry.
+                load_button.isEnabled = False  # Do not reuse partially populated controls.
                 set_status(status, f'Dialog konnte nicht aufgebaut werden: {exc}. '
                            'Abbrechen und den Bearbeitungsbefehl erneut öffnen.', 'error')
             else:
@@ -125,15 +134,47 @@ def edit_created(args):
             load_button.value = False
 
     def validate_selection(event):
-        if not loaded:
+        if loaded and editor:
+            editor['validateInputs'](event)
+        else:
             event.areInputsValid = False
 
+    def preview_selection(event):
+        event.isValidResult = False
+        if loaded and editor:
+            editor['executePreview'](event)
+
+    def execute_selection(event):
+        if loaded and editor:
+            editor['execute'](event)
+        else:
+            event.executeFailed = True
+            event.executeFailedMessage = 'Zuerst ein Gestell vollständig laden.'
+
     def destroy_selection(event):
+        if editor:
+            editor['destroy'](event)
         if handlers in _dialog_handlers:
             _dialog_handlers.remove(handlers)
         handlers.clear()
 
+    # Native inputs must belong to the initial command layout. Loading only
+    # populates them; it never creates a second set inside inputChanged.
+    # Keep collapsible groups directly under the tab: Fusion cannot fold nested groups.
+    frame_inputs = tabs['frame'].children
+    first_editor_input = frame_inputs.count
+    empty_values = dict(deepcopy(demo.DEFAULTS), brackets=False, brackets_double=False)
+    empty_context = dict(values=empty_values, model=build_model(empty_values), occurrence=None)
+    editor = build_dialog(command, empty_context, tabs, ready=lambda: loaded,
+                          bind_events=False)
+    editor_controls = [(frame_inputs.item(index), frame_inputs.item(index).isVisible)
+                       for index in range(first_editor_input, frame_inputs.count)]
+    for control, _ in editor_controls:
+        control.isVisible = False
+
     for event, callback in ((command.inputChanged, select_changed),
+                            (command.execute, execute_selection),
+                            (command.executePreview, preview_selection),
                             (command.validateInputs, validate_selection),
                             (command.destroy, destroy_selection)):
         futil.add_handler(event, callback, local_handlers=handlers)
@@ -143,7 +184,7 @@ def command_created(args, edit_context=None):
     build_dialog(args.command, edit_context)
 
 
-def build_dialog(command, edit_context=None, tabs=None, ready=None):
+def build_dialog(command, edit_context=None, tabs=None, ready=None, bind_events=True):
     app = adsk.core.Application.get()
     command.setDialogInitialSize(580, 640)
     command.okButtonText = 'Neu aufbauen' if edit_context else 'Ausführen'
@@ -166,8 +207,8 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
     frame = tabs['frame']
     frame_inputs = frame.children
     if edit_context:
-        frame_inputs.addTextBoxCommandInput('edit_notice', '',
-            'Bearbeiten: ' + html.escape(edit_context['occurrence'].name) + '<br>'
+        edit_notice = frame_inputs.addTextBoxCommandInput('edit_notice', '',
+            ('Bearbeiten: ' + html.escape(edit_context['occurrence'].name) if edit_context['occurrence'] else 'Bitte Gestell laden.') + '<br>'
             'Manuelle Änderungen an erzeugten Bauteilen werden ersetzt. Externe Flächenreferenzen '
             'können ungültig werden. Abbrechen erhält das bisherige Gestell.', 4, True)
     frame_inputs.addTextBoxCommandInput('intro', '',
@@ -498,16 +539,18 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
     info_text('about_credits', f'{html.escape(config.AUTHOR)} · MIT-Lizenz', 1)
 
     handlers = []
-    _dialog_handlers.append(handlers)
+    if bind_events:
+        _dialog_handlers.append(handlers)
     preview = Preview()
     _previews.append(preview)
     calculated_model = deepcopy(edit_context['model']) if edit_context else None
     edit_committed = False
-    original_visibility = edit_context['occurrence'].isLightBulbOn if edit_context else None
+    original_visibility = edit_context['occurrence'].isLightBulbOn if edit_context and edit_context['occurrence'] else None
 
-    def clear_preview():
+    def clear_preview(restore_original=True):
         preview.clear()
-        if edit_context and not edit_committed and edit_context['occurrence'].isValid:
+        if (restore_original and edit_context and edit_context['occurrence'] is not None
+                and not edit_committed and edit_context['occurrence'].isValid):
             set_if_changed(edit_context['occurrence'], 'isLightBulbOn', original_visibility)
 
     def display_model(current):
@@ -644,9 +687,14 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
         try:
             changed_impl(event)
             if create.value and show_preview.value and not validation_message(update_display=False):
+                if edit_context:
+                    set_if_changed(edit_context['occurrence'], 'isLightBulbOn', False)
                 if not command.doExecutePreview():
+                    clear_preview()
                     set_status(preview_status, 'Vorschau konnte nicht gestartet werden. '
                                'Vorschau aus- und wieder einschalten.', 'error')
+            else:
+                clear_preview()
         finally:
             handling_change = False
 
@@ -657,7 +705,7 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
             return
         if event.input.id in (show_preview.id, create.id):
             preview_fit_pending = True
-        clear_preview()
+        clear_preview(restore_original=False)
         set_status(preview_status)
         if event.input.id == profile_unit.id:
             pending_profile = None
@@ -875,8 +923,9 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
         # Graphics are not a completed command result: OK must always run execute.
         event.isValidResult = False
         try:
-            clear_preview()
+            clear_preview(restore_original=False)
             if (ready is not None and not ready()) or not create.value or not show_preview.value:
+                clear_preview()
                 return
             current = read_values()
             design = adsk.fusion.Design.cast(app.activeProduct)
@@ -943,8 +992,65 @@ def build_dialog(command, edit_context=None, tabs=None, ready=None):
             _dialog_handlers.remove(handlers)
         handlers.clear()
 
-    for event, callback in ((command.execute, execute), (command.executePreview, execute_preview),
-                            (command.inputChanged, changed),
-                            (command.validateInputs, validate), (command.destroy, destroy)):
-        futil.add_handler(event, callback, local_handlers=handlers)
+    def load_context(context):
+        nonlocal edit_context, values, calculated_model, original_visibility
+        nonlocal preview_fit_pending, selectable_profiles, initial_sections, updating
+        updating = True
+        try:
+            clear_preview()
+            edit_context = context
+            values = deepcopy(context['values'])
+            calculated_model = deepcopy(context['model'])
+            original_visibility = context['occurrence'].isLightBulbOn
+            preview_fit_pending = True
+            set_status(edit_notice, 'Bearbeiten: '+context['occurrence'].name+'\n'
+                       'Manuelle Änderungen an erzeugten Bauteilen werden ersetzt. '
+                       'Externe Flächenreferenzen können ungültig werden. Abbrechen erhält das bisherige Gestell.')
+            for key, field in fields.items():
+                field.value = values[key]/10
+            thickness.value = values['shelf_thickness']/10
+            bottom.value = values['bottom']
+            count.value = values['shelf_count']
+            for index, field in enumerate(height_fields):
+                heights = values['shelf_heights']
+                field.value = str(heights[index]) if index < len(heights) and heights[index] is not None else ''
+                field.isVisible = index < count.value
+            common_rotation.listItems.item(values.get('profile_rotation', 0)//90).isSelected = True
+            frame_type.listItems.item(int(values.get('frame_type', 'frame') == 'cart')).isSelected = True
+            mount.listItems.item(int(values.get('top_panel_mount', 'notched') == 'on_top')).isSelected = True
+            brackets.value = values.get('brackets', False)
+            brackets_double.value = values.get('brackets_double', False)
+            support_individual.value = 'corner_accessories' in values
+            refresh_library(selections={'common': values.get('accessory'), **accessories.corner_specs(values)})
+            support_visibility()
+            initial_sections = {}
+            for key, (choice, rotation) in section_fields.items():
+                selected = (values.get('group_profiles', {}).get(key) if key in ('posts', 'frame', 'cross')
+                            else values.get('cross_members', {}).get(key, {}).get('section'))
+                initial_sections[key] = selected
+                rotation.listItems.item(selected['rotation']//90+1 if selected and 'rotation' in selected else 0).isSelected = True
+            selectable_profiles = []
+            selected = values.get('profile_definition')
+            refresh_profiles(selected['id'] if selected else None, saved=selected)
+            active_levels = dict(demo.frame_levels(values))
+            for key, (number, direction) in cross_fields.items():
+                spec = values.get('cross_members', {}).get(key, {})
+                number.listItems.item(spec.get('count', 0)).isSelected = True
+                direction.listItems.item(int(spec.get('direction', 'quer') == 'laengs')).isSelected = True
+                for control in (number, direction, *section_fields[key]):
+                    control.isVisible = key in active_levels
+            show_preview.value = False
+            show_panels.isEnabled = show_accessories.isEnabled = False
+            set_status(error, validation_message(), 'error')
+        finally:
+            updating = False
+
+    callbacks = dict(execute=execute, executePreview=execute_preview,
+                     inputChanged=changed, validateInputs=validate, destroy=destroy, load=load_context)
+    if bind_events:
+        for name, callback in callbacks.items():
+            if name == 'load':
+                continue
+            futil.add_handler(getattr(command, name), callback, local_handlers=handlers)
     set_status(error, validation_message(), 'error')
+    return callbacks

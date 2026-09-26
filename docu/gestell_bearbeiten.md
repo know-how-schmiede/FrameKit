@@ -1,4 +1,4 @@
-# Vorhandenes Gestell bearbeiten – S08 / 0.5.2
+# Vorhandenes Gestell bearbeiten – S08 / 0.5.4
 
 Unter **Volumenkörper → Erstellen → FrameKit: Gestell bearbeiten** kann eine gespeicherte FrameKit-Hauptbaugruppe im aktiven Dokument ausgewählt werden. Der bisherige FrameKit-Befehl erstellt weiterhin neue, unabhängige Gestelle.
 
@@ -21,15 +21,15 @@ Bibliotheksaktionen im Einstellungsreiter speichern weiterhin sofort und werden 
 
 ## Austausch und Rückgängig
 
-Der Austausch läuft im Ausführen-Ereignis eines Fusion-Befehls. Erst wenn die neue Geometrie samt Attributen und Zeitleistengruppen vollständig erstellt ist, wird das alte Gestell entfernt. Im parametrischen Dokument erfolgt dies über ein **Remove-Feature**, sodass die bisherige Historie erhalten bleibt. Im Direktmodell wird das alte Vorkommen am Ende gelöscht. Ein Fehler setzt `executeFailed`, wodurch Fusion die Befehlstransaktion abbricht. Änderungen an gespeicherten Daten oder der Hauptbaugruppenposition zwischen Laden und Ausführen werden erkannt.
+Der Austausch läuft im Ausführen-Ereignis eines Fusion-Befehls. Erst wenn die neue Geometrie samt Attributen und Zeitleistengruppen vollständig erstellt ist, wird das alte Gestell entfernt. Das alte Vorkommen wird in parametrischen Dokumenten und Direktmodellen über **deleteMe** gelöscht. Damit wird auch die zugehörige alte Komponentenhistorie entfernt, statt einen weiteren Remove-Schritt anzuhängen. Externe Referenzen auf die gelöschte Geometrie können dabei verloren gehen. Ein Fehler setzt `executeFailed`, wodurch Fusion die Befehlstransaktion abbricht. Änderungen an gespeicherten Daten oder der Hauptbaugruppenposition zwischen Laden und Ausführen werden erkannt.
 
-**Rückgängig** soll den gesamten Bearbeitungsschritt einschließlich Entfernung des alten Gestells zurücknehmen; **Wiederholen** soll ihn erneut anwenden. Die Historie parametrischer Dokumente wächst beim Neuaufbau bewusst weiter.
+**Rückgängig** soll den gesamten Bearbeitungsschritt einschließlich Entfernung des alten Gestells zurücknehmen; **Wiederholen** soll ihn erneut anwenden. Künftige Bearbeitungen behalten nur die Konstruktion des aktuellen Gestells. Bereits durch frühere Bearbeitungen angesammelte Remove-Historie wird nicht rückwirkend bereinigt. Die native Prüfung von Historienbereinigung sowie Rückgängig/Wiederholen steht noch aus.
 
-API-Grundlagen: [Transaktion bei executeFailed abbrechen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_CommandEventArgs_executeFailed.htm), [RemoveFeatures.add](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_RemoveFeatures_add.htm), [Position und Orientierung über transform2](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_Occurrence_transform2.htm).
+API-Grundlagen: [Transaktion bei executeFailed abbrechen](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_CommandEventArgs_executeFailed.htm), [Occurrence.deleteMe](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_Occurrence_deleteMe.htm), [Position und Orientierung über transform2](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/fusion_Occurrence_transform2.htm).
 
 ## Prüfstand
 
-**131 lokale Tests erfolgreich.** Neue Prüfungen umfassen Konfigurationsmigration, Schemafehler, eingebettete DXF-Daten, ID-Erhaltung, Auswahl mehrerer Gestelle, verschobene/gedrehte Vorschau, Abbrechen, Sichtbarkeitswiederherstellung, fehlgeschlagenen Aufbau und Schutz fremder Komponenten. Fusion-API-Ereignisse und Geometrieadapter werden dabei durch Testobjekte ersetzt.
+**133 lokale Tests erfolgreich.** Neue Prüfungen umfassen Konfigurationsmigration, Schemafehler, eingebettete DXF-Daten, ID-Erhaltung, Auswahl mehrerer Gestelle, verschobene/gedrehte Vorschau, Abbrechen, Sichtbarkeitswiederherstellung, fehlgeschlagenen Aufbau und Schutz fremder Komponenten. Fusion-API-Ereignisse und Geometrieadapter werden dabei durch Testobjekte ersetzt.
 
 **Die praktische Prüfung in Fusion ist offen**, insbesondere:
 
@@ -50,3 +50,13 @@ Der in Fusion gemeldete leere Bearbeitungsdialog wird durch einen durchgängigen
 ## Vorschaukorrektur 0.5.2
 
 Trotz aktivierter Vorschau wurde keine Grafik angezeigt. FrameKit fordert die Vorschau nun beim Einschalten und nach gültigen Eingabeänderungen ausdrücklich mit [Command.doExecutePreview](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/core_Command_doExecutePreview.htm) an. Status-, Gruppen- und Reiterereignisse sowie verschachtelte Rückrufe während des Renderns entfernen die Grafik nicht. Eine abgelehnte native Vorschauanforderung wird im Vorschauabschnitt gemeldet. Nach Neustart mit einem geladenen Gestell Einschalten, Maßänderung, Ausschalten und Abbrechen prüfen. Die Bestätigung dieser Korrektur in Fusion steht noch aus.
+
+## Ereigniskorrektur 0.5.3
+
+0.5.2 zeigte beim Benutzer weiterhin keine Vorschau. Die im Screenshot deaktivierten Unteroptionen trotz gesetzter Vorschau deuten auf nicht verarbeitete Änderungsereignisse hin. Der Bearbeitungsbefehl registriert nun alle nativen Handler beim Öffnen; nach dem Laden erfolgt nur die Weiterleitung an die Editor-Callbacks. Die nachträgliche Handlerregistrierung innerhalb von inputChanged entfällt. Nach Aktualisierung und Neustart **Gestell bearbeiten → Gestell laden → Vorschau anzeigen** prüfen: Unteroptionen müssen aktiv werden, das ursprüngliche Gestell ausgeblendet und die Vorschau sichtbar werden. Abbrechen muss das Original wiederherstellen. Fusion-Bestätigung offen.
+
+## Vorschaukorrektur 0.5.4
+
+Die Rückmeldung zu 0.5.3 zeigt: Die Grafik existiert, ist aber vom Original verdeckt und bleibt nach Maßänderungen statisch. Der Dialog legt jetzt auch sämtliche Editorfelder beim Öffnen an. **Gestell laden** setzt nur Werte, Auswahlen und Sichtbarkeiten der vorhandenen Felder. Das Original wird vor der Vorschauanforderung ausgeblendet und bei reinen Grafikaktualisierungen nicht wieder eingeblendet. Bei ausgeschalteter/ungültiger Vorschau, Fehlern und Abbrechen wird seine ursprüngliche Sichtbarkeit wiederhergestellt.
+
+Nach Aktualisierung und Neustart prüfen: Gestell laden, Vorschau aktivieren, Länge nacheinander auf 900, 300 und 750 mm ändern. Das Original darf nicht manuell ausgeblendet werden müssen; die Vorschau muss jeweils ihre Form ändern. Danach Vorschau ausschalten und Abbrechen prüfen. Native Fusion-Bestätigung offen.

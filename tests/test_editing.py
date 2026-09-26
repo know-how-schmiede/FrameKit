@@ -90,9 +90,7 @@ class RebuildTests(unittest.TestCase):
             self.assertEqual(json.loads(editing.attribute(rebuilt.component, 'modelData')), data)
             self.assertEqual(len(editing.frames(design)), 2)
             editing.load(design, rebuilt)  # The replacement must itself remain editable.
-            if parametric:
-                self.assertTrue(first.isValid)  # Retained history; Remove, not deleteMe.
-                self.assertIs(design.removed[2], first)
+            self.assertFalse(first.isValid)  # Delete old construction, not a Remove feature.
 
     def test_failed_build_keeps_original_and_other_frames(self):
         design = Design()
@@ -126,11 +124,11 @@ class RebuildTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'geändert'):
             editing.check_current(context)
 
-    def test_remove_failure_keeps_old_frame_until_command_transaction_aborts(self):
+    def test_delete_failure_keeps_old_frame_until_command_transaction_aborts(self):
         design = Design()
         old = self.adapter.create_frame(design, demo.DEFAULTS)
         context = editing.load(design, old)
-        with patch.object(design.rootComponent.features.removeFeatures, 'add', return_value=None):
+        with patch.object(old, 'deleteMe', return_value=False):
             with self.assertRaisesRegex(RuntimeError, 'ersetzt'):
                 self.replace(context, context['values'], context['model'])
         self.assertTrue(old.isValid)
