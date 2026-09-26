@@ -86,4 +86,4 @@ API-Grundlagen: [Autodesk: UI-Anpassung und Icon-Ressourcen](https://help.autode
 
 Für 0.4.3 den vollständigen Add-in-Ordner einschließlich `resources/brackets` aktualisieren und FrameKit neu starten. Beim Start werden die drei STEP-Typen einmal geladen. Version 0.4.3 wurde am 26.09.2026 vom Benutzer als funktionsfähig in Fusion bestätigt.
 
-Prüfung für 0.4.4: FrameKit neu starten, Zahlenfelder vollständig markieren und `600`, `1200`, Dezimalzahlen sowie Einheiten eingeben. Auch Einfügen/Löschen mitten im Ausdruck, Zwischenbodenhöhen und Zubehörfelder prüfen. Reihenfolge und Cursorposition müssen erhalten bleiben; Fehler müssen nach Korrektur verschwinden. Die Cursorprüfung in Fusion ist noch offen.
+Prüfung für 0.4.4: FrameKit neu starten, Zahlenfelder vollständig markieren und `600`, `1200`, Dezimalzahlen sowie Einheiten eingeben. Auch Einfügen/Löschen mitten im Ausdruck, Zwischenbodenhöhen und Zubehörfelder prüfen. Reihenfolge und Cursorposition müssen erhalten bleiben; Fehler müssen nach Korrektur verschwinden. Der Benutzer hat am 26.09.2026 bestätigt, dass der Eingabefehler in 0.4.4 behoben ist. Die Prüfliste bleibt für spätere Regressionstests erhalten.

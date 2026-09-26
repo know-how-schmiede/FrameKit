@@ -4,12 +4,14 @@ Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details
 
 ## 26.09.2026 – 0.4.4
 
+**Benutzerbestätigung vom 26.09.2026:** Eingabefehler in 0.4.4 beseitigt; Z02 in Fusion bestätigt.
+
 **Git-Zusammenfassung:** `fix: Unnötige Dialogaktualisierungen beim Tippen vermeiden (0.4.4)`
 
 - Gemeldeten Cursorversatz (`600` → `006`) adressiert: keine wiederholten Schreibzugriffe auf unveränderte Sichtbarkeit, Aktivierung und Hinweistexte.
 - Eingabevalidierung ohne UI-Änderungen; Schutz gegen verschachtelte Änderungsereignisse. Zubehörfehler werden direkt auf ihren Zielzustand gesetzt, ohne vorheriges Aus-/Einblenden.
 
-**Prüfstand:** 110 lokale Tests erfolgreich, einschließlich Zahlen-/Textfelder und schreibfreier Validierung. Cursorverhalten im laufenden Fusion noch zu bestätigen. 0.4.3 wurde zuvor vom Benutzer als funktionsfähig bestätigt.
+**Prüfstand:** 110 lokale Tests erfolgreich, einschließlich Zahlen-/Textfelder und schreibfreier Validierung. Benutzerrückmeldung: Nach Neustart läuft es wieder. Begleitender Screenshot: Fusion meldet, dass FrameKit beim vorherigen Start nicht ausgeführt werden konnte und deshalb übersprungen wurde; Ursache des Startfehlers ungeklärt. 0.4.3 wurde zuvor vom Benutzer als funktionsfähig bestätigt.
 
 ## 26.09.2026 – 0.4.3
 

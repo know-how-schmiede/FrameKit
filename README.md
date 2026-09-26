@@ -20,9 +20,24 @@ Neu in **0.4.1**: farbige Fehler und Warnhinweise in allen Dialogbereichen. Beim
 
 Neu in **0.4.3**: Die bereitgestellten STEP-Winkel 20/30/40 mm ersetzen die Dreieckplatzhalter. Pro Größe wird eine Komponente mehrfach platziert, mit Auflage an den Profilaußenflächen und gemeinsamer Sichtbarkeitsgruppe **91 | Winkel**. Die Vorschau zeigt Montagehüllen in Originalgröße. Zubehörfehler erscheinen zusätzlich direkt unter der Fuß-/Rollenauswahl. [Winkel und Prüfschritte](docu/winkel.md); am 26.09.2026 vom Benutzer als funktionsfähig in Fusion bestätigt.
 
-Neu in **0.4.4**: Dialogaktualisierung gegen Cursorversatz beim Tippen korrigiert (gemeldet: `600` erscheint als `006`). Unveränderte Feldzustände und Hinweise werden nicht erneut geschrieben; die Eingabeprüfung verändert keine Dialogfelder. 110 lokale Tests erfolgreich, Bestätigung im laufenden Fusion noch offen.
+Neu in **0.4.4**: Dialogaktualisierung gegen Cursorversatz beim Tippen korrigiert (gemeldet: `600` erscheint als `006`). Unveränderte Feldzustände und Hinweise werden nicht erneut geschrieben; die Eingabeprüfung verändert keine Dialogfelder. 110 lokale Tests erfolgreich; der Benutzer hat am 26.09.2026 bestätigt, dass der Eingabefehler in Fusion behoben ist.
 
 ## Screenshots
+
+### Version 0.4.4
+
+Gestell mit farblich hervorgehobenen Profilen und STEP-Winkeln, Bodenplatte und zylindrischen Zubehörplatzhaltern neben dem kompakten Erstellungsdialog. Die Dialogwerte zeigen einen eigenen Eingabestand und müssen nicht dem sichtbaren Gestell entsprechen.
+
+![FrameKit 0.4.4 – Gestell mit STEP-Winkeln, Baugruppenstruktur und kompaktem Erstellungsdialog](images/screenshots/0.4.4/FrameKit_V0-4-4_-00.png)
+
+<details>
+<summary>Winkeloptionen und wiederverwendete Bauteile in Version 0.4.4</summary>
+
+Die aufgeklappte Gruppe **91 | Winkel** zeigt die einzelnen Vorkommen des Winkels 30 × 30. Im Dialog sind die Winkelerstellung und die optionale parallele Anordnung einstellbar.
+
+![FrameKit 0.4.4 – Aufgeklappte Winkelgruppe mit Vorkommen des Winkels 30 × 30 und Winkeloptionen im Dialog](images/screenshots/0.4.4/FrameKit_V0-4-4_-01.png)
+
+</details>
 
 ### Version 0.3.0
 

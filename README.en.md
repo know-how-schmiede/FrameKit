@@ -20,9 +20,24 @@ New in **0.4.1**: colored errors and warnings throughout the dialog; enabling th
 
 New in **0.4.3**: supplied 20/30/40 mm STEP brackets replace the triangular placeholders. One component per size is reused at multiple positions, aligned to the outer profile faces and grouped under **91 | Winkel** for visibility. Preview outlines show full-size mounting envelopes. Accessory errors also appear directly below the foot/caster selection. See [Brackets and verification](docu/winkel.md) (German); confirmed working in Fusion by the user on 2026-09-26.
 
-New in **0.4.4**: corrected dialog refresh behavior to address caret movement while typing (reported: `600` appears as `006`). Unchanged field states and messages are no longer rewritten; input validation does not modify dialog controls. 110 local tests pass; confirmation in Fusion is pending.
+New in **0.4.4**: corrected dialog refresh behavior to address caret movement while typing (reported: `600` appears as `006`). Unchanged field states and messages are no longer rewritten; input validation does not modify dialog controls. 110 local tests pass; the user confirmed on 2026-09-26 that the input bug is fixed in Fusion.
 
 ## Screenshots
+
+### Version 0.4.4
+
+Frame with color-coded profiles and STEP brackets, a bottom panel, and cylindrical accessory placeholders alongside the compact creation dialog. The dialog shows a separate input state and does not necessarily match the visible frame.
+
+![FrameKit 0.4.4 – Frame with STEP brackets, assembly structure, and compact creation dialog](images/screenshots/0.4.4/FrameKit_V0-4-4_-00.png)
+
+<details>
+<summary>Bracket options and reused components in version 0.4.4</summary>
+
+The expanded **91 | Winkel** group shows individual occurrences of the 30 × 30 bracket. The dialog provides controls for creating brackets and optionally placing two in parallel.
+
+![FrameKit 0.4.4 – Expanded bracket group with 30 × 30 bracket occurrences and bracket options in the dialog](images/screenshots/0.4.4/FrameKit_V0-4-4_-01.png)
+
+</details>
 
 ### Version 0.3.0
 
