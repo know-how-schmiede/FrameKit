@@ -14,7 +14,7 @@ def filename(size):
 
 
 def prepare(app):
-    """Called during add-in startup, never from a command event.
+    """Called after Fusion startup is complete, never from a command event.
 
     Only our temporary import documents are closed. Independent transient copies
     survive closing them. No source document or user design is modified.

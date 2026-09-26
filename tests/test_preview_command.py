@@ -218,11 +218,11 @@ class PreviewCommandTests(unittest.TestCase):
         self.entry.adsk.core.Application.get().userInterface = NS(createFileDialog=lambda: dialog)
         with patch.object(editing, 'load', return_value=context) as load, \
                 patch.object(editing, 'check_current'), \
-                patch.object(self.entry.cut_list, 'write_csv') as write:
+                patch.object(self.entry.csv_export, 'write_files') as write:
             self.assertTrue(self.fire('validateInputs').areInputsValid)
             self.fire('execute')
             load.assert_called_once_with(context['design'], context['occurrence'])
-            write.assert_called_once_with('output.csv', context['model'], True)
+            write.assert_called_once_with([('output.csv', self.entry.cut_list.csv_text(context['model'], True))])
         self.create_frame.assert_not_called()
 
     def test_export_save_cancel_writes_nothing(self):
@@ -232,9 +232,31 @@ class PreviewCommandTests(unittest.TestCase):
         dialog = NS(showSave=Mock(return_value=0))
         self.entry.adsk.core.Application.get().userInterface = NS(createFileDialog=lambda: dialog)
         with patch.object(editing, 'load', return_value=context), \
-                patch.object(self.entry.cut_list, 'write_csv') as write:
+                patch.object(self.entry.csv_export, 'write_files') as write:
             self.fire('execute')
             write.assert_not_called()
+
+    def test_export_both_lists_and_cancel_second_destination(self):
+        context = self.open_edit(chooser=True)
+        self.open_export([context['occurrence']])
+        self.controls['export_kind'].listItems.item(2).isSelected = True
+        self.entry.adsk.core.DialogResults = NS(DialogOK=1)
+        first = NS(showSave=Mock(return_value=1), filename='cuts.csv')
+        second = NS(showSave=Mock(return_value=0), filename='parts.csv')
+        ui = NS(createFileDialog=Mock(side_effect=[first, second]))
+        self.entry.adsk.core.Application.get().userInterface = ui
+        with patch.object(editing, 'load', return_value=context), \
+                patch.object(editing, 'check_current'), \
+                patch.object(self.entry.csv_export, 'write_files') as write:
+            self.fire('execute')
+            write.assert_not_called()
+            second.showSave.return_value = 1
+            ui.createFileDialog.side_effect = [first, second]
+            self.fire('execute')
+            write.assert_called_once()
+            files = write.call_args.args[0]
+            self.assertEqual([f[0] for f in files], ['cuts.csv', 'parts.csv'])
+            self.assertIn('Hinweis zur Vollständigkeit', files[1][1])
 
     def test_export_empty_document_is_disabled(self):
         self.open_export([])

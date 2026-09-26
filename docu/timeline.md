@@ -2,6 +2,18 @@
 
 Pro Version: kurze Git-Zusammenfassung, Prüfstand und Links. Technische Details und Anleitungen werden in eigenen Dokumenten unter `docu` gepflegt.
 
+## 26.09.2026 – 0.7.2 / S10
+
+**Benutzerbestätigung:** Export erfolgreich; Fusion stürzt beim Start nicht mehr ab. Version 0.7.2 in diesen Punkten in Fusion bestätigt.
+
+**Git-Zusammenfassung:** `feat: Stückliste und kombinierter CSV-Export; STEP-Import nach Fusion-Initialisierung`
+
+- Benutzer bestätigt den bisherigen Stand als funktionsfähig; S10 beauftragt.
+- CSV-Stückliste für alle definierten Bauteile mit Plattenausklinkungen, Zubehördefinitionen, Winkeln, Mengen und IDs. Platzhalter, fehlende Befestigungen und Winkelwarnungen ausdrücklich ausgewiesen.
+- Exportauswahl: Zuschnittliste, Stückliste oder beide; Abbrechen vor dem Schreiben und Wiederherstellung bei Fehlern des Dateiaustauschs.
+- Automatischen Start auf startupCompleted verschoben. Benutzer meldet Fusion-Absturz beim Autostart, anschließendes manuelles Aktivieren funktioniert; Bericht an Autodesk bereits gesendet. Ursache nicht bewiesen, native Prüfung der Korrektur offen.
+- **Prüfstand:** 154 lokale Tests erfolgreich. [Bedienung und Prüfschritte](stueckliste.md).
+
 ## 26.09.2026 – 0.7.0 / S09
 
 **Benutzerbestätigung zur abschließenden Direktmodus-Korrektur:** „ok funktioniert jetzt.“ Die Winkel werden nach dem Neuaufbau ohne Konstruktionshistorie wieder korrekt dargestellt. Version bleibt 0.7.0.

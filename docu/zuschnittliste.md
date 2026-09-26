@@ -1,6 +1,6 @@
 # Zuschnittliste – S09 / 0.7.0
 
-Unter **Volumenkörper → Erstellen → FrameKit: Zuschnittliste exportieren** ein gespeichertes FrameKit-Gestell auswählen. Der Befehl ist unabhängig vom Erstellungs- und Bearbeitungsdialog. Änderungen vor dem Export mit „Neu aufbauen“ übernehmen.
+Unter **Volumenkörper → Erstellen → FrameKit: CSV-Listen exportieren** ein gespeichertes FrameKit-Gestell auswählen. Der Befehl ist unabhängig vom Erstellungs- und Bearbeitungsdialog. Änderungen vor dem Export mit „Neu aufbauen“ übernehmen.
 
 1. Gestell anhand des Namens in der Auswahlliste auswählen.
 2. CSV-Format wählen: **Deutsch** verwendet Semikolon und Dezimalkomma, **International** Komma und Dezimalpunkt.
@@ -27,3 +27,5 @@ Das Icon für **Gestell bearbeiten** verwendet jetzt das bestehende Grundicon mi
 API-Grundlage des Speicherdialogs: [Autodesk File Dialog Sample](https://help.autodesk.com/cloudhelp/ENU/Fusion-360-API/files/FileDialogSample_Sample.htm).
 
 Das CSV-Export-Icon ergänzt dasselbe Grundicon um einen nach außen gerichteten Exportpfeil, ebenfalls in beiden Größen und Farbvarianten.
+
+Seit S10 / 0.7.2 bietet derselbe Befehl auch [Stückliste oder beide Listen](stueckliste.md).

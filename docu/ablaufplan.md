@@ -1,6 +1,6 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.7.0**
+Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.7.2**
 
 **Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Der korrigierte Dialog und die Vorschau von 0.5.4 wurden inzwischen vom Benutzer bestätigt; die anschließende Historienbereinigung einschließlich Undo/Redo ist noch zu prüfen. S09 / 0.7.0: Zuschnittliste vom Benutzer als funktionsfähig bestätigt. Weitere Schritte nur auf Benutzerauftrag starten.**
 
@@ -47,7 +47,7 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | Z03 | 0.5.1 | Leeren Bearbeitungsdialog beim Laden korrigieren | S08 | In Fusion bestätigt |
 | Z04 | 0.5.4 | Editorfelder vorab erzeugen und Vorschau live aktualisieren | Z03 | Implementiert; Fusion-Prüfung offen |
 | S09 | 0.7.0 | Zuschnittliste als CSV | S04, S05, S08 | In Fusion bestätigt |
-| S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | Geplant |
+| S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | In Fusion bestätigt |
 | S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Geplant |
 | S12 | 0.9.0 | Installierbares Paket und durchgängiger Abnahmetest | S01–S11 | Geplant |
 | S13 | 1.0.0 | Freigabe des geprüften Grundumfangs | S12 | Geplant |
@@ -157,6 +157,10 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - **Prüfung:** Export nach Erstellung und Bearbeitung mit der Baugruppe abgleichen; gleiche Anzeigenamen verschiedener Profile nicht vermischen.
 
 ### S10 · 0.7.2 – Stückliste
+
+**Benutzerbestätigung:** Export erfolgreich; Fusion stürzt beim Start mit FrameKit nicht mehr ab. S10 und die Startkorrektur sind damit in Fusion bestätigt.
+
+**Ergebnis:** [Stückliste und Startverhalten](stueckliste.md). Drei Exportoptionen, Platten-/Zubehör-/Winkeldaten und ausdrückliche Hinweise auf fehlende Befestigungen. 154 lokale Tests erfolgreich; Fusion-Prüfung offen. Zusätzlich STEP-Import bei automatischem Start bis startupCompleted verzögert; gemeldeter Startabsturz damit noch nicht als behoben bestätigt.
 
 - CSV-Stückliste um Platten, Füße/Rollen und definierte Verbindungsteile erweitern.
 - Plattenmaße, Stärke und Eckausklinkungen sowie Zubehördefinitionen und Mengen ausweisen. Platzhalter und unvollständige Verbindungszuordnungen kennzeichnen.

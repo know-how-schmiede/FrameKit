@@ -4,7 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 import adsk.core
 import adsk.fusion
-from ... import accessories, config, demo, settings, profile_library, editing, cut_list
+from ... import accessories, config, demo, settings, profile_library, editing, cut_list, bill_of_materials, csv_export
 from ...geometry import create_frame
 from ...model import build_model
 from ...preview import Preview
@@ -34,7 +34,7 @@ def start():
     for identifier, title, description, callback in (
             (CMD_ID, f'FrameKit {__version__}', 'Ein neues Gestell erstellen.', command_created),
             (EDIT_CMD_ID, 'FrameKit: Gestell bearbeiten', 'Gespeichertes Gestell laden und neu aufbauen.', edit_created),
-            (EXPORT_CMD_ID, 'FrameKit: Zuschnittliste exportieren', 'Profilzuschnitte als CSV speichern.', export_created)):
+            (EXPORT_CMD_ID, 'FrameKit: CSV-Listen exportieren', 'Zuschnittliste und Stückliste als CSV speichern.', export_created)):
         resource = {EDIT_CMD_ID: 'EditFrame', EXPORT_CMD_ID: 'ExportCSV'}.get(identifier, 'CreateFrame')
         definition = ui.commandDefinitions.addButtonDefinition(
             identifier, title, description, str(RESOURCES / resource))
@@ -87,9 +87,13 @@ def export_created(args):
         adsk.core.DropDownStyles.TextListDropDownStyle)
     for index, label in enumerate(cut_list.FORMATS):
         formats.listItems.add(label, index == 0)
+    export_kind = inputs.addDropDownCommandInput('export_kind', 'Listen',
+        adsk.core.DropDownStyles.TextListDropDownStyle)
+    for index, label in enumerate(('Zuschnittliste', 'Stückliste', 'Beide Listen')):
+        export_kind.listItems.add(label, index == 0)
     inputs.addTextBoxCommandInput('export_help', '',
-        'Profilzuschnitte des gespeicherten Gestells in mm. Gleiche Definitionen, Längen '
-        'und Endbearbeitungen werden zusammengefasst. UTF-8 mit BOM für Excel/LibreOffice. '
+        'Zuschnitte oder alle definierten Bauteile in mm. Stückliste mit Platten, Zubehör und Winkeln. '
+        'Platzhalter und fehlende Befestigungen sind gekennzeichnet. UTF-8 mit BOM. '
         'Zielpfad im anschließenden Speicherdialog wählen. Manuelle Geometrieänderungen '
         'werden nicht ausgewertet.', 5, True)
     status = inputs.addTextBoxCommandInput('export_status', '', '', 2, True)
@@ -106,20 +110,29 @@ def export_created(args):
                 raise ValueError('Ein Dokument mit gespeichertem FrameKit-Gestell auswählen.')
             context = editing.load(design, candidates[choices.selectedItem.index])
             calculated = context['model']
-            cut_list.rows(calculated)  # Validate before offering a destination.
-            dialog = app.userInterface.createFileDialog()
-            dialog.title = 'FrameKit: Zuschnittliste speichern'
-            dialog.filter = 'CSV-Dateien (*.csv)'
-            dialog.isMultiSelectEnabled = False
-            if dialog.showSave() != adsk.core.DialogResults.DialogOK:
-                return
+            international = formats.selectedItem.index == 1
+            kind = export_kind.selectedItem.index
+            exports = []
+            if kind in (0, 2):
+                exports.append(('Zuschnittliste', cut_list.csv_text(calculated, international)))
+            if kind in (1, 2):
+                exports.append(('Stückliste', bill_of_materials.csv_text(calculated, international)))
+            files = []
+            for title, content in exports:
+                dialog = app.userInterface.createFileDialog()
+                dialog.title = f'FrameKit: {title} speichern'
+                dialog.filter = 'CSV-Dateien (*.csv)'
+                dialog.isMultiSelectEnabled = False
+                if dialog.showSave() != adsk.core.DialogResults.DialogOK:
+                    return  # All destinations are chosen before writing either file.
+                files.append((dialog.filename, content))
             editing.check_current(context)
-            cut_list.write_csv(dialog.filename, calculated, formats.selectedItem.index == 1)
+            csv_export.write_files(files)
         except Exception as exc:
             event.executeFailed = True
-            event.executeFailedMessage = f'Zuschnittliste nicht gespeichert: {exc}'
+            event.executeFailedMessage = f'CSV-Export nicht gespeichert: {exc}'
             set_status(status, event.executeFailedMessage, 'error')
-            futil.handle_error('FrameKit-Zuschnittliste')
+            futil.handle_error('FrameKit-CSV-Export')
 
     def destroy(event):
         if handlers in _dialog_handlers:

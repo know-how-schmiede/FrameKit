@@ -106,6 +106,11 @@ def build_model(values, previous=None):
                 shape.update(width_mm=profile['width_mm'], height_mm=profile['height_mm'])
             detail = f'{profile["name"]} | L={shape["depth_mm"]:g} mm'
         elif kind == 'panel':
+            part['panel_definition'] = dict(length_mm=length, width_mm=width,
+                thickness_mm=thickness, material=None,
+                corner_cutouts=[] if group == 'top' and on_top else [
+                    dict(corner=corner, length_mm=px, width_mm=py)
+                    for corner in ('vorne links', 'vorne rechts', 'hinten rechts', 'hinten links')])
             finish = 'ohne Aussparungen' if group == 'top' and on_top else 'ausgeklinkt'
             detail = f'{length:g}x{width:g}x{thickness:g} mm | {finish}'
         elif kind == 'connection':
