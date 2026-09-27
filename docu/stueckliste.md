@@ -17,6 +17,25 @@ Die Spalten beginnen mit Hersteller, Serie, Artikelnummer, Bezeichnung, Länge, 
 
 Wie bei der Zuschnittliste stammen die Angaben aus den gespeicherten FrameKit-Einstellungen und Bauteildaten. Manuelle Geometrieänderungen werden nicht vermessen. Änderungen vorher mit „Neu aufbauen“ übernehmen.
 
+## Geplant: Preise und erste Kostenschätzung (Z05)
+
+Benutzerauftrag vom 27.09.2026: **Für die nächste Änderung vorgesehen, noch nicht implementiert**; siehe [Z05 im Ablaufplan](ablaufplan.md). Preise sind freiwillige Angaben für eine erste, unverbindliche Kostenschätzung.
+
+| Bauteil | Preiseingabe | Berechnung je Stücklistenposition |
+| --- | --- | --- |
+| Profil | €/m je Profildefinition | Zuschnittlänge in mm / 1000 × Stückzahl × Preis je Meter |
+| Rolle oder Fuß | €/Stück je Zubehördefinition | Stückzahl × Preis je Stück |
+
+Beispiel: Vier Profile à 850 mm zu 12 €/m ergeben 40,80 €. Vier Rollen zu 15 €/Stück ergeben 60,00 €. Die Summe dieser bepreisten Positionen beträgt 100,80 €.
+
+Geplanter Umfang:
+
+- Optionale Preisfelder beim Anlegen und Bearbeiten von Profilen, Rollen und Füßen. Leer bedeutet „Preis fehlt“, nicht 0 €. Ein ausdrücklich eingetragener Preis von 0 € bleibt davon unterscheidbar; negative oder ungültige Preise sind unzulässig.
+- Die Stückliste und ihr CSV-Export enthalten Preisbasis (€/m oder €/Stück), Einheitspreis, Positionskosten und eine Summe der bepreisten Positionen in EUR. Geldbeträge werden auf zwei Nachkommastellen ausgegeben; Positionskosten erst nach Multiplikation runden, die Summe aus den gerundeten Positionskosten bilden.
+- Bei fehlenden Preisen bleiben Kostenfelder leer und der Status benennt die fehlende Preisangabe. Sind Positionen unbepreist, ist die Summe ausdrücklich unvollständig. Dies betrifft auch bislang nicht bepreiste Platten, Winkel und weitere Teile.
+- Preisstände werden mit den verwendeten Definitionen im Gestell gespeichert und in Standardwerten, Vorlagen und Datensicherungen erhalten. Eine spätere Preisänderung in der Bibliothek verändert gespeicherte Gestelle nicht automatisch. Alte Daten ohne Preise bleiben verwendbar. Positionen mit verschiedenen Preisständen dürfen nicht stillschweigend zusammengefasst werden.
+- Die Ausgabe trägt den Hinweis **„Erste unverbindliche Kostenschätzung auf Basis der hinterlegten Preise; keine vollständigen Beschaffungskosten.“** Profilkosten beruhen auf Zuschnittlängen, ohne automatische Zuschläge für Verschnitt, Lagerstangen, Bearbeitung, Versand oder Montage. Es erfolgt keine automatische Steuerberechnung; die eingegebenen Preise müssen auf einer einheitlichen Netto- oder Bruttobasis beruhen.
+
 ## Startverhalten in 0.7.2
 
 Benutzerbericht: Fusion stürzt beim automatischen Laden von FrameKit ab, deaktiviert das Add-in und läuft nach erneutem manuellen Aktivieren normal. Der Benutzer hat einen Fehlerbericht an Autodesk gesendet. Die Ursache ist nicht abschließend nachgewiesen.

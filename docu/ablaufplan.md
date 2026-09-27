@@ -1,6 +1,8 @@
 # FrameKit – Ablaufplan für die weitere Umsetzung
 
-Stand: **26.09.2026** · Aktuelle Add-in-Version: **0.9.0**
+Stand: **27.09.2026** · Aktuelle Add-in-Version: **0.9.0**
+
+**Für die nächste Änderung beauftragt (27.09.2026):** Optionale Preise für Profile in €/m sowie Rollen und Füße in €/Stück erfassen und in der Stückliste als erste, unverbindliche Kostenschätzung berücksichtigen. Umsetzung als Z05 vor der Freigabe; hier zunächst dokumentiert, noch nicht implementiert.
 
 **Status: S02 / 0.2.0, S03 / 0.2.1 und S04 / 0.3.0 sind laut Benutzerprüfung vom 26.09.2026 in Fusion bestätigt. Auch S05 / 0.3.1 funktioniert laut Benutzerrückmeldung vom 26.09.2026. S06 / 0.4.0 läuft laut Benutzerprüfung vom 26.09.2026 ohne Fehler. Die Dialogverbesserungen sind als 0.4.1 implementiert; Fusion-Prüfung offen. S07 / 0.4.2 ist mit vereinfachten Winkelkörpern implementiert; Fusion-Prüfung offen. Die STEP-Erweiterung 0.4.3 funktioniert laut Benutzerrückmeldung vom 26.09.2026 in Fusion (108 lokale Tests zuvor erfolgreich). Die Eingabekorrektur 0.4.4 wurde am 26.09.2026 vom Benutzer in Fusion als behoben bestätigt (110 lokale Tests zuvor erfolgreich). S08 / 0.5.0 ist implementiert; der Benutzer meldete einen leeren Bearbeitungsdialog. Der Dialogaufbau aus 0.5.1 wurde vom Benutzer bestätigt. Die Vorschaukorrektur 0.5.2 blieb beim Benutzer wirkungslos. Auch 0.5.3 zeigte eine statische Vorschau. Die Korrektur 0.5.4 erzeugt alle Editorfelder vorab und trennt Grafikaktualisierung von Originalsichtbarkeit (133 lokale Tests); Fusion-Prüfung einschließlich Rückgängig offen. Der korrigierte Dialog und die Vorschau von 0.5.4 wurden inzwischen vom Benutzer bestätigt; die anschließende Historienbereinigung einschließlich Undo/Redo ist noch zu prüfen. S09 / 0.7.0: Zuschnittliste vom Benutzer als funktionsfähig bestätigt. S11 / 0.8.0: Vorlagen laut Benutzerrückmeldung vom 26.09.2026 funktionsfähig; Prüfung der Datensicherung offen. Weitere Schritte nur auf Benutzerauftrag starten.**
 
@@ -50,7 +52,8 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 | S10 | 0.7.2 | Vollständige Stückliste als CSV | S06, S07, S09 | In Fusion bestätigt |
 | S11 | 0.8.0 | Benannte Vorlagen und Datensicherung | S08 | Vorlagen in Fusion bestätigt; Datensicherung offen |
 | S12 | 0.9.0 | Installierbares Paket und durchgängiger Abnahmetest | S01–S11 | Paket implementiert; native Abnahme offen |
-| S13 | 1.0.0 | Freigabe des geprüften Grundumfangs | S12 | Geplant |
+| Z05 | 0.9.1 | Optionale Profil-/Zubehörpreise und Kostenschätzung in der Stückliste; nächste Änderung | S04, S06, S10, S11 | Geplant |
+| S13 | 1.0.0 | Freigabe des geprüften Grundumfangs | S12, Z05 | Geplant |
 
 ## Schritte und Optionen
 
@@ -184,6 +187,16 @@ Die Versionsnummern sind Vorschläge und dürfen vor der Umsetzung geändert wer
 - Installations-, Update-, Deinstallations- und Datensicherungsanleitung sowie Beispieldateien bereitstellen. Updates dürfen Benutzerdaten nicht überschreiben.
 - **Vorher festlegen:** Unterstützte Fusion-Versionen, tatsächlich zu prüfende Betriebssysteme und ZIP-Paket oder zusätzlicher Installer.
 - **Prüfung:** Alle Fälle aus dem Projektplan in Fusion durchgehen, einschließlich eigener DXF-Datei, gemischter Rollen, Bearbeitung und Exporte. Ergebnisse mit Umgebung und Datum dokumentieren.
+
+### Z05 · 0.9.1 – Preise und erste Kostenschätzung
+
+**Status: Geplant, für die nächste Änderung vorgesehen.** Benutzerauftrag vom 27.09.2026. Fachliche Regeln und Rechenbeispiel: [Stückliste – geplante Kostenschätzung](stueckliste.md#geplant-preise-und-erste-kostenschätzung-z05).
+
+- Optionale Preise in der Profilverwaltung (€/m) und bei Rollen/Füßen (€/Stück) eingeben und nachträglich bearbeiten können. Fehlende Preise bleiben zulässig; negative oder ungültige Werte abweisen.
+- Preisangaben mit Bibliotheksdefinitionen, gespeicherten Gestellen, Standardwerten, Vorlagen und Datensicherungen erhalten. Alte Daten ohne Preise bleiben lesbar; Bibliotheksänderungen ändern bestehende Gestelle nicht automatisch.
+- Stücklistenexport um Preisbasis, Einheitspreis, Positionskosten und Summe der bepreisten Positionen in EUR ergänzen. Profile nach tatsächlicher Zuschnittlänge und Menge, Rollen/Füße nach Stückzahl berechnen. Unterschiedliche Preisstände nicht unbemerkt zusammenfassen.
+- Fehlende Preise sichtbar kennzeichnen und die Summe bei unbepreisten Positionen als unvollständig ausweisen. Ausgabe ausdrücklich als erste, unverbindliche Kostenschätzung kennzeichnen; keine vollständigen Beschaffungskosten zusichern.
+- **Prüfung:** mm→m, mehrere Profiltypen und Längen, gemischte Rollen/Füße, fehlende Preise gegenüber explizit 0 €, Rundung, beide CSV-Formate sowie Speichern/Laden, Bearbeiten, Vorlagen und Sicherungen einschließlich Altdaten prüfen. In Fusion Eingabe und Export mit einem nachgerechneten Beispiel bestätigen.
 
 ### S13 · 1.0.0 – Freigabe
 

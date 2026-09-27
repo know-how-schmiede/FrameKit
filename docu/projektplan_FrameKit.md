@@ -62,6 +62,7 @@ Ein Profil besteht aus einer Querschnittsdatei und Metadaten:
 - Nutgröße und Außenmaße.
 - Einheit, Bezugspunkt und Ausrichtung.
 - Material.
+- Optionaler Preis in €/m für eine erste Kostenschätzung (Z05, nächste Änderung).
 - Zugeordnete kompatible Verbindungssätze.
 
 „Profil hinzufügen“ führt durch Dateiauswahl, Importprüfung und Metadateneingabe. Maßstab, geschlossene Konturen und Hohlräume werden geprüft. Ungeeignete Dateien werden mit verständlicher Begründung abgelehnt.
@@ -71,6 +72,8 @@ Verwendete Profildefinitionen sollen am Projekt nachvollziehbar bleiben, auch we
 ### Füße, Rollen und Verbindungen
 
 Zubehör erhält eigene Definitionen mit Bauhöhe, Montageposition, Befestigung und vereinfachter Geometrie.
+
+Für Rollen und Füße ist mit der nächsten Änderung (Z05) zusätzlich ein optionaler, bearbeitbarer Preis in €/Stück vorgesehen. Profilpreise werden in €/m hinterlegt. Die Preise bleiben mit den gespeicherten Definitionen nachvollziehbar; vorhandene Daten ohne Preis bleiben gültig.
 
 Unterstützte Kategorien:
 
@@ -179,6 +182,8 @@ Die Zuschnittliste gruppiert gleiche Profile nach eindeutiger Profildefinition, 
 - Zugehörige Bauteil-IDs.
 
 Die Stückliste enthält zusätzlich Bodenplatten, Füße, Rollen und definierte Verbindungssätze.
+
+**Nächste Änderung – Preise und Kostenschätzung (Z05):** Die Stückliste einschließlich CSV soll Einheitspreise, Preisbasis, Positionskosten und die Summe der bepreisten Positionen in EUR ausweisen. Profilkosten ergeben sich aus Zuschnittlänge in Metern × Stückzahl × €/m; Rollen und Füße aus Stückzahl × €/Stück. Fehlende Preise werden sichtbar gekennzeichnet und nicht als 0 € gerechnet. Die Ausgabe ist ausdrücklich eine erste, unverbindliche Kostenschätzung und bei unbepreisten Positionen unvollständig. Details zu Rundung, Preisständen und ausgeschlossenen Zusatzkosten stehen in der [Stücklistendokumentation](stueckliste.md#geplant-preise-und-erste-kostenschätzung-z05).
 
 Verbindungsteile werden nur vollständig ausgewiesen, wenn konkrete Montage- und Mengenregeln hinterlegt sind. Fehlende Zuordnungen werden sichtbar gekennzeichnet.
 
